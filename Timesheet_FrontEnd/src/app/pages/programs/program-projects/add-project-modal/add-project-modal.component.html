@@ -1,0 +1,107 @@
+<h2 mat-dialog-title class="modal-header">
+  <strong>{{ isEditMode ? 'Modifier un projet' : 'Ajouter un projet au programme' }}</strong>
+</h2>
+
+<mat-dialog-content class="modal-content">
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-content-overlay">
+      <div class="loading-spinner-large"></div>
+      <p class="loading-text">{{ isEditMode ? 'Modification en cours...' : 'Ajout en cours...' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="addProjectForm" class="form-container" [class.form-loading]="isLoading">
+    <!-- Project Name -->
+    <div class="form-group">
+      <label>Nom du projet</label>
+      <div class="input-container">
+        <input
+          class="form-input"
+          type="text"
+          formControlName="name"
+          placeholder="Entrez le nom du projet"
+        />
+        <div class="error-container" *ngIf="addProjectForm.get('name')?.touched">
+          <div class="error-message" *ngIf="addProjectForm.get('name')?.hasError('required')">
+            ⚠️ Le nom du projet est obligatoire
+          </div>
+          <div class="error-message" *ngIf="addProjectForm.get('name')?.hasError('onlyLettersNumbersSpacesAndSpecialChars')">
+            ⚠️ Seules les lettres et les caractères spéciaux sont autorisés
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Description -->
+    <div class="form-group">
+      <label>Description</label>
+      <div class="input-container">
+        <textarea
+          class="form-input"
+          formControlName="description"
+          placeholder="Décrivez les objectifs du projet"
+          rows="4"
+        ></textarea>
+        <div class="error-container" *ngIf="addProjectForm.get('description')?.touched">
+          <div class="error-message" *ngIf="addProjectForm.get('description')?.hasError('required')">
+            ⚠️ Une description est obligatoire
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Manager Selection -->
+    <div class="form-group">
+      <label>Chef de projet</label>
+      <div class="input-container">
+        <input
+          class="form-input"
+          type="text"
+          [formControl]="myControl"
+          placeholder="Sélectionnez un chef de projet"
+          [matAutocomplete]="auto"
+        />
+        <mat-autocomplete
+          #auto="matAutocomplete"
+          [displayWith]="displayProfileName"
+          class="custom-autocomplete"
+        >
+          <mat-option
+            *ngFor="let option of filteredOptions | async"
+            [value]="option"
+            (onSelectionChange)="onOptionSelected(option)"
+            [ngClass]="{'special-item': option.id === 'special-item'}"
+          >
+            <div class="profile-option" *ngIf="option.id !== 'special-item'; else specialOptionTemplate">
+              <img
+                [src]="option.image ? 'data:image/jpg;base64,' + option.image : '../../../assets/imgholder.jpg'"
+                [alt]="option.firstname + ' ' + option.lastname"
+                class="profile-image"
+              />
+              <span>{{ option.firstname }} {{ option.lastname }}</span>
+            </div>
+            <ng-template #specialOptionTemplate>
+              <div class="special-item-text">{{ option.firstname }} {{ option.lastname }}</div>
+            </ng-template>
+          </mat-option>
+        </mat-autocomplete>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<div mat-dialog-actions class="modal-footer">
+  <button class="btn btn-cancel" (click)="onCancel()">Annuler</button>
+  <button
+    class="btn btn-submit"
+    (click)="onSubmit()"
+    [disabled]="!addProjectForm.valid || isLoading"
+  >
+    <span *ngIf="!isLoading">{{ isEditMode ? 'Modifier' : 'Ajouter' }}</span>
+    <span *ngIf="isLoading" class="loading-content">
+      <span class="loading-spinner"></span>
+      {{ isEditMode ? 'Modification...' : 'Ajout...' }}
+    </span>
+  </button>
+</div>

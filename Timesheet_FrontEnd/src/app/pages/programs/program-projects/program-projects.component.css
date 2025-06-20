@@ -1,0 +1,415 @@
+
+
+/* Header Section */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #333333;
+  margin: 0;
+}
+
+/* Add Project Button */
+.custom-buttonn {
+  background: linear-gradient(135deg, #ffe600 0%, #ffd700 100%) !important;
+  color: #2e2e38 !important;
+  padding: 0 28px !important;
+  height: 48px !important;
+  border-radius: 24px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 4px 16px rgba(255, 230, 0, 0.3) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  margin-bottom: 1rem;
+  border: 2px solid transparent !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.custom-buttonn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.custom-buttonn:hover::before {
+  left: 100%;
+}
+
+.custom-buttonn:hover {
+  background: linear-gradient(135deg, #ffd700 0%, #ffcc00 100%) !important;
+  box-shadow: 0 8px 24px rgba(255, 230, 0, 0.4) !important;
+  transform: translateY(-3px) scale(1.02);
+  border-color: rgba(255, 230, 0, 0.5) !important;
+}
+
+.custom-buttonn:active {
+  transform: translateY(-1px) scale(0.98);
+  box-shadow: 0 4px 12px rgba(255, 230, 0, 0.3) !important;
+}
+
+.custom-buttonn mat-icon {
+  margin-right: 8px !important;
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Stats Cards */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-bottom: 2rem;
+}
+
+.stats-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.stats-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #ffe600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stats-icon.consumed {
+  background: #333333;
+}
+
+.stats-icon mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: #333333;
+}
+
+.stats-icon.consumed mat-icon {
+  color: white;
+}
+
+.stats-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stats-label {
+  font-size: 0.875rem;
+  color: #999999;
+}
+
+.stats-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333333;
+}
+
+/* Project Manager Section */
+.chef-program-details {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #333333;
+  margin: 0 0 16px 0;
+}
+
+.chef-program-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.chef-program-image {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffe600;
+  transition: all 0.3s ease;
+}
+
+.chef-program-image:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 230, 0, 0.2);
+}
+
+.chef-program-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chef-program-info p {
+  margin: 0;
+  font-size: 1rem;
+  color: #333333;
+}
+
+/* Table Styles */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.profiles-table {
+  width: 100%;
+}
+
+/* Profile Image Styles */
+.profile-image-container {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.profile-image:hover {
+  transform: scale(1.1);
+}
+
+/* Name Cell Styles */
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.full-name {
+  font-weight: 500;
+  color: #2e2e38;
+}
+
+/* Function Badge Styles */
+.function-badge {
+  display: inline-block;
+  background: #f0f0f0;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  color: #2e2e38;
+}
+
+/* Progress Bar Styles */
+.progress-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-value {
+  font-weight: 500;
+}
+
+.progress-bar {
+  height: 4px;
+  background: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #ffe600;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Action Buttons */
+.action-button,
+.edit-button,
+.delete-button {
+  transition: all 0.3s ease;
+}
+
+.action-button {
+  color: #ffe600;
+}
+
+.edit-button {
+  color: #2e2e38;
+}
+
+.delete-button {
+  color: #dc3545;
+}
+
+.action-button:hover,
+.edit-button:hover,
+.delete-button:hover {
+  transform: scale(1.1);
+}
+
+/* Rate and Budget Values */
+.rate-value,
+.budget-cell {
+  font-weight: 500;
+  color: #2e2e38;
+}
+
+/* No Data Message */
+.no-data-cell {
+  padding: 48px !important;
+}
+
+.no-data-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #666;
+}
+
+.no-data-message mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+/* No Projects Styles */
+.no-projects-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 24px 0;
+}
+
+.no-projects-content {
+  text-align: center;
+  max-width: 400px;
+  padding: 48px 24px;
+}
+
+.no-projects-icon {
+  margin-bottom: 24px;
+}
+
+.no-projects-icon mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #ffe600;
+  opacity: 0.8;
+}
+
+.no-projects-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333333;
+  margin: 0 0 16px 0;
+}
+
+.no-projects-description {
+  font-size: 1rem;
+  color: #666666;
+  line-height: 1.6;
+  margin: 0 0 32px 0;
+}
+
+.no-projects-container .custom-buttonn {
+  margin: 0;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(255, 230, 0, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(255, 230, 0, 0.5);
+    transform: scale(1.02);
+  }
+}
+
+/* Custom Paginator */
+::ng-deep .custom-paginator {
+  border-top: 1px solid #f0f0f0;
+}
+
+::ng-deep .custom-paginator .mat-mdc-paginator-container {
+  min-height: 56px;
+  padding: 0 24px;
+}
+
+::ng-deep .custom-paginator .mat-mdc-paginator-page-size-select {
+  margin: 0 4px 0 8px;
+  width: 56px;
+}
+
+/* Table Row Hover */
+.table-row {
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background-color: #f8f8f8;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .action-container {
+    flex-direction: column;
+  }
+
+  .custom-button {
+    width: 100%;
+  }
+}
+

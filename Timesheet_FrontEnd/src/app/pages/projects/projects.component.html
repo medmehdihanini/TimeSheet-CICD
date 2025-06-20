@@ -1,0 +1,205 @@
+<div class="project-container">
+  <!-- Full page loading overlay with improved animation -->
+  <div class="page-loading-overlay" *ngIf="isLoading" [ngClass]="{'hide': !isLoading}">
+    <div class="loader-container">
+      <div class="loader"></div>
+      <p class="loading-text">Chargement des données...</p>
+    </div>
+  </div>
+
+  <!-- Header section with timesheet-table design -->
+  <div class="header-container">
+    <!-- Profile Section -->
+    <div class="profile-section">
+      <div class="profile-image">
+        <img
+          *ngIf="project?.program?.chefprogram?.image"
+          [src]="'data:image/jpg;base64,' + project?.program?.chefprogram?.image"
+          alt="Program Manager Image"
+        />
+        <img
+          *ngIf="!project?.program?.chefprogram?.image"
+          src="/assets/imgholder.jpg"
+          alt="Placeholder Image"
+        />
+      </div>
+      <div class="profile-info">
+        <h2>{{ project?.program?.chefprogram?.firstname }} {{ project?.program?.chefprogram?.lastname }}</h2>
+        <div class="profile-details">
+          <span>Chef de Programme</span>
+          <span class="department">{{ project?.program?.chefprogram?.departement }}</span>
+        </div>
+        <div class="budget-info">
+          <div class="budget-item">
+            <span>Programme:</span>
+            <strong>{{ project?.program?.name }}</strong>
+          </div>
+          <div class="budget-item">
+            <span>Status:</span>
+            <strong>{{ project?.status }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Section -->
+    <div class="project-section">
+      <h1 class="project-title" (click)="goToDetailedStats()">{{ project?.name }}</h1>
+      <div class="hours-badge">
+
+        {{ project?.description }}
+      </div>
+    </div>
+
+    <!-- Actions Section -->
+    <div class="actions-section">
+      <!-- Chef de Projet Section -->
+      <div class="chef-project-section">
+        <div class="section-title">Chef de projet</div>
+        <div *ngIf="project?.chefprojet" class="chef-project-info">
+          <img [src]="project.chefprojet.image ? 'data:image/png;base64,' + project.chefprojet.image : '/assets/imgholder.jpg'"
+            alt="Chef Project Image" class="chef-project-image">
+          <div class="chef-project-details">
+            <div class="chef-project-name">{{ project?.chefprojet?.firstname }} {{ project?.chefprojet?.lastname }}</div>
+          </div>
+        </div>
+        <div *ngIf="!project?.chefprojet" class="no-chef-message">
+          Aucun chef de projet assigné
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="action-btn stats-btn" (click)="goToDetailedStats()">
+          <i class="material-icons">bar_chart</i>
+          <span>Statistiques</span>
+        </button>
+        <button class="action-btn facture-btn" (click)="openFactureDateModal()" matTooltip="Générer la facture du projet">
+          <i class="material-icons">receipt</i>
+          <span>Facture Projet</span>
+        </button>
+        <button
+          *ngIf="connecteduser.email === project?.program.chefprogram.email && !project?.chefprojet"
+          class="action-btn assign-btn"
+          (click)="openProfileModal()">
+          <i class="material-icons">person_add</i>
+          <span>Assigner Chef</span>
+        </button>
+      </div>
+
+      <!-- Program Link -->
+      <div class="program-link-section">
+        <button class="action-btn program-btn" (click)="goToProgramDetails(project?.program.idprog)">
+          <i class="material-icons">launch</i>
+          <span>Voir Programme</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content section -->
+  <div class="main-content">
+    <!-- Profiles section -->
+    <section class="profiles-section">
+      <div class="section-header">
+        <h2 class="section-title">Profils du projet</h2>
+        <div class="search-field">
+          <i class="fas fa-search search-icon"></i>
+          <input
+            type="text"
+            placeholder="Filtrer les profils..."
+            (keyup)="applyFilter($event)"
+            #input>
+        </div>
+      </div>
+
+      <div class="profiles-table-container">
+        <!-- Loading indicator for profiles -->
+        <div class="loading-container" *ngIf="isProfilesLoading">
+          <div class="loader"></div>
+        </div>
+
+        <!-- Profiles table with pagination integration -->
+        <div class="table-container" *ngIf="!isProfilesLoading">
+          <table class="profiles-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Prénom</th>
+                <th>Fonction</th>
+                <th>Budget J/H</th>
+                <th>J/H Consommé</th>
+                <th>Timesheet</th>
+                <th>Statistiques</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Use paginated data from helper method -->
+              <tr *ngFor="let row of getPagedData()">
+                <td>
+                  <img *ngIf="row.image" [src]="'data:image/jpg;base64,' + row.image" alt="Profile Image" class="profile-image">
+                  <img *ngIf="!row.image" src="/assets/imgholder.jpg" alt="Fallback Image" class="profile-image">
+                </td>
+                <td>{{row.firstname}} {{row.lastname}}</td>
+                <td>{{row.function}}</td>
+                <td>{{row.mandaybudget}}</td>
+                <td>{{row.progress}}</td>
+                <td>
+                  <button class="action-button timesheet-button" (click)="goToProfileTimesheet(row.idprofile)" title="Consulter le timesheet">
+                    <i class="fas fa-calendar-check"></i>
+                  </button>
+                </td>
+                <td>
+                  <button class="action-button stats-action-button" (click)="viewStats(row.idprofile)" title="Voir les statistiques détaillées">
+                    <i class="fas fa-chart-pie"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="dataSource?.filteredData?.length === 0">
+                <td colspan="7" class="no-data-message">
+                  {{getNoDataMessage()}}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div class="pagination-container">
+          <mat-paginator
+            [pageSizeOptions]="[5, 10, 25]"
+            [pageSize]="5"
+            [length]="dataSource.filteredData ? dataSource.filteredData.length : 0"
+            (page)="handlePageEvent($event)"
+            showFirstLastButtons
+            aria-label="Sélectionner page des profiles">
+          </mat-paginator>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timesheets section -->
+    <section class="timesheets-section">
+      <div class="timesheets-card">
+        <div class="section-title dropdown-header" (click)="togglePanelState()">
+          <div class="title-content">
+            <i class="fas fa-calendar"></i>
+            <span>Timesheets</span>
+          </div>
+          <div class="dropdown-indicator">
+            <i class="fas" [ngClass]="panelOpenState() ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            <span class="indicator-text">{{panelOpenState() ? 'Masquer' : 'Afficher'}}</span>
+          </div>
+        </div>
+        <div class="timesheets-list" [ngClass]="{'expanded': panelOpenState()}">
+          <div *ngFor="let item of timesheetTypes"
+              class="timesheet-item"
+              (click)="navigateToTimesheets(item)">
+            <i class="fas fa-file-alt timesheet-icon"></i>
+            <span>{{item}}</span>
+            <i class="fas fa-chevron-right arrow-icon"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

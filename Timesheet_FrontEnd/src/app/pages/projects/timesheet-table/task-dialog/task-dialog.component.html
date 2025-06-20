@@ -1,0 +1,222 @@
+<h2 mat-dialog-title class="modal-header">
+  <strong>{{ isUpdateMode ? 'Mettre à jour l\'activité' : 'Ajouter une activité' }}</strong>
+</h2>
+
+<mat-dialog-content class="modal-content">
+  <form [formGroup]="addTaskForm" class="form-container">
+    <!-- Row 1: Date, Nombre de jours, Lieu de travail -->
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label>Date</label>
+        <div class="input-container">
+          <input
+            class="form-input"
+            type="text"
+            formControlName="datte"
+            [readonly]="true"
+          />
+          <div class="error-container" *ngIf="addTaskForm.get('datte')?.touched">
+            <div class="error-message" *ngIf="addTaskForm.get('datte')?.hasError('required')">
+              ⚠️ Date obligatoire
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group flex-1">
+        <label>Nombre de jours</label>
+        <div class="input-container">
+          <select class="form-input" formControlName="nbJour">
+            <option value="">Sélectionnez</option>
+            <option value="0.5">0.5 Jour</option>
+            <option value="1" [disabled]="duplicated">1 Jour</option>
+          </select>
+          <div class="error-container" *ngIf="addTaskForm.get('nbJour')?.touched">
+            <div class="error-message" *ngIf="addTaskForm.get('nbJour')?.hasError('required')">
+              ⚠️ Nombre obligatoire
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group flex-1">
+        <label>Lieu de travail</label>
+        <div class="input-container">
+          <select class="form-input" formControlName="workPlace">
+            <option value="">Sélectionnez</option>
+            <option value="EY">EY</option>
+            <option value="Chez le client">Chez le client</option>
+          </select>
+          <div class="error-container" *ngIf="addTaskForm.get('workPlace')?.touched">
+            <div class="error-message" *ngIf="addTaskForm.get('workPlace')?.hasError('required')">
+              ⚠️ Lieu requis
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task Description Field -->
+    <div class="form-group">
+      <label class="main-label">Travaux réalisés</label>
+
+      <!-- Input Mode Toggle -->
+      <div class="input-mode-toggle">
+        <button
+          type="button"
+          class="mode-btn"
+          [class.active]="inputMode === 'manual'"
+          (click)="onInputModeChange('manual')">
+          <mat-icon>edit</mat-icon>
+          Saisie libre
+        </button>
+        <button
+          type="button"
+          class="mode-btn"
+          [class.active]="inputMode === 'dictionary'"
+          (click)="onInputModeChange('dictionary')">
+          <mat-icon>list</mat-icon>
+          Dictionnaire
+        </button>
+      </div>
+
+      <!-- Manual Input Mode -->
+      <div class="input-container" *ngIf="inputMode === 'manual'">
+        <textarea
+          class="form-input"
+          formControlName="text"
+          placeholder="Décrivez les tâches accomplies"
+          rows="4"
+        ></textarea>
+        <div class="error-container" *ngIf="addTaskForm.get('text')?.touched">
+          <div class="error-message" *ngIf="addTaskForm.get('text')?.hasError('required')">
+            ⚠️ Les tâches accomplies sont obligatoires
+          </div>
+        </div>
+      </div>
+
+      <!-- Dictionary Mode -->
+      <div class="dictionary-container" *ngIf="inputMode === 'dictionary'">
+        <!-- Category and Activity Selection - Compact Row -->
+        <div class="dictionary-header">
+          <!-- Category Selection -->
+          <div class="category-section">
+            <label>Catégorie</label>
+            <select
+              class="form-input compact"
+              formControlName="selectedCategory">
+              <option [ngValue]="null">Sélectionnez une catégorie</option>
+              <option *ngFor="let category of categories" [ngValue]="category">
+                {{category.name}}
+              </option>
+            </select>
+          </div>
+
+          <!-- Quick Add Activity Button -->
+          <div class="activity-quick-section" *ngIf="selectedCategory">
+            <button
+              type="button"
+              class="quick-add-btn"
+              [class.active]="isAddingActivity"
+              (click)="toggleAddActivity()"
+              matTooltip="Ajouter une nouvelle activité">
+              <mat-icon>{{isAddingActivity ? 'close' : 'add'}}</mat-icon>
+              <span>{{isAddingActivity ? 'Annuler' : 'Nouvelle activité'}}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Add New Activity Form -->
+        <div class="add-activity-form" *ngIf="isAddingActivity">
+          <div class="add-activity-input">
+            <input
+              type="text"
+              class="form-input"
+              formControlName="newActivityDescription"
+              placeholder="Description de la nouvelle activité"
+              (keyup.enter)="addNewActivity()">
+            <button
+              type="button"
+              class="submit-activity-btn"
+              (click)="addNewActivity()"
+              [disabled]="!addTaskForm.get('newActivityDescription')?.value?.trim()">
+              <mat-icon>check</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Activity List Section - Compact -->
+        <div class="activity-list-section" *ngIf="selectedCategory && !isAddingActivity">
+          <!-- Loading State -->
+          <div class="loading-activities" *ngIf="isLoadingActivities">
+            <mat-icon>hourglass_empty</mat-icon>
+            <span>Chargement...</span>
+          </div>
+
+          <!-- Activity List -->
+          <div class="activity-list compact" *ngIf="!isLoadingActivities && activities.length > 0">
+            <div class="activity-instruction">
+              <mat-icon>info</mat-icon>
+              <span>Double-cliquez pour sélectionner</span>
+            </div>
+            <div class="activity-items">
+              <div class="activity-item"
+                   *ngFor="let activity of activities"
+                   [title]="'Double-cliquez pour sélectionner: ' + activity.description">
+                <div class="activity-description" (dblclick)="onActivitySelected(activity)">{{activity.description}}</div>
+                <button class="delete-activity-btn"
+                        (click)="deleteActivity(activity)"
+                        [title]="'Supprimer cette activité'"
+                        type="button">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Activities Message -->
+          <div class="no-activities compact" *ngIf="!isLoadingActivities && activities.length === 0">
+            <mat-icon>inbox</mat-icon>
+            <p>Aucune activité pour "{{selectedCategory.name}}"</p>
+            <button type="button" class="btn-add-first" (click)="toggleAddActivity()">
+              <mat-icon>add</mat-icon>
+              Ajouter une activité
+            </button>
+          </div>
+        </div>
+
+        <!-- Final Description - Compact -->
+        <div class="final-description compact">
+          <label>Description finale</label>
+          <textarea
+            class="form-input compact"
+            formControlName="text"
+            placeholder="Description automatiquement remplie ou modifiable"
+            rows="2"
+          ></textarea>
+          <div class="error-container" *ngIf="addTaskForm.get('text')?.touched">
+            <div class="error-message" *ngIf="addTaskForm.get('text')?.hasError('required')">
+              ⚠️ Description obligatoire
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<div mat-dialog-actions class="modal-footer">
+  <button class="btn btn-delete" (click)="onDeleteTask()" *ngIf="isUpdateMode">
+    🗑️ Supprimer
+  </button>
+  <div class="action-buttons">
+    <button class="btn btn-cancel" (click)="onCancel()">Annuler</button>
+    <button
+      class="btn btn-submit"
+      (click)="onSubmit()"
+      [disabled]="!addTaskForm.valid"
+    >
+      {{ isUpdateMode ? 'Mettre à jour' : 'Ajouter' }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,290 @@
+<div class="stats-container">
+  <div class="header-card" *ngIf="!stats">
+    <div class="header-content">
+      <div class="header-left">
+        <button mat-icon-button (click)="goBack()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="program-title">
+          <span class="subtitle">Programme</span>
+          <h1>Chargement...</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-card" *ngIf="stats">
+    <div class="header-content">
+      <div class="header-left">
+        <button mat-icon-button (click)="goBack()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="program-title">
+          <span class="subtitle">Programme</span>
+          <h1>{{stats.programName}}</h1>
+          <div class="status-badge" [ngClass]="'status-' + stats.programStatus.toLowerCase()">
+            <span class="status-dot"></span>
+            <span>{{stats.programStatus}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="profile-card">
+        <div class="profile-info">
+          <h2>{{stats.profileName}}</h2>
+          <div class="profile-details">
+            <span class="function-badge">{{stats.function}}</span>
+            <span class="email"><mat-icon>email</mat-icon>{{stats.profileEmail}}</span>
+            <button mat-raised-button color="primary" class="view-tasks-btn"
+                    [routerLink]="['/programs/profile-tasks', programId, profileId]">
+              <mat-icon>assignment</mat-icon> Voir les tâches
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-error-container" *ngIf="loading || error">
+    <div *ngIf="loading" class="loading">
+      <p>Chargement des statistiques...</p>
+    </div>
+    <div *ngIf="error" class="error">
+      <p>Erreur lors du chargement des statistiques. Veuillez réessayer.</p>
+      <button mat-raised-button color="primary" (click)="loadStats()">Réessayer</button>
+    </div>
+  </div>
+
+  <div class="stats-content" *ngIf="!loading && !error && stats">
+    <mat-card class="program-info-card">
+      <mat-card-header>
+        <mat-card-title>Information du Programme</mat-card-title>
+        <mat-card-subtitle>Statut: <span [ngClass]="'status-' + stats.programStatus.toLowerCase()">{{stats.programStatus}}</span></mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{stats.totalManDayBudget}}</div>
+            <div class="stat-label">J/H Total</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{stats.consumedManDayBudget}}</div>
+            <div class="stat-label">J/H Consommé</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{stats.remainingManDayBudget}}</div>
+            <div class="stat-label">J/H Restant</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{stats.usagePercentage | number:'1.1-1'}}%</div>
+            <div class="stat-label">Taux d'utilisation</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Budget Financier and Répartition du Budget par Projet side by side -->
+    <div class="charts-row">
+      <div class="chart-wrapper financial-chart-wrapper">
+        <mat-card class="chart-card financial-chart-card">
+          <mat-card-header>
+            <mat-card-title>Budget Financier</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-financial-layout compact">
+              <div class="chart-container compact-chart">
+                <canvas #financialChart></canvas>
+              </div>
+              <div class="financial-details-container compact-details">
+                <div class="financial-item">
+                  <div class="financial-label">Taux Journalier</div>
+                  <div class="financial-value">{{stats.dailyRate | number:'1.2-2'}} TND</div>
+                </div>
+                <mat-divider></mat-divider>
+                <div class="financial-item">
+                  <div class="financial-label">Budget Total</div>
+                  <div class="financial-value">{{stats.totalBudgetAmount | number:'1.2-2'}} TND</div>
+                </div>
+                <div class="financial-item consumed-item">
+                  <div class="financial-label">Budget Consommé</div>
+                  <div class="financial-value consumed-value">{{stats.consumedBudgetAmount | number:'1.2-2'}} TND</div>
+                </div>
+                <div class="financial-item remaining-item">
+                  <div class="financial-label">Budget Restant</div>
+                  <div class="financial-value remaining-value">{{stats.remainingBudgetAmount | number:'1.2-2'}} TND</div>
+                </div>
+              </div>
+            </div>
+            <div class="color-indicators compact-indicators">
+              <div class="color-indicator consumed">
+                <div class="indicator-color" style="background-color: #ffe600;"></div>
+                <div class="indicator-text">
+                  <span class="indicator-label">Consommé:</span>
+                  <span class="indicator-value consumed">{{stats.consumedBudgetAmount | number:'1.2-2'}} TND</span>
+                </div>
+              </div>
+              <div class="color-indicator remaining">
+                <div class="indicator-color" style="background-color: #333333;"></div>
+                <div class="indicator-text">
+                  <span class="indicator-label">Restant:</span>
+                  <span class="indicator-value remaining">{{stats.remainingBudgetAmount | number:'1.2-2'}} TND</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="chart-wrapper" *ngIf="stats && stats.projectsFinancialStats && stats.projectsFinancialStats.length > 0">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Répartition du Budget par Projet</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="budget-distribution-container">
+              <ng-container *ngIf="stats && stats.projectsFinancialStats && stats.projectsFinancialStats.length > 0">
+                <div class="budget-distribution-list">
+                  <div *ngFor="let project of stats.projectsFinancialStats"
+                      class="budget-distribution-item"
+                      (click)="scrollToProject(project.projectId)"
+                      [id]="'budget-item-' + project.projectId">
+                    <div class="project-budget-indicator"
+                        [style.background-color]="getBudgetIndicatorColor(project.projectId)"></div>
+                    <div class="project-budget-name">{{project.projectName}}</div>
+                    <div class="project-budget-amount">
+                      <span class="project-budget-value">{{project.projectTotalBudgetAmount | number:'1.3-3'}} TND</span>
+                      <span class="project-budget-percentage">({{calculateBudgetPercentage(project.projectTotalBudgetAmount) | number:'1.1-1'}}%)</span>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+              <div *ngIf="!(stats && stats.projectsFinancialStats && stats.projectsFinancialStats.length > 0)" class="no-projects-message">
+                Aucun projet n'est associé à ce programme
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Comparaison des Budgets J/H in separate row below -->
+    <div class="charts-row" *ngIf="stats && stats.projectsFinancialStats && stats.projectsFinancialStats.length > 0">
+      <div class="chart-wrapper full-width">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Comparaison des Budgets J/H</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="projects-comparison-chart-container">
+              <canvas #projectsComparisonChart></canvas>
+            </div>
+            <div *ngIf="stats && stats.projectsFinancialStats && stats.projectsFinancialStats.length > 15" class="chart-note">
+              <mat-icon>info_outline</mat-icon>
+              <span>Affichage limité aux 15 projets avec le budget le plus important</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Projects Section with updated icon -->
+    <section class="projects-section" *ngIf="stats && stats.projectsFinancialStats && stats.projectsFinancialStats.length > 0">
+      <h2 class="projects-heading">
+        <mat-icon>account_tree</mat-icon>
+        Projets associés au programme ({{stats.projectsFinancialStats.length}})
+      </h2>
+
+      <div *ngFor="let project of stats.projectsFinancialStats">
+        <mat-card class="project-card" [ngClass]="project.projectStatus.toLowerCase()" [id]="'project-card-' + project.projectId">
+          <div class="project-header">
+            <div class="project-title-section">
+              <div class="project-icon">
+                <mat-icon>business_center</mat-icon>
+              </div>
+              <div>
+                <h3>{{project.projectName}}</h3>
+                <div class="status-badge" [ngClass]="'status-' + project.projectStatus.toLowerCase()">
+                  <span class="status-dot"></span>
+                  <span>{{project.projectStatus}}</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <button mat-button color="primary" [routerLink]="['/project-stats', profileId, project.projectId]">
+                <mat-icon>bar_chart</mat-icon> Détails
+              </button>
+
+            </div>
+          </div>
+
+          <p class="project-description" *ngIf="project.projectDescription">{{project.projectDescription}}</p>
+
+          <div class="project-stats-grid">
+            <div class="project-stats-item">
+              <span class="project-stat-label">Budget Total</span>
+              <span class="project-stat-value">{{project.projectManDayBudget}} J/H</span>
+            </div>
+            <div class="project-stats-item">
+              <span class="project-stat-label">Budget Consommé</span>
+              <span class="project-stat-value yellow">{{project.projectConsumedManDayBudget}} J/H</span>
+            </div>
+            <div class="project-stats-item">
+              <span class="project-stat-label">Budget Restant</span>
+              <span class="project-stat-value dark">{{project.projectRemainingManDayBudget}} J/H</span>
+            </div>
+            <div class="project-stats-item">
+              <span class="project-stat-label">Budget Total</span>
+              <span class="project-stat-value">{{project.projectTotalBudgetAmount | number:'1.3-3'}} TND</span>
+            </div>
+            <div class="project-stats-item">
+              <span class="project-stat-label">Budget Consommé</span>
+              <span class="project-stat-value yellow">{{project.projectConsumedBudgetAmount | number:'1.3-3'}} TND</span>
+            </div>
+            <div class="project-stats-item">
+              <span class="project-stat-label">Budget Restant</span>
+              <span class="project-stat-value dark">{{project.projectRemainingBudgetAmount | number:'1.3-3'}} TND</span>
+            </div>
+          </div>
+
+          <div class="project-chart-container">
+            <canvas [id]="'projectChart_' + project.projectId"></canvas>
+          </div>
+
+          <div class="project-progress">
+            <span>Progress: {{project.projectUsagePercentage | number:'1.1-1'}}%</span>
+            <div class="project-progress-bar">
+              <div class="project-progress-fill"
+                   [style.width.%]="project.projectUsagePercentage"
+                   [style.background-color]="getProgressBarColor(project.projectUsagePercentage)"></div>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </section>
+
+    <div class="no-projects" *ngIf="!(stats && stats.projectsFinancialStats && stats.projectsFinancialStats.length > 0)">
+      <mat-icon>folder_off</mat-icon>
+      <p>Aucun projet n'est associé à ce programme</p>
+    </div>
+
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-card-title>Résumé</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="summary-content">
+          <div class="summary-icon">
+            <mat-icon>analytics</mat-icon>
+          </div>
+          <div class="summary-text">
+            <p>Le programme <strong>{{stats.programName}}</strong> a un budget total de <strong>{{stats.totalManDayBudget}} jours/homme</strong>,
+               équivalent à <strong>{{stats.totalBudgetAmount | number:'1.2-2'}} TND</strong>.</p>
+            <p>Actuellement, <strong>{{stats.consumedManDayBudget}} jours/homme</strong> ont été consommés,
+               représentant <strong>{{stats.usagePercentage | number:'1.1-1'}}%</strong> du budget total.</p>
+            <p>Le budget restant est de <strong>{{stats.remainingManDayBudget}} jours/homme</strong>,
+               soit <strong>{{stats.remainingBudgetAmount | number:'1.2-2'}} TND</strong>.</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

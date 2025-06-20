@@ -1,0 +1,416 @@
+<div class="verification-container" [ngClass]="{'loading-container': isInitialLoading}">
+  <!-- Initial Loading Overlay - Shown when the component is first loading -->
+  <div class="loading-overlay" *ngIf="isInitialLoading">
+    <mat-spinner diameter="60" color="accent"></mat-spinner>
+    <div class="loading-message">Chargement des données du timesheet</div>
+    <div class="loading-submessage">Préparation de la vérification des activités...</div>
+  </div>
+
+  <!-- Processing Overlay - Shown when the form is being submitted -->
+  <div class="processing-overlay" *ngIf="isSubmitting">
+    <div class="processing-content">
+      <mat-spinner diameter="50" class="processing-spinner"></mat-spinner>
+      <div class="loading-message">Traitement en cours</div>
+      <div class="loading-submessage">Vos données sont en cours de traitement. Veuillez patienter...</div>
+    </div>
+  </div>
+
+  <!-- Profile information display at top of page -->
+  <div class="profile-info-banner" *ngIf="profileData">
+    <div class="profile-avatar">
+      <div class="profile-image" *ngIf="profileImageUrl">
+        <img [src]="profileImageUrl" alt="Profile Image">
+      </div>
+
+    </div>
+    <div class="profile-details">
+      <h2 class="profile-name">{{profileData.firstname}} {{profileData.lastname}}</h2>
+      <div class="profile-metadata">
+        <span class="profile-email">{{profileData.email}}</span>
+        <span class="profile-separator" *ngIf="profileData.departement">•</span>
+        <span class="profile-department" *ngIf="profileData.departement">{{profileData.departement}}</span>
+        <span class="profile-separator" *ngIf="profileData.pfunction">•</span>
+        <span class="profile-role" *ngIf="profileData.pfunction">{{profileData.pfunction}}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="verification-header">
+    <div class="header-left">
+      <mat-icon class="header-icon">event_note</mat-icon>
+      <h1 class="header-title">Vérification du Timesheet</h1>
+    </div>
+    <div class="month-year-filters">
+      <div class="month-year-selector">
+        <mat-form-field appearance="fill" class="month-select">
+          <mat-select [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange()" panelClass="month-dropdown">
+            <mat-option *ngFor="let month of months" [value]="month">{{ month }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <span class="year-separator">/</span>
+        <mat-form-field appearance="fill" class="year-select">
+          <mat-select [(ngModel)]="selectedYear" (ngModelChange)="onYearChange()" panelClass="year-dropdown">
+            <mat-option *ngFor="let year of years" [value]="year">{{ year }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+    <div class="total-counter">
+      <div class="total-badge">
+        <span class="total-text">Total Jours:</span>
+        <span class="total-value">{{ getTotalDays() | number:'1.1-1' }}</span>
+      </div>
+    </div>
+  </div>
+  <!-- Enhanced Info Message Section with attention markers -->
+  <div class="important-info-container">
+    <div class="month-year-info">
+      <div class="info-icon-container">
+        <mat-icon>priority_high</mat-icon>
+      </div>
+      <div class="info-text">
+        <div class="info-title">Important à savoir</div>
+        <span>Si vous ajoutez des activités pour un autre mois, veuillez sélectionner l'année et le mois pour vérifier si vous avez d'autres activités ce jour-là.</span>
+      </div>
+      <div class="attention-marker">!</div>
+    </div>
+  </div>
+
+  <!-- Date Range Information -->
+  <div class="date-range-info" *ngIf="selectedMonth && selectedYear">
+    <div class="date-range-container">
+      <div class="range-icon-container">
+        <mat-icon>date_range</mat-icon>
+      </div>
+      <div class="range-text">
+        <div class="range-title">Restriction des dates</div>
+        <span>{{ getDateRangeText() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="verification-content" *ngIf="timesheetData">
+    <!-- Top action buttons - Moved from bottom to top of table -->
+    <div class="action-buttons top-action-buttons">
+      <button mat-stroked-button (click)="cancelVerification()" class="cancel-button" [disabled]="isSubmitting">
+        <mat-icon>arrow_back</mat-icon>
+        Annuler
+      </button>
+      <button mat-raised-button (click)="confirmTimesheet()"
+              [disabled]="hasDateConflicts || hasValidationErrors || isLoadingTasks || isSubmitting"
+              class="confirm-button">
+        <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+        <ng-container *ngIf="!isSubmitting">
+          <mat-icon>check_circle</mat-icon>
+          Confirmer et télécharger
+        </ng-container>
+      </button>
+    </div>
+
+    <!-- Legend for color coding -->
+    <div class="timesheet-legend">
+      <div class="legend-item">
+        <div class="legend-color legend-weekend"></div>
+        <span>Weekend</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color legend-holiday"></div>
+        <span>Jour férié</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color legend-duplicate"></div>
+        <span>Date en double</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color legend-conflict"></div>
+        <span>Conflit avec tâche existante</span>
+      </div>
+    </div>
+
+    <!-- Enhanced Loading indicator with progress animation -->
+    <div *ngIf="isLoadingTasks" class="loading-indicator">
+      <mat-spinner diameter="36" color="accent"></mat-spinner>
+      <div class="loading-text">
+        <div>Chargement des tâches existantes...</div>
+        <div class="loading-submessage">Recherche des activités pour {{ selectedMonth }} {{ selectedYear }}</div>
+      </div>
+    </div>
+
+    <!-- Warning message for date conflicts -->
+    <div *ngIf="hasDateConflicts" class="conflict-warning">
+      <mat-icon>warning</mat-icon>
+      <div class="conflict-message">
+        <strong>Attention :</strong> Des conflits ont été détectés avec des tâches existantes.
+        Veuillez modifier les dates en conflit ou supprimer les entrées concernées.
+      </div>
+    </div>
+
+    <!-- Validation error messages -->
+    <div *ngIf="hasValidationErrors" class="validation-warning">
+      <mat-icon>error_outline</mat-icon>
+      <div class="validation-message">
+        <strong>Attention :</strong> Veuillez corriger les champs suivants:
+        <ul class="validation-errors-list">
+          <li *ngFor="let error of validationErrors.slice(0, 3)">{{ error }}</li>
+          <li *ngIf="validationErrors.length > 3">... et {{ validationErrors.length - 3 }} autre(s) erreur(s)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Table view of timesheet entries with existing tasks panel -->
+    <div class="timesheet-container">      <!-- Left side: Timesheet table -->
+      <div class="timesheet-table-container mat-elevation-z4">
+        <table mat-table [dataSource]="tableData" class="timesheet-table">
+          <!-- Row Number Column -->
+          <ng-container matColumnDef="rowNumber">
+            <th mat-header-cell *matHeaderCellDef>#</th>
+            <td mat-cell *matCellDef="let entry; let i = index">
+              <div class="cell-content">
+                <span class="row-number">{{ i + 1 }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Date Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let entry; let i = index"
+                [ngClass]="{
+                  'weekend-cell': isWeekend(parseDate(entry.date)),
+                  'duplicate-date-cell': isDuplicateDate(entry.date),
+                  'holiday-cell': isHoliday(parseDate(entry.date)),
+                  'conflict-date-cell': entry.isConflict
+                }">
+              <div class="cell-content">
+                <mat-form-field appearance="outline" class="date-field"
+                             [ngClass]="{'duplicate-date': isDuplicateDate(entry.date), 'conflict-date': entry.isConflict}">                  <input matInput [matDatepicker]="picker" [value]="parseDate(entry.date)"
+                         [min]="minDate" [max]="maxDate"
+                         (dateChange)="dateChanged($event, i)" placeholder="JJ/MM/AAAA">
+                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker [startAt]="minDate"></mat-datepicker>
+                  <mat-error *ngIf="isDuplicateDate(entry.date)">
+                    Date en double
+                  </mat-error>
+                  <mat-error *ngIf="entry.isConflict">
+                    {{ entry.conflictMessage }}
+                  </mat-error>
+                </mat-form-field>
+                <div *ngIf="isWeekend(parseDate(entry.date))" class="date-badge weekend-badge"
+                     [matTooltip]="isWeekend(parseDate(entry.date)) ? 'Weekend' : ''">
+                  Weekend
+                </div>
+                <div *ngIf="isHoliday(parseDate(entry.date))" class="date-badge holiday-badge"
+                     [matTooltip]="getHolidayName(parseDate(entry.date)) || 'Jour férié'">
+                  Jour férié
+                </div>
+                <div *ngIf="isDuplicateDate(entry.date)" class="date-badge duplicate-badge"
+                     matTooltip="Cette date apparaît plusieurs fois">
+                  Date en double
+                </div>
+                <div *ngIf="entry.isConflict" class="date-badge conflict-badge"
+                     [matTooltip]="entry.conflictMessage">
+                  Conflit
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Days Column -->
+          <ng-container matColumnDef="nb_jours">
+            <th mat-header-cell *matHeaderCellDef>Jours</th>
+            <td mat-cell *matCellDef="let entry; let i = index">
+              <div class="cell-content">
+                <mat-form-field appearance="outline" class="days-field">
+                  <mat-select [(ngModel)]="tableData[i].nb_jours" (ngModelChange)="validateTableData()">
+                    <mat-option [value]="0.5">0.5</mat-option>
+                    <mat-option [value]="1">1</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Workplace Column -->
+          <ng-container matColumnDef="workplace">
+            <th mat-header-cell *matHeaderCellDef>Lieu de travail</th>
+            <td mat-cell *matCellDef="let entry; let i = index">
+              <div class="cell-content">
+                <mat-form-field appearance="outline" class="workplace-field">
+                  <mat-select [(ngModel)]="tableData[i].workplace" (ngModelChange)="validateTableData()">
+                    <mat-option *ngFor="let option of workplaceOptions" [value]="option">
+                      {{ option }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Activities Column -->
+          <ng-container matColumnDef="activities">
+            <th mat-header-cell *matHeaderCellDef>Activités réalisées</th>
+            <td mat-cell *matCellDef="let entry; let i = index">
+              <div class="cell-content">
+                <mat-form-field appearance="outline" class="activities-field">
+                  <textarea matInput [(ngModel)]="tableData[i].activities"
+                           placeholder="Décrivez vos activités" rows="2"
+                           (ngModelChange)="validateTableData()"></textarea>
+                </mat-form-field>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let entry; let i = index">
+              <div class="cell-content">
+                <button mat-icon-button color="warn" (click)="removeRow(i)"
+                       matTooltip="Supprimer l'entrée">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Header and Row Definitions -->
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              [ngClass]="{
+                'weekend-row': isWeekend(parseDate(row.date)),
+                'holiday-row': isHoliday(parseDate(row.date)),
+                'conflict-row': row.isConflict
+              }"></tr>
+        </table>
+
+        <!-- Empty state message when no entries -->
+        <div *ngIf="tableData.length === 0" class="no-entries">
+          <mat-icon>info</mat-icon>
+          <p>Aucune entrée de timesheet trouvée avec des activités. Cliquez sur "Ajouter une entrée" pour créer une nouvelle entrée.</p>
+        </div>
+      </div>
+
+      <!-- Right side: Existing tasks calendar - Enhanced with loading skeleton -->
+      <div class="existing-tasks-panel" *ngIf="!isLoadingTasks && existingTasks.length > 0">
+        <div class="existing-tasks-header">
+          <mat-icon>event_busy</mat-icon>
+          <h3>Tâches existantes</h3>
+        </div>
+        <p class="existing-tasks-info">
+          Dates déjà occupées pour ce mois. Évitez de sélectionner ces dates pour éviter des conflits.
+        </p>
+
+        <div class="dates-list">
+          <div class="date-card" *ngFor="let task of existingTasks">
+            <div class="date-card-header">
+              <span class="date">{{ formatDateDisplay(task.datte) }}</span>
+              <span class="day-amount">{{ task.nbJour }} jour<span *ngIf="task.nbJour !== 1">s</span></span>
+            </div>
+            <div class="date-card-content">
+              <div class="location">
+                <mat-icon>location_on</mat-icon>
+                <span>{{ task.workPlace }}</span>
+              </div>
+              <div class="task-desc">
+                <mat-icon>assignment</mat-icon>
+                <span>{{ task.text }}</span>
+              </div>
+              <div class="project-info" *ngIf="task.projectName">
+                <mat-icon>business</mat-icon>
+                <span>{{ task.projectName }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skeleton loading for task panel -->
+      <div class="existing-tasks-panel" *ngIf="isLoadingTasks">
+        <div class="existing-tasks-header">
+          <mat-icon>hourglass_top</mat-icon>
+          <h3>Chargement...</h3>
+        </div>
+        <div class="tasks-skeleton">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      </div>
+
+      <!-- Empty state for no existing tasks -->
+      <div class="existing-tasks-panel empty-tasks" *ngIf="!isLoadingTasks && existingTasks.length === 0">
+        <div class="existing-tasks-header">
+          <mat-icon>event_available</mat-icon>
+          <h3>Aucune tâche existante</h3>
+        </div>
+        <p class="existing-tasks-info">
+          Vous n'avez pas encore de tâches pour ce mois. Vous pouvez ajouter des activités librement.
+        </p>
+      </div>
+    </div>    <!-- Add Entry button -->
+    <div class="add-entry-container">
+      <button mat-raised-button (click)="addRow()" class="add-entry-button"
+              [disabled]="isLoadingTasks || isLoadingBudget || !getBudgetStatus().canAddRows"
+              [matTooltip]="!getBudgetStatus().canAddRows ? 'Budget de jours-homme épuisé. Impossible d\'ajouter plus d\'activités.' : 'Ajouter une nouvelle activité'">
+        <mat-icon>add</mat-icon>
+        <span *ngIf="getBudgetStatus().canAddRows">Ajouter une Activité</span>
+        <span *ngIf="!getBudgetStatus().canAddRows">Budget épuisé</span>
+      </button>
+
+      <!-- Budget status indicator near the button -->
+      <div class="budget-hint" *ngIf="currentProfileBudget && getBudgetStatus().remainingDays <= 3">
+        <mat-icon *ngIf="getBudgetStatus().remainingDays > 0" class="warning-icon">warning</mat-icon>
+        <mat-icon *ngIf="getBudgetStatus().remainingDays === 0" class="error-icon">error</mat-icon>
+        <span class="hint-text">
+          <span *ngIf="getBudgetStatus().remainingDays > 0">
+            Plus que {{ getBudgetStatus().remainingDays }} jour(s) disponible(s)
+          </span>
+          <span *ngIf="getBudgetStatus().remainingDays === 0">
+            Budget de jours-homme épuisé
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Removed bottom action buttons since we moved them to the top -->
+  </div>
+
+  <!-- Budget Information Section -->
+  <div class="budget-info-container" *ngIf="currentProfileBudget">
+    <div class="budget-info-content"
+         [ngClass]="{
+           'budget-warning': getBudgetStatus().isWarning,
+           'budget-error': getBudgetStatus().isError
+         }">
+      <div class="budget-icon-container">
+        <mat-icon *ngIf="!getBudgetStatus().isError && !getBudgetStatus().isWarning">account_balance_wallet</mat-icon>
+        <mat-icon *ngIf="getBudgetStatus().isWarning">warning</mat-icon>
+        <mat-icon *ngIf="getBudgetStatus().isError">error</mat-icon>
+      </div>
+      <div class="budget-text">
+        <div class="budget-title">
+          <span *ngIf="!getBudgetStatus().isError && !getBudgetStatus().isWarning">Budget de jours-homme</span>
+          <span *ngIf="getBudgetStatus().isWarning">⚠️ Budget presque épuisé</span>
+          <span *ngIf="getBudgetStatus().isError">❌ Budget épuisé</span>
+        </div>
+        <span>{{ getBudgetStatus().text }}</span>
+      </div>
+      <div class="budget-status-indicator"
+           [ngClass]="{
+             'status-ok': !getBudgetStatus().isWarning && !getBudgetStatus().isError,
+             'status-warning': getBudgetStatus().isWarning,
+             'status-error': getBudgetStatus().isError
+           }">
+        {{ getBudgetStatus().remainingDays }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget Loading State -->
+  <div class="budget-loading-container" *ngIf="isLoadingBudget">
+    <div class="budget-loading-content">
+      <mat-spinner diameter="20" color="accent"></mat-spinner>
+      <span class="loading-text">Chargement des informations de budget...</span>
+    </div>
+  </div>
+</div>

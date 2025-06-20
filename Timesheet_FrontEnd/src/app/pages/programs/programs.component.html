@@ -1,0 +1,198 @@
+<div class="programs-page">
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Tableau de Bord des Programmes</h1>
+    </div>
+  </header>
+
+  <div class="programs-grid">
+    <section class="programs-section">
+      <div class="section-header">
+        <h2 class="section-title">Mes Programmes</h2>
+        <div class="header-controls">
+          <div class="search-wrapper">
+            <div class="search-input">
+              <mat-icon>search</mat-icon>
+              <input type="text"
+                     [(ngModel)]="searchQuery"
+                     (ngModelChange)="filterPrograms()"
+                     placeholder="Rechercher des programmes...">
+            </div>
+          </div>
+          <button *ngIf="canAddProgram()"
+                  mat-raised-button
+                  color="primary"
+                  (click)="openAddProgramModal()"
+                  class="add-program-btn"
+                  tabindex="0"
+                  [attr.aria-label]="'Ajouter un nouveau programme'">
+            <mat-icon aria-hidden="true">add</mat-icon>
+            <span>Nouveau Programme</span>
+          </button>
+          <div class="filter-wrapper">
+            <button (click)="toggleDropdown()">
+              <mat-icon>filter_list</mat-icon>
+              Filtrer par Statut
+            </button>
+            <div [class.show]="isDropdownOpen">
+              <div *ngFor="let status of statusList">
+                <label>
+                  <input type="checkbox"
+                         [checked]="selectedStatuses.includes(status)"
+                         (change)="toggleStatus(status)">
+                  <span>{{ getStatusLabel(status) }}</span>
+                </label>
+              </div>
+              <button type="button" (click)="clearFilters()">Effacer Tout</button>
+            </div>
+          </div>
+
+          <div class="items-per-page">
+            <mat-form-field>
+              <mat-label>Éléments par page</mat-label>
+              <mat-select [value]="itemsPerPage" (selectionChange)="onItemsPerPageChange($event.value)">
+                <mat-option *ngFor="let option of itemsPerPageOptions" [value]="option">
+                  {{ option }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+      <div class="cards-container">
+        <mat-card *ngFor="let program of paginatedPrograms"
+                  class="program-card"
+                  (click)="goToProgramDetails(program.idprog)">
+          <div class="card-header">
+            <div class="program-manager">
+              <img [src]="getUserImage(connecteduser)"
+                   [alt]="connecteduser.firstname + ' ' + connecteduser.lastname"
+                   class="manager-avatar">
+              <div class="manager-info">
+                <span class="manager-name">{{ connecteduser.firstname }} {{ connecteduser.lastname }}</span>
+                <span class="manager-role">{{ connecteduser.role }}</span>
+              </div>
+            </div>
+            <button mat-icon-button
+                    class="delete-btn"
+                    (click)="deleteProgram(program.numcontrat, $event)"
+                    matTooltip="Supprimer le Programme">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
+          <div class="card-content">
+            <div class="program-info">
+              <h3 class="program-name">{{ program.name }}</h3>
+              <p class="program-date">{{ getFrenchFormattedDate(program?.launchedat) }}</p>
+            </div>
+
+            <div class="program-details">
+              <div class="detail-item">
+                <span class="detail-label">Numéro de Contrat</span>
+                <span class="detail-value">{{ program.numcontrat }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Statut</span>
+                <span class="status-badge" [ngClass]="getStatusClass(program.status)">
+                  {{ getStatusLabel(program.status) }}
+                </span>
+              </div>
+            </div>          <div class="client-logo">
+            <img [src]="getProgramImage(program)"
+                 [alt]="program.name + ' logo'"
+                 class="logo-image">
+          </div>
+        </div>
+
+        <mat-card-actions>
+          <div class="program-action-buttons">
+            <button *ngIf="canLaunchProgram(program.status)"
+                    mat-stroked-button
+                    color="primary"
+                    (click)="changeProgramStatus(program.idprog, $event)"
+                    class="launch-btn">
+              <mat-icon>play_arrow</mat-icon>
+              Lancer le Programme
+            </button>
+            <button mat-stroked-button
+                    color="accent"
+                    (click)="viewProgramStats(program.idprog, $event)"
+                    class="stats-btn">
+              <mat-icon>bar_chart</mat-icon>
+              Voir les Statistiques
+            </button>
+          </div>
+        </mat-card-actions>
+        </mat-card>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button mat-icon-button
+                [disabled]="currentPage === 1"
+                (click)="goToPage(currentPage - 1)">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <button mat-button
+                *ngFor="let page of [].constructor(totalPages); let i = index"
+                [class.active]="currentPage === i + 1"
+                (click)="goToPage(i + 1)">
+          {{ i + 1 }}
+        </button>
+
+        <button mat-icon-button
+                [disabled]="currentPage === totalPages"
+                (click)="goToPage(currentPage + 1)">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </section>
+
+    <section *ngIf="connecteduser.role === 'PARTNER'" class="programs-section">
+      <h2 class="section-title">Mes Missions</h2>
+      <div class="cards-container">
+        <mat-card *ngFor="let program of partnerPrograms" class="program-card">
+          <div class="card-header">
+            <div class="program-manager">
+              <img [src]="getProgramManagerImage(program.chefprogram)"
+                   [alt]="program.chefprogram.name"
+                   class="manager-avatar">
+              <div class="manager-info">
+                <span class="manager-name">{{ program.chefprogram.firstname }} {{ program.chefprogram.lastname }}</span>
+                <span class="manager-role">Chef de Programme</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="program-info">
+              <h3 class="program-name">{{ program.name }}</h3>
+              <p class="program-date">{{ program.launchedat | date : "fullDate" }}</p>
+            </div>
+
+            <div class="program-details">
+              <div class="detail-item">
+                <span class="detail-label">Numéro de Contrat</span>
+                <span class="detail-value">{{ program.numcontrat }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Statut</span>
+                <span class="status-badge" [ngClass]="getStatusClass(program.status)">
+                  {{ getStatusLabel(program.status) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="client-logo">
+              <img [src]="getProgramImage(program)"
+                   [alt]="program.name + ' logo'"
+                   class="logo-image">
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </section>
+  </div>
+</div>

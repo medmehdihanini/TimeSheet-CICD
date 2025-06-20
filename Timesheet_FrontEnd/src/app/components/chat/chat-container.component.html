@@ -1,0 +1,56 @@
+<div class="chat-container" [class.minimized]="minimized" [class.expanded]="expanded">  <!-- Chat Header -->
+  <app-chat-header
+    [unreadCount]="unreadCount"
+    [minimized]="minimized"
+    [expanded]="expanded"
+    [activeRoom]="activeRoom"
+    [typingUsers]="typingUsers"
+    (minimize)="toggleMinimize()"
+    (expand)="toggleExpand()"
+    (showRooms)="toggleRoomList()">
+  </app-chat-header>
+
+  <div class="chat-content" *ngIf="!minimized">
+    <!-- Room List Panel -->
+    <app-chat-room-list
+      *ngIf="showRoomList"
+      [rooms]="chatRooms"
+      [activeRoomId]="activeRoom?.id"
+      (roomSelected)="selectRoom($event)">
+    </app-chat-room-list>    <!-- Chat Room View -->
+    <div class="chat-room-view" *ngIf="activeRoom && !showRoomList">
+      <!-- Message List with WebSocket Integration -->
+      <div class="messages-wrapper">
+        <app-chat-message-list
+          [roomId]="activeRoom.id"
+          [currentUserId]="currentUser?.idp || 0">
+        </app-chat-message-list>
+      </div>
+
+      <!-- Input Area - Fixed at Bottom -->
+      <div class="input-wrapper">
+        <app-chat-input
+          (sendMessage)="sendMessage($event)"
+          (typingStatus)="sendTypingStatus($event)"
+          (fileUpload)="uploadFile($event)">
+        </app-chat-input>
+      </div>
+    </div>
+
+    <!-- No Chat Selected View -->
+    <div class="no-chat-selected" *ngIf="!activeRoom && !showRoomList">
+      <div class="empty-state">
+        <div class="chat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48">
+            <path fill="none" d="M0 0h24v24H0z"/>
+            <path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+          </svg>
+        </div>
+        <p>Select a conversation to start messaging</p>
+        <button class="ey-button" (click)="toggleRoomList()">
+          View Conversations
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

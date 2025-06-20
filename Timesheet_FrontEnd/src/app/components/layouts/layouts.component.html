@@ -1,0 +1,46 @@
+<!-- Toolbar -->
+<mat-toolbar class="mat-elevation-z3">
+  <!-- Menu Toggle Button -->
+  <button mat-icon-button (click)="collapsed.set(!collapsed())" class="menu-toggle">
+    <mat-icon>{{ collapsed() ? 'menu' : 'menu_open' }}</mat-icon>
+  </button>
+
+  <!-- EY Logo -->
+  <img src="/assets/EY.png" class="toolbar-image" alt="EY Logo" />
+
+  <!-- Toolbar Actions -->
+  <div class="toolbar-actions">
+    <!-- Notifications -->
+    <app-notification-dropdown></app-notification-dropdown>
+
+    <!-- Change Password -->
+    <button mat-icon-button class="action-button" [routerLink]="['/change-password']"
+            matTooltip="Modifier le mot de passe"
+            matTooltipPosition="below">
+      <mat-icon>lock_reset</mat-icon>
+    </button>
+  </div>
+</mat-toolbar>
+
+<!-- Main Content Area -->
+<mat-sidenav-container>
+  <!-- Sidenav -->
+  <mat-sidenav
+    opened
+    mode="side"
+    [style.width]="sidenavWidth()"
+    class="app-sidenav"
+  >
+    <app-custom-sidenav [collapsed]="collapsed()" />
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="content" [style.margin-left]="sidenavWidth()">
+    <div class="content-container">
+      <router-outlet></router-outlet>
+    </div>
+
+    <!-- Chat Container -->
+    <app-chat-container></app-chat-container>
+  </mat-sidenav-content>
+</mat-sidenav-container>

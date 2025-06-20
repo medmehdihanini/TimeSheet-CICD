@@ -1,0 +1,315 @@
+/* EY Color Palette */
+:root {
+  --ey-dark: #333333;
+  --ey-yellow: #ffe600;
+  --ey-white: #ffffff;
+  --ey-light-gray: #cccccc;
+  --ey-medium-gray: #999999;
+  --ey-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --ey-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --ey-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --ey-error: #e74c3c;
+}
+
+/* Main Container */
+.error-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--ey-white) 0%, #f8f9fa 100%);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Content Wrapper */
+.error-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* Error Card */
+.error-card {
+  background: var(--ey-white);
+  border-radius: 24px;
+  padding: 3rem;
+  text-align: center;
+  box-shadow: var(--ey-shadow-lg);
+  border: 1px solid rgba(51, 51, 51, 0.05);
+  position: relative;
+  overflow: hidden;
+  animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.error-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--ey-error) 0%, var(--ey-dark) 100%);
+}
+
+/* Error Icon */
+.error-icon-container {
+  margin-bottom: 2rem;
+}
+
+.error-icon {
+  font-size: 6rem !important;
+  width: 6rem !important;
+  height: 6rem !important;
+  color: var(--ey-error);
+  opacity: 0.8;
+  animation: pulse 2s infinite;
+}
+
+/* Error Details */
+.error-details {
+  margin-bottom: 3rem;
+}
+
+.error-code {
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--ey-dark);
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.error-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--ey-dark);
+  margin: 0 0 1rem 0;
+  letter-spacing: -0.5px;
+}
+
+.error-description {
+  font-size: 1.1rem;
+  color: var(--ey-medium-gray);
+  margin: 0;
+  line-height: 1.6;
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+/* Action Buttons */
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.primary-button {
+  background: var(--ey-yellow) !important;
+  color: var(--ey-dark) !important;
+  padding: 0 2rem !important;
+  height: 56px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  box-shadow: var(--ey-shadow-sm) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 2px solid var(--ey-yellow) !important;
+  min-width: 180px;
+}
+
+.primary-button:hover {
+  background: var(--ey-dark) !important;
+  color: var(--ey-white) !important;
+  border-color: var(--ey-dark) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--ey-shadow-md) !important;
+}
+
+.secondary-button {
+  color: var(--ey-dark) !important;
+  border-color: var(--ey-light-gray) !important;
+  padding: 0 2rem !important;
+  height: 56px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-width: 2px !important;
+  min-width: 120px;
+}
+
+.secondary-button:hover {
+  background: var(--ey-light-gray) !important;
+  border-color: var(--ey-medium-gray) !important;
+  transform: translateY(-2px);
+}
+
+.logout-button {
+  color: var(--ey-error) !important;
+  border-color: var(--ey-error) !important;
+  padding: 0 2rem !important;
+  height: 56px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-width: 2px !important;
+  min-width: 160px;
+}
+
+.logout-button:hover {
+  background: var(--ey-error) !important;
+  color: var(--ey-white) !important;
+  transform: translateY(-2px);
+}
+
+/* Button Icons */
+.primary-button mat-icon,
+.secondary-button mat-icon,
+.logout-button mat-icon {
+  margin-right: 0.5rem;
+  font-size: 1.2rem !important;
+  width: 1.2rem !important;
+  height: 1.2rem !important;
+}
+
+/* Background Pattern */
+.background-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pattern-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.03;
+  background: var(--ey-error);
+}
+
+.circle-1 {
+  width: 200px;
+  height: 200px;
+  top: -100px;
+  right: -100px;
+  animation: float 6s ease-in-out infinite;
+}
+
+.circle-2 {
+  width: 150px;
+  height: 150px;
+  bottom: -75px;
+  left: -75px;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+.circle-3 {
+  width: 100px;
+  height: 100px;
+  top: 50%;
+  left: -50px;
+  animation: float 10s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .error-container {
+    padding: 1rem;
+  }
+
+  .error-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .error-code {
+    font-size: 3rem;
+  }
+
+  .error-title {
+    font-size: 1.5rem;
+  }
+
+  .error-description {
+    font-size: 1rem;
+  }
+
+  .error-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .logout-button {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .pattern-circle {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .error-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .error-code {
+    font-size: 2.5rem;
+  }
+
+  .error-title {
+    font-size: 1.25rem;
+  }
+
+  .error-icon {
+    font-size: 4rem !important;
+    width: 4rem !important;
+    height: 4rem !important;
+  }
+}

@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: ahmedl17/timesheet-ey-client-nodejs:5.1.2
+    container_name: timesheet-frontend
+    ports:
+      - "8085:80"
+    networks:
+      - timesheet-network
+
+  backend:
+    image: ahmedl17/springboot-timesheetclient:3.8.4
+    container_name: timesheet-backend
+    tty: true
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://10.1.1.4:3306/timesheetintegration?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=timesheetuser
+      - SPRING_DATASOURCE_PASSWORD=Rootpassword123!
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - timesheet-network
+
+networks:
+  timesheet-network:
+    driver: bridge
+

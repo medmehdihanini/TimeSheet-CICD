@@ -1,0 +1,184 @@
+<div class="header-container">
+  <!-- Profile Section -->
+  <div class="profile-section">
+    <div class="profile-image">
+      <img
+        *ngIf="projectProfile?.profile.image"
+        [src]="'data:image/jpg;base64,' + projectProfile?.profile.image"
+        alt="Profile Image"
+      />
+      <img
+        *ngIf="!projectProfile?.profile.image"
+        src="/assets/imgholder.jpg"
+        alt="Placeholder Image"
+      />
+    </div>
+    <div class="profile-info">
+      <h2>{{ projectProfile?.profile.firstname }} {{ projectProfile?.profile.lastname }}</h2>
+      <div class="profile-details">
+        <span>{{ programprofile?.function }}</span>
+        <span class="department">{{ projectProfile?.profile.departement }}</span>
+      </div>
+      <div class="budget-info">
+        <div class="budget-item">
+          <span>Budget J/H:</span>
+          <strong>{{ projectProfile?.mandaybudget }}</strong>
+        </div>
+        <div class="budget-item">
+          <span>Total consommé:</span>
+          <strong>{{ projectProfile?.consumedmandaybudget }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Section -->
+  <div class="project-section">
+    <h1 class="project-title" (click)="goToProject()">{{ project?.name }}</h1>
+    <div class="hours-badge">
+      {{ totalNbJour }} J/H dans ce mois
+    </div>
+  </div>
+
+  <!-- Actions Section -->
+  <div class="actions-section">
+    <!-- Export Buttons -->
+    <div class="action-buttons"
+      *ngIf="timesheet?.status == 'APPROVED' || connecteduser?.role === 'PROGRAM_MANAGER' || connecteduser?.role === 'GPS_LEAD' || connecteduser?.role === 'PARTNER'">
+      <button class="action-btn pdf-btn" (click)="exportToPdf()">
+        <i class="material-icons">picture_as_pdf</i>
+        <span>Export PDF</span>
+      </button>
+      <button class="action-btn excel-btn" (click)="exportToExcel()">
+        <i class="material-icons">file_copy</i>
+        <span>Export Excel</span>
+      </button>
+      <button class="action-btn facture-btn" (click)="exportFactureToPdf()">
+        <i class="material-icons">receipt</i>
+        <span>Export Facture</span>
+      </button>
+    </div>
+
+    <!-- Project Manager Actions -->
+    <div class="action-buttons" *ngIf="connecteduser?.role === 'PROJECT_MANAGER'">
+      <button
+        *ngIf="timesheet?.status === 'DRAFT' || timesheet?.status === 'REJECTED'"
+        class="action-btn submit-btn"
+        (click)="submitTimesheet()">
+        <i class="material-icons">next_week</i>
+        <span>Déposer</span>
+      </button>
+      <div *ngIf="timesheet?.status == 'PENDING'" class="pending-animation">
+        <div class="🤚">
+          <div class="👉"></div>
+          <div class="👉"></div>
+          <div class="👉"></div>
+          <div class="👉"></div>
+          <div class="🌴"></div>
+          <div class="👍"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Program Manager Actions -->
+    <div class="action-buttons manager-actions"
+      *ngIf="connecteduser?.role === 'PROGRAM_MANAGER' || connecteduser?.role === 'GPS_LEAD' || connecteduser?.role === 'PARTNER'">
+      <button
+        *ngIf="timesheet?.status == 'PENDING'"
+        class="action-btn approve-btn"
+        (click)="aprouveTimesheet()">
+        <i class="material-icons">check</i>
+        <span>Approuver</span>
+      </button>
+      <button
+        *ngIf="timesheet?.status == 'PENDING'"
+        class="action-btn reject-btn"
+        (click)="rejectTimesheet()">
+        <i class="material-icons">close</i>
+        <span>Refuser</span>
+      </button>
+    </div>
+
+    <div class="date-selection">
+      <div class="select-group">
+        <select [(ngModel)]="selectedYear" (change)="onYearChange($event)">
+          <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+        </select>
+
+        <div class="month-select-container">
+          <label for="month-select">Mois:</label>
+          <select
+            id="month-select"
+            [(ngModel)]="selectedMonth"
+            (change)="onMonthChange($event)">
+            <option *ngFor="let month of months" [value]="month.value">
+              {{ month.frname }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="status-indicator">
+        <button class="status-btn red" *ngIf="timesheet?.status == 'REJECTED'">
+          <i class="material-icons">cancel</i>
+          {{ getFrenchMonthName(this.selectedMonth) }} Refusé
+        </button>
+        <button class="status-btn green" *ngIf="timesheet?.status == 'APPROVED'">
+          <i class="material-icons">done_outline</i>
+          {{ getFrenchMonthName(this.selectedMonth) }} Approuvé
+        </button>
+        <button class="status-btn orange" *ngIf="timesheet?.status == 'DRAFT' && totalNbJour > 0">
+          <i class="material-icons">save</i>
+          Brouillon de {{ getFrenchMonthName(this.selectedMonth) }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rest of the calendar content -->
+<mat-grid-list cols="4" rowHeight="120px" gutterSize="15px">
+
+
+
+
+  <mat-grid-tile [colspan]="4" [rowspan]="7" class="title">
+    <div id="timesheet-table" class="calendar-container">
+      <!-- Calendar body with weeks -->
+      <div class="calendar-body">
+        <ng-container *ngFor="let week of calendarWeeks">
+          <div class="calendar-week">
+            <ng-container *ngFor="let day of week">
+              <div
+                class="calendar-day"
+                [ngClass]="{
+                  'weekend-day': isWeekend(day.Date),
+                  'disabled-day': day.isDisabled,
+                  'has-task': day.nbDay !== null,
+                  'current-day': isCurrentDay(day.Date)
+                }"
+                [attr.data-date]="day.Date"
+                (mouseover)="onRowHover(true, day)"
+                (mouseout)="onRowHover(false, day)"
+                (click)="
+                  day.isDisabled ? null : (day.nbDay !== null || day.idt > 0 ? openUpdateModal(day) : openProfileModal(day.Date, day.duplicated || false))
+                "
+              >
+                <div class="day-number">{{ day.Day }}</div>
+                <div class="day-content" *ngIf="day.nbDay !== null && !day.isDisabled">
+                  <div class="task-time">{{ day.nbDay }} j/h</div>
+                  <div class="task-workplace">{{ day.workplace }}</div>
+                  <div class="task-description">{{ day.task }}</div>
+                </div>
+                <div class="day-blocked" *ngIf="day.isDisabled" [matTooltip]="getBlockedDayReason(day.Date)">
+                  <span class="material-icons">lock</span>
+                  <span class="blocked-reason">{{ getDisplayedBlockedReason(day) }}</span>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </mat-grid-tile>
+</mat-grid-list>

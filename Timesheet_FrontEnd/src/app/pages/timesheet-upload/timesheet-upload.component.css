@@ -1,0 +1,447 @@
+/* EY Color Palette
+  #333333 (51,51,51) - Dark gray
+  #ffe600 (255,230,0) - Yellow
+  #ffffff (255,255,255) - White
+  #cccccc (204,204,204) - Light gray
+  #999999 (153,153,153) - Medium gray
+*/
+
+.timesheet-upload-container {
+  width: 98%; /* Increased from 95% to use more space */
+  max-width: 1800px; /* Increased from 1400px to allow wider content */
+  margin: 0 auto;
+  padding: 20px 10px; /* Reduced horizontal padding */
+}
+
+.main-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #ffe600;
+  padding-bottom: 16px;
+}
+
+.header-icon {
+  color: #333333;
+  font-size: 32px;
+  height: 32px;
+  width: 32px;
+  margin-right: 16px;
+}
+
+mat-card-title {
+  color: #333333;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Step actions */
+.step-actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 16px;
+}
+
+.next-button, .upload-button {
+  background-color: #ffe600;
+  color: #333333;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.next-button:hover, .upload-button:hover {
+  background-color: #e6cf00;
+}
+
+.back-button {
+  color: #333333;
+  border: 1px solid #cccccc;
+  display: flex;
+  align-items: center;
+}
+
+.reset-button {
+  color: #333333;
+  border: 1px solid #cccccc;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* Profile selection */
+.profiles-container {
+  margin-bottom: 24px;
+}
+
+.profile-option {
+  display: flex;
+  align-items: center;
+}
+
+.profile-avatar {
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  margin-right: 8px;
+  object-fit: cover;
+}
+
+/* Profile details card */
+.profile-details-card {
+  margin: 24px 0;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-left: 4px solid #ffe600;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.profile-image {
+  height: 64px;
+  width: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffe600;
+  margin-right: 16px;
+}
+
+.profile-info h3 {
+  margin: 0;
+  color: #333333;
+  font-size: 18px;
+}
+
+.profile-function {
+  color: #999999;
+  margin: 4px 0 0;
+}
+
+.profile-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.stat-item {
+  flex: 1;
+  min-width: 120px;
+  background-color: #fff;
+  padding: 12px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.stat-label {
+  color: #999999;
+  font-size: 12px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  color: #333333;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* File upload */
+.upload-container {
+  margin: 24px 0;
+}
+
+.drop-zone {
+  border: 2px dashed #cccccc;
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #f9f9f9;
+}
+
+.drop-zone:hover {
+  border-color: #ffe600;
+  background-color: rgba(255, 230, 0, 0.05);
+}
+
+.upload-icon {
+  font-size: 48px;
+  height: 48px;
+  width: 48px;
+  color: #999999;
+  margin-bottom: 16px;
+}
+
+.drop-zone h3 {
+  margin: 0 0 8px;
+  color: #333333;
+}
+
+.drop-zone p {
+  margin: 0;
+  color: #999999;
+}
+
+.selected-file-name {
+  margin-top: 16px !important;
+  color: #333333 !important;
+  font-weight: 500;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  color: #d32f2f;
+  margin-top: 16px;
+  padding: 8px;
+  background-color: rgba(211, 47, 47, 0.1);
+  border-radius: 4px;
+}
+
+.success-message {
+  display: flex;
+  align-items: center;
+  color: #388e3c;
+  margin-top: 16px;
+  padding: 8px;
+  background-color: rgba(56, 142, 60, 0.1);
+  border-radius: 4px;
+}
+
+.uploading-message {
+  display: flex;
+  align-items: center;
+  color: #1976d2;
+  margin-top: 16px;
+  padding: 8px;
+  background-color: rgba(25, 118, 210, 0.1);
+  border-radius: 4px;
+}
+
+.error-message mat-icon,
+.success-message mat-icon {
+  margin-right: 8px;
+}
+
+.template-download {
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.template-download mat-icon {
+  margin-right: 8px;
+  color: #333333;
+}
+
+.template-download a {
+  color: #333333;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.template-download a:hover {
+  color: #ffe600;
+  text-decoration: underline;
+}
+
+/* Stepper customization */
+::ng-deep .mat-step-header .mat-step-icon-selected {
+  background-color: #ffe600;
+  color: #333333;
+}
+
+::ng-deep .mat-step-header .mat-step-label.mat-step-label-active {
+  color: #333333;
+}
+
+::ng-deep .mat-step-header .mat-step-icon-state-edit {
+  background-color: #333333;
+  color: #ffffff;
+}
+
+::ng-deep .mat-step-header:hover {
+  background-color: rgba(255, 230, 0, 0.1);
+}
+
+/* Form fields styling - with constrained widths */
+.form-field-container {
+  margin-bottom: 24px;
+  max-width: 350px; /* Limiting the container width */
+}
+
+.form-field {
+  width: 100%;
+  max-width: 350px; /* Reduced from 400px to 350px */
+}
+
+/* Additional specific styling for mat-select elements */
+::ng-deep .mat-form-field.form-field .mat-form-field-infix {
+  width: auto !important;
+  min-width: 200px !important;
+  max-width: 350px !important;
+}
+
+/* Dropdown select styling */
+.dropdown-select {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 24px;
+}
+
+/* Custom styling for the dropdown field */
+::ng-deep .dropdown-select .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+::ng-deep .dropdown-select .mat-form-field-flex {
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  padding: 4px 12px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+::ng-deep .dropdown-select .mat-form-field-flex:hover {
+  border-color: #999999;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Focused state with EY yellow */
+::ng-deep .dropdown-select.mat-focused .mat-form-field-flex {
+  border-color: #ffe600;
+  box-shadow: 0 0 0 2px rgba(255, 230, 0, 0.3);
+}
+
+/* Label styling */
+::ng-deep .dropdown-select .mat-form-field-label {
+  color: #333333;
+  font-weight: 500;
+}
+
+::ng-deep .dropdown-select.mat-focused .mat-form-field-label {
+  color: #333333;
+}
+
+/* Hint text styling */
+::ng-deep .dropdown-select .mat-hint {
+  color: #999999;
+  font-style: italic;
+  margin-top: 4px;
+  margin-left: 2px;
+  font-size: 12px;
+}
+
+/* Arrow styling */
+::ng-deep .dropdown-select .mat-select-arrow {
+  color: #333333;
+  transition: transform 0.3s ease;
+}
+
+::ng-deep .dropdown-select .mat-select-arrow-wrapper {
+  transform: translateY(0);
+}
+
+::ng-deep .dropdown-select.mat-focused .mat-select-arrow {
+  color: #ffe600;
+  transform: rotate(180deg);
+}
+
+/* Selected option styling */
+::ng-deep .dropdown-select .mat-select-value {
+  color: #333333;
+  font-weight: 500;
+}
+
+/* Dropdown panel styling */
+::ng-deep .mat-select-panel {
+  border-radius: 8px !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #e0e0e0;
+  background: white;
+}
+
+::ng-deep .mat-option {
+  height: 48px;
+  padding: 0 16px;
+  font-size: 14px;
+  line-height: 48px;
+}
+
+::ng-deep .mat-option:hover {
+  background: rgba(255, 230, 0, 0.1);
+}
+
+::ng-deep .mat-option.mat-selected {
+  background: rgba(255, 230, 0, 0.2);
+}
+
+::ng-deep .mat-option.mat-selected:not(.mat-option-disabled) {
+  color: #333333;
+  font-weight: 500;
+}
+
+::ng-deep .mat-option.mat-active {
+  background: rgba(255, 230, 0, 0.3);
+}
+
+/* Remove underline */
+::ng-deep .dropdown-select .mat-form-field-underline {
+  display: none;
+}
+
+/* Dropdown option with profile image alignment */
+.profile-option {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.profile-avatar {
+  height: 28px;
+  width: 28px;
+  border-radius: 50%;
+  margin-right: 12px;
+  object-fit: cover;
+  border: 2px solid #ffe600;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+  .timesheet-upload-container {
+    padding: 16px;
+  }
+
+  .profile-stats {
+    flex-direction: column;
+  }
+
+  .stat-item {
+    min-width: auto;
+  }
+
+  .step-actions {
+    flex-wrap: wrap;
+  }
+
+  .reset-button {
+    margin-left: 0;
+    margin-top: 16px;
+  }
+}

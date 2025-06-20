@@ -1,0 +1,50 @@
+<div class="error-container">
+  <div class="error-content">
+    <div class="error-card">
+      <div class="error-icon-container">
+        <mat-icon class="error-icon">block</mat-icon>
+      </div>
+
+      <div class="error-details">
+        <h1 class="error-code">403</h1>
+        <h2 class="error-title">Accès non autorisé</h2>
+        <p class="error-description">
+          Vous n'avez pas les permissions nécessaires pour accéder à cette page.
+          Veuillez contacter votre administrateur si vous pensez qu'il s'agit d'une erreur.
+        </p>
+      </div>
+
+      <div class="error-actions">
+        <button
+          mat-raised-button
+          class="primary-button"
+          (click)="goToDashboard()">
+          <mat-icon>dashboard</mat-icon>
+          Tableau de bord
+        </button>
+
+        <button
+          mat-outlined-button
+          class="secondary-button"
+          (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Retour
+        </button>
+
+        <button
+          mat-outlined-button
+          class="logout-button"
+          (click)="goToLogin()">
+          <mat-icon>logout</mat-icon>
+          Se déconnecter
+        </button>
+      </div>
+    </div>
+
+    <div class="background-pattern">
+      <div class="pattern-circle circle-1"></div>
+      <div class="pattern-circle circle-2"></div>
+      <div class="pattern-circle circle-3"></div>
+    </div>
+  </div>
+</div>

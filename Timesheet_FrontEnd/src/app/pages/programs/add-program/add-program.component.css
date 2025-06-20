@@ -1,0 +1,715 @@
+/* Modern Design System */
+:root {
+  --primary: #333333;
+  --accent: #ffe600;
+  --white: #ffffff;
+  --gray-100: #cccccc;
+  --gray-200: #999999;
+  --error: #ff3b30;
+  --success: #34c759;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Animations */
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Main Container Styles */
+.program-title {
+  margin-bottom: 2rem;
+  text-align: center;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.program-title h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.close-button {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  transition: color 0.3s ease;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+/* Stepper Customization */
+.mat-stepper-horizontal {
+  background: transparent;
+  margin-top: 2rem !important;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.mat-step-header {
+  pointer-events: none !important;
+  cursor: default !important;
+}
+
+.mat-step-header .mat-step-label {
+  color: rgba(0, 0, 0, 0.38) !important;
+}
+
+.mat-step-header .mat-step-icon {
+  background-color: rgba(0, 0, 0, 0.38) !important;
+}
+
+.mat-step-header .mat-step-icon-selected {
+  background-color: var(--accent) !important;
+}
+
+.step-label {
+  color: inherit;
+  pointer-events: none;
+}
+
+/* Remove hover effects */
+.mat-step-header:hover {
+  background: transparent !important;
+}
+
+/* Disable step header interaction */
+::ng-deep .mat-step-header {
+  pointer-events: none !important;
+}
+
+::ng-deep .mat-step-header .mat-step-label {
+  pointer-events: none !important;
+}
+
+::ng-deep .mat-step-header .mat-step-icon {
+  pointer-events: none !important;
+}
+
+/* Form Container */
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.date-group {
+  margin-top: 1.5rem;
+}
+
+.date-inputs {
+  display: flex;
+  gap: 1rem;
+}
+
+.date-input {
+  flex: 1;
+}
+
+.date-input input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  transition: border-color 0.3s ease;
+}
+
+.date-input input:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.error-message {
+  color: #f44336;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.error-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  min-height: 24px;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  color: #f44336;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(244, 67, 54, 0.05);
+  border-radius: 4px;
+  height: 24px;
+  visibility: visible;
+  opacity: 1;
+  white-space: nowrap;
+}
+
+.error-message mat-icon {
+  font-size: 0.875rem;
+  margin-right: 0.25rem;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.input-wrapper.error {
+  border-color: #f44336;
+  background: rgba(244, 67, 54, 0.02);
+}
+
+.input-wrapper.error:focus-within {
+  border-color: #f44336;
+  box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.form-actions button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.form-actions button mat-icon {
+  font-size: 1.25rem;
+}
+
+/* File Upload */
+.file-upload-container {
+  text-align: center;
+  padding: 2rem;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.file-upload-container:hover {
+  border-color: #2196f3;
+  background: rgba(33, 150, 243, 0.05);
+  transform: translateY(-2px);
+}
+
+.file-upload-container:active {
+  transform: translateY(0);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: #2196f3;
+  margin-bottom: 1rem;
+}
+
+.file-upload-container h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.file-upload-container p {
+  color: #666;
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.file-input {
+  display: none;
+}
+
+.image-preview {
+  position: relative;
+  margin: 20px auto;
+  max-width: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.remove-image {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.remove-image:hover {
+  background: #fff;
+  transform: scale(1.1);
+}
+
+.confirmation-content {
+  text-align: center;
+  padding: 2rem;
+}
+
+.success-icon {
+  color: #4caf50;
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.confirmation-content p {
+  font-size: 1.25rem;
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+/* Buttons */
+button[mat-raised-button] {
+  min-width: 120px;
+  height: 48px;
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+button[mat-raised-button][type="submit"],
+button[mat-raised-button][type="button"] {
+  background-color: var(--accent) !important;
+  color: var(--primary) !important;
+}
+
+button[mat-raised-button]:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+button[mat-raised-button]:disabled {
+  background-color: var(--gray-100) !important;
+  transform: none;
+}
+
+/* Success Step */
+.tile-content {
+  text-align: center;
+  padding: 3rem;
+  animation: scaleIn 0.5s ease-out;
+}
+
+.tile-content p {
+  font-size: 1.25rem;
+  color: var(--success);
+  margin-bottom: 2rem;
+}
+
+/* Dialog Actions */
+[mat-dialog-actions] {
+  padding: 1.5rem;
+  gap: 1rem;
+  border-top: 1px solid var(--gray-100);
+  margin-top: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 1rem;
+  }
+
+  .program-title h1 {
+    font-size: 2rem !important;
+  }
+
+  button[mat-raised-button] {
+    width: 100%;
+  }
+}
+
+/* Loading State */
+/* .loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+} */
+
+/* Success Animation */
+@keyframes checkmark {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.success-checkmark {
+  color: var(--success);
+  font-size: 48px;
+  animation: checkmark 0.5s ease-out forwards;
+}
+
+.mat-stepper-horizontal {
+  margin-top: 80px;
+  display: flex;
+  justify-content: center;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mat-form-field {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 16px;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.w-10 {
+  width: 40px;
+}
+
+.h-10 {
+  height: 40px;
+}
+
+.rounded-full {
+  border-radius: 50%;
+}
+
+.mr-2 {
+  margin-right: 8px;
+}
+
+.tile-details {
+  text-align: left; /* Align text to the left for better readability */
+  width: 100%; /* Make sure the details take full width */
+  padding: 10px; /* Add padding for better spacing */
+  box-sizing: border-box; /* Ensure padding is included in width calculation */
+}
+
+.chef-program-details {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+}
+
+.chef-program-item {
+  display: flex;
+  align-items: center;
+  margin-left: 30px;
+  margin-top: 30px;
+}
+
+.chef-program-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.chef-program-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-blue {
+  background-color: blue;
+  color: white;
+}
+
+.status-grey {
+  background-color: grey;
+  color: white;
+}
+
+.status-red {
+  background-color: red;
+  color: white;
+}
+
+.status-green {
+  background-color: green;
+  color: white;
+}
+
+.title {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: rgb(0, 0, 0);
+  text-shadow: 1px 1px 2px black; /* Add a shadow to create a 3D effect */
+  display: block;
+  text-align: center;
+}
+
+.tile-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px;
+  height: 100%;
+}
+
+.tile-image {
+  width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.tile-details {
+  text-align: left; /* Align text to the left for better readability */
+  width: 100%; /* Make sure the details take full width */
+  padding: 10px; /* Add padding for better spacing */
+  box-sizing: border-box; /* Ensure padding is included in width calculation */
+}
+
+.detail-item {
+  display: flex; /* Use flexbox for alignment */
+  margin: 5px 0; /* Add vertical margin for spacing between items */
+}
+
+.custom-button {
+  background-color: #FFEB3B;
+  color: #000;
+  position: absolute;
+  right: 1rem;
+  margin-top: 15px;
+}
+
+.detail-label {
+  width: 150px; /* Set a fixed width for labels to align values */
+  margin-right: 3px;
+  font-weight: bold;
+}
+
+.detail-value {
+  flex: 1;
+}
+
+.title-text {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: yellow;
+  text-shadow: 1px 1px 2px black;
+  margin-bottom: 10px;
+}
+
+.tile-details p {
+  margin: 5px 0;
+  color: black;
+  font-size: 1em;
+}
+
+/* Date Range Picker Styles */
+.date-range-field {
+  width: 100%;
+}
+
+.date-range-field .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+.date-range-field .mat-form-field-flex {
+  background: white;
+  border-radius: 4px;
+  padding: 0.5em 0.75em;
+}
+
+.date-range-field .mat-form-field-infix {
+  border-top: 0;
+  padding: 0;
+}
+
+.date-range-field .mat-form-field-label-wrapper {
+  top: -1.5em;
+}
+
+.date-range-field .mat-form-field-underline {
+  display: none;
+}
+
+.date-range-field .mat-date-range-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.date-range-field .mat-date-range-input-separator {
+  margin: 0 0.5em;
+}
+
+.date-range-field .mat-datepicker-toggle {
+  color: var(--primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .date-range-field {
+    width: 100%;
+  }
+}
+
+.upload-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.upload-button:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  background-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.upload-progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.progress-circle {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  border-top-color: #fff;
+  border-right-color: #fff;
+  animation: spin 0.8s linear infinite;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.upload-text {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+

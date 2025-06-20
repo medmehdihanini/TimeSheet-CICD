@@ -1,0 +1,15 @@
+<h2 mat-dialog-title>Changer le statut du programme</h2>
+<mat-dialog-content>
+  <form [formGroup]="statusForm">
+    <mat-form-field>
+      <mat-label>Statut</mat-label>
+      <mat-select formControlName="status">
+        <mat-option *ngFor="let status of statuses" [value]="status">{{status}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="onCancel()">Annuler</button>
+  <button mat-button [disabled]="!statusForm.valid" (click)="onSubmit()">Valider</button>
+</mat-dialog-actions>

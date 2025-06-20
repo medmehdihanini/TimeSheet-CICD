@@ -1,0 +1,56 @@
+<h2 mat-dialog-title class="modal-header">
+  <strong>Générer Facture du Projet</strong>
+</h2>
+
+<mat-dialog-content class="modal-content">
+  <div class="project-info">
+    <p><strong>Projet :</strong> {{ data.projectName }}</p>
+  </div>
+
+  <form [formGroup]="selectionForm" class="form-container">
+    <!-- Month Selection -->
+    <div class="form-group">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Mois</mat-label>
+        <mat-select formControlName="month">
+          <mat-option *ngFor="let month of months" [value]="month.value">
+            {{ month.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Year Selection -->
+    <div class="form-group">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Année</mat-label>
+        <mat-select formControlName="year">
+          <mat-option *ngFor="let year of years" [value]="year">
+            {{ year }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="modal-actions">
+  <button
+    mat-button
+    type="button"
+    (click)="onCancel()"
+    class="cancel-btn">
+    <mat-icon>close</mat-icon>
+    Annuler
+  </button>
+  <button
+    mat-raised-button
+    color="primary"
+    type="submit"
+    (click)="onSubmit()"
+    [disabled]="!selectionForm.valid"
+    class="submit-btn">
+    <mat-icon>picture_as_pdf</mat-icon>
+    Générer Facture
+  </button>
+</mat-dialog-actions>

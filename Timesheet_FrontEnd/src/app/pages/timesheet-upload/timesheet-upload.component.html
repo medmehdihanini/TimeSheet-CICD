@@ -1,0 +1,178 @@
+<div class="timesheet-upload-container">
+  <mat-card class="main-card" *ngIf="!showVerification">
+    <mat-card-header>
+      <div class="header-container">
+        <mat-icon class="header-icon">upload_file</mat-icon>
+        <mat-card-title>Téléchargement Timesheet</mat-card-title>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-stepper orientation="vertical" [linear]="true" #stepper>
+
+        <!-- Step 1: Program Selection (For PROGRAM_MANAGER only) -->
+        <mat-step [stepControl]="programFormGroup" *ngIf="userRole === 'PROGRAM_MANAGER'">
+          <form [formGroup]="programFormGroup">
+            <ng-template matStepLabel>Sélectionner un Programme</ng-template>
+            <div style="max-width: 300px;">
+              <mat-form-field appearance="fill" class="dropdown-select program-dropdown" style="width: 100%; max-width: 300px;">
+                <mat-label>Choisir un Programme</mat-label>
+                <mat-select formControlName="programCtrl">
+                  <mat-option *ngFor="let program of programs" [value]="program">
+                    {{ program.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-hint> Sélectionnez un programme que vous gérez</mat-hint>
+              </mat-form-field>
+            </div>
+            <div class="step-actions">
+              <button mat-button matStepperNext [disabled]="programFormGroup.invalid" class="next-button">
+                Suivant <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 2: Project Selection -->
+        <mat-step [stepControl]="projectFormGroup">
+          <form [formGroup]="projectFormGroup">
+            <ng-template matStepLabel>Sélectionner un Projet</ng-template>
+            <div style="max-width: 300px;">
+              <mat-form-field appearance="fill" class="dropdown-select project-dropdown" style="width: 100%; max-width: 300px;">
+                <mat-label>Choisir un Projet</mat-label>
+                <mat-select formControlName="projectCtrl">
+                  <mat-option *ngFor="let project of projects" [value]="project">
+                    {{ project.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-hint>Sélectionnez un projet pour télécharger le timesheet</mat-hint>
+              </mat-form-field>
+            </div>
+            <div class="step-actions">
+              <button mat-button matStepperPrevious *ngIf="userRole === 'PROGRAM_MANAGER'" class="back-button">
+                <mat-icon>arrow_back</mat-icon> Retour
+              </button>
+              <button mat-button matStepperNext [disabled]="projectFormGroup.invalid" class="next-button">
+                Suivant <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 3: Profile Selection -->
+        <mat-step [stepControl]="profileFormGroup">
+          <form [formGroup]="profileFormGroup">
+            <ng-template matStepLabel>Sélectionner un Profil</ng-template>
+            <div class="profiles-container" style="max-width: 300px;">
+              <mat-form-field appearance="fill" class="dropdown-select profile-dropdown" style="width: 100%; max-width: 300px;">
+                <mat-label>Choisir un Profil</mat-label>
+                <mat-select formControlName="profileCtrl">
+                  <mat-option *ngFor="let profile of profiles" [value]="profile.idp">
+                    <div class="profile-option">
+                      <img [src]="getProfileImageUrl(profile)" class="profile-avatar" />
+                      <span>{{ profile.firstName }} {{ profile.lastName }}</span>
+                    </div>
+                  </mat-option>
+                </mat-select>
+                <mat-hint>Sélectionnez un profil pour le timesheet</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <!-- Profile Details Card -->
+            <mat-card class="profile-details-card" *ngIf="selectedProfile">
+              <div class="profile-header">
+                <img [src]="getProfileImageUrl(selectedProfile)" alt="Image de profil" class="profile-image">
+                <div class="profile-info">
+                  <h3>{{ selectedProfile.firstName }} {{ selectedProfile.lastName }}</h3>
+                  <p class="profile-function">{{ selectedProfile.function }}</p>
+                </div>
+              </div>
+              <div class="profile-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Budget (J/H):</span>
+                  <span class="stat-value">{{ selectedProfile.mandayBudget }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Consommé (J/H):</span>
+                  <span class="stat-value">{{ selectedProfile.progress }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Taux journalier:</span>
+                  <span class="stat-value">{{ selectedProfile.dailyRate }}</span>
+                </div>
+              </div>
+            </mat-card>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious class="back-button">
+                <mat-icon>arrow_back</mat-icon> Retour
+              </button>
+              <button mat-button matStepperNext [disabled]="profileFormGroup.invalid" class="next-button">
+                Suivant <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 4: File Upload -->
+        <mat-step [stepControl]="uploadFormGroup">
+          <form [formGroup]="uploadFormGroup">
+            <ng-template matStepLabel>Télécharger le Timesheet</ng-template>
+
+            <div class="upload-container">
+              <div class="drop-zone" (click)="fileInput.click()">
+                <input hidden type="file" #fileInput (change)="onFileSelect($event)" accept=".xls,.xlsx">
+                <mat-icon class="upload-icon">upload_file</mat-icon>
+                <h3>Télécharger un fichier Excel</h3>
+                <p>Cliquez pour parcourir ou glisser-déposer</p>
+                <p *ngIf="selectedFile" class="selected-file-name">{{ selectedFile.name }}</p>
+              </div>
+
+              <div *ngIf="uploadError" class="error-message">
+                <mat-icon>error</mat-icon>
+                <span>{{ uploadError }}</span>
+              </div>
+
+              <div *ngIf="uploadSuccess" class="success-message">
+                <mat-icon>check_circle</mat-icon>
+                <span>Timesheet téléchargé avec succès!</span>
+              </div>
+
+              <div *ngIf="isUploading" class="uploading-message">
+                <mat-spinner diameter="24"></mat-spinner>
+                <span>Téléchargement du timesheet en cours...</span>
+              </div>
+            </div>
+
+            <div class="template-download">
+              <mat-icon>download</mat-icon>
+              <a href="/assets/template/template.xlsx" download>Télécharger le modèle de Timesheet</a>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious class="back-button">
+                <mat-icon>arrow_back</mat-icon> Retour
+              </button>
+              <button mat-button (click)="parseTimesheet()" [disabled]="uploadFormGroup.invalid || isUploading" class="upload-button">
+                <mat-icon>fact_check</mat-icon> Vérifier le Timesheet
+              </button>
+              <button mat-button (click)="resetForm()" class="reset-button">
+                <mat-icon>refresh</mat-icon> Réinitialiser
+              </button>
+            </div>
+          </form>
+        </mat-step>
+      </mat-stepper>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Timesheet Verification Component -->
+  <app-timesheet-verification
+    *ngIf="showVerification"
+    [timesheetData]="extractedTimesheetData"
+    [profileId]="selectedProfile?.idp"
+    [projectId]="selectedProject?.idproject"
+    (confirm)="onVerificationConfirm($event)"
+    (cancel)="onVerificationCancel()">
+  </app-timesheet-verification>
+</div>

@@ -1,0 +1,146 @@
+:host {
+  --ey-dark: #333333;
+  --ey-yellow: #ffe600;
+  --ey-white: #ffffff;
+  --ey-light-gray: #cccccc;
+  --ey-medium-gray: #999999;
+}
+
+// Chat Container
+.chat-container {
+  position: fixed;
+  right: 20px;
+  bottom: 0;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.15);
+  background-color: var(--ey-white);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  overflow: hidden;
+
+  // When minimized, show only header
+  &.minimized {
+    height: 48px;
+  }
+  // When not minimized, show chat content
+  &:not(.minimized) {
+    height: 450px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  // When expanded, take up more width
+  &.expanded {
+    width: 400px;
+    height: 550px;
+  }
+}
+
+// Main chat content area
+.chat-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  height: calc(100% - 48px); /* Subtract header height */
+}
+
+// Chat room view
+.chat-room-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  height: 100%; // Ensure full height
+
+  .messages-wrapper {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .input-wrapper {
+    flex-shrink: 0; // Don't allow input to shrink
+  }
+}
+
+// No chat selected message
+.no-chat-selected {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+
+  .empty-state {
+    text-align: center;
+    color: var(--ey-medium-gray);
+
+    .chat-icon {
+      margin-bottom: 16px;
+      color: var(--ey-light-gray);
+      display: flex;
+      justify-content: center;
+    }
+
+    p {
+      margin-bottom: 16px;
+    }
+
+    .ey-button {
+      background-color: var(--ey-yellow);
+      color: var(--ey-dark);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #e6cf00;
+      }
+    }
+  }
+}
+
+// Adjustments for medium screens
+@media (max-width: 768px) {
+  .chat-container {
+    right: 10px;
+    width: 300px;
+
+    &.expanded {
+      width: 90%;
+      max-width: 500px;
+      right: 5%;
+      height: 80vh;
+    }
+  }
+}
+
+// Adjustments for small screens (mobile devices)
+@media (max-width: 480px) {
+  .chat-container {
+    right: 0;
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+
+    &:not(.minimized) {
+      height: 400px;
+    }
+
+    &.expanded {
+      width: 100%;
+      height: 100vh;
+      right: 0;
+      border-radius: 0;
+      top: 0;
+      bottom: 0;
+    }
+  }
+}

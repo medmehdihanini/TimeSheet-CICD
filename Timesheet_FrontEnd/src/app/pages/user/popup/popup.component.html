@@ -1,0 +1,212 @@
+<h2 mat-dialog-title class="modal-header">
+  <strong>{{inputdata.title}}</strong>
+</h2>
+
+<mat-dialog-content class="modal-content">
+  <div class="loader-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p class="loading-text">Chargement en cours...</p>
+  </div>
+
+  <form [formGroup]="isUserForm ? myform : profileform" class="form-container" *ngIf="!loading">
+    <ng-container *ngIf="isUserForm; else profileForm">
+      <!-- User Form Fields -->
+      <div class="form-group">
+        <label>Prénom</label>
+        <div class="input-container">
+          <input
+            class="form-input"
+            type="text"
+            formControlName="firstname"
+            placeholder="Entrez le prénom"
+          />
+          <div class="error-container" *ngIf="myform.get('firstname')?.touched">
+            <div class="error-message" *ngIf="myform.get('firstname')?.hasError('required')">
+              ⚠️ Le prénom est obligatoire
+            </div>
+            <div class="error-message" *ngIf="myform.get('firstname')?.hasError('onlyLettersAndSpaces')">
+              ⚠️ Seules les lettres sont acceptées
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Nom</label>
+        <div class="input-container">
+          <input
+            class="form-input"
+            type="text"
+            formControlName="lastname"
+            placeholder="Entrez le nom"
+          />
+          <div class="error-container" *ngIf="myform.get('lastname')?.touched">
+            <div class="error-message" *ngIf="myform.get('lastname')?.hasError('required')">
+              ⚠️ Le nom est obligatoire
+            </div>
+            <div class="error-message" *ngIf="myform.get('lastname')?.hasError('onlyLettersAndSpaces')">
+              ⚠️ Seules les lettres sont acceptées
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <div class="input-container">
+          <input
+            class="form-input"
+            type="email"
+            formControlName="email"
+            placeholder="Entrez l'adresse email"
+          />
+          <div class="error-container" *ngIf="myform.get('email')?.touched">
+            <div class="error-message" *ngIf="myform.get('email')?.hasError('required')">
+              ⚠️ Email est obligatoire
+            </div>
+            <div class="error-message" *ngIf="myform.get('email')?.hasError('email')">
+              ⚠️ Format d'email invalide
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Rôle</label>
+        <div class="input-container">
+          <select class="form-input" formControlName="role">
+            <option value="">Sélectionnez un rôle</option>
+            <option *ngFor="let role of roles" [value]="role">
+              {{ role }}
+            </option>
+          </select>
+          <div class="error-container" *ngIf="myform.get('role')?.touched">
+            <div class="error-message" *ngIf="myform.get('role')?.hasError('required')">
+              ⚠️ Le rôle est obligatoire
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #profileForm>
+      <!-- Profile Form Fields -->
+      <div class="form-group">
+        <label>Prénom</label>
+        <div class="input-container">
+          <input
+            class="form-input"
+            type="text"
+            formControlName="firstname"
+            placeholder="Entrez le prénom"
+          />
+          <div class="error-container" *ngIf="profileform.get('firstname')?.touched">
+            <div class="error-message" *ngIf="profileform.get('firstname')?.hasError('required')">
+              ⚠️ Le prénom est obligatoire
+            </div>
+            <div class="error-message" *ngIf="profileform.get('firstname')?.hasError('onlyLettersAndSpaces')">
+              ⚠️ Seules les lettres sont acceptées
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Nom</label>
+        <div class="input-container">
+          <input
+            class="form-input"
+            type="text"
+            formControlName="lastname"
+            placeholder="Entrez le nom"
+          />
+          <div class="error-container" *ngIf="profileform.get('lastname')?.touched">
+            <div class="error-message" *ngIf="profileform.get('lastname')?.hasError('required')">
+              ⚠️ Le nom est obligatoire
+            </div>
+            <div class="error-message" *ngIf="profileform.get('lastname')?.hasError('onlyLettersAndSpaces')">
+              ⚠️ Seules les lettres sont acceptées
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <div class="input-container">
+          <input
+            class="form-input"
+            type="email"
+            formControlName="email"
+            placeholder="Entrez l'adresse email"
+          />
+          <div class="error-container" *ngIf="profileform.get('email')?.touched">
+            <div class="error-message" *ngIf="profileform.get('email')?.hasError('required')">
+              ⚠️ Email est obligatoire
+            </div>
+            <div class="error-message" *ngIf="profileform.get('email')?.hasError('email')">
+              ⚠️ Format d'email invalide
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Département</label>
+        <div class="input-container">
+          <select class="form-input" formControlName="departement">
+            <option value="">Sélectionnez un département</option>
+            <option *ngFor="let departement of departments" [value]="departement">
+              {{ departement }}
+            </option>
+          </select>
+          <div class="error-container" *ngIf="profileform.get('departement')?.touched">
+            <div class="error-message" *ngIf="profileform.get('departement')?.hasError('required')">
+              ⚠️ Le département est obligatoire
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Budget jour-homme</label>
+        <div class="input-container">
+          <input
+            class="form-input"
+            type="text"
+            formControlName="mandaybudget"
+            placeholder="Entrez le budget jour-homme"
+          />
+          <div class="error-container" *ngIf="profileform.get('mandaybudget')?.touched">
+            <div class="error-message" *ngIf="profileform.get('mandaybudget')?.hasError('required')">
+              ⚠️ Budget jour-homme est obligatoire
+            </div>
+            <div class="error-message" *ngIf="profileform.get('mandaybudget')?.hasError('onlyNumbers')">
+              ⚠️ Seuls les nombres sont acceptés
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </form>
+</mat-dialog-content>
+
+<div mat-dialog-actions class="modal-footer" *ngIf="!loading">
+  <button class="btn btn-cancel" (click)="closepopup()">Annuler</button>
+  <button
+    class="btn btn-submit"
+    *ngIf="inputdata.title === 'Save User' || inputdata.title === 'Save Profile'"
+    [disabled]="!(isUserForm ? myform.valid : profileform.valid)"
+    (click)="saveUser()"
+  >
+    Sauvegarder
+  </button>
+  <button
+    class="btn btn-submit"
+    *ngIf="inputdata.title !== 'Save User' && inputdata.title !== 'Save Profile'"
+    [disabled]="!(isUserForm ? myform.valid : profileform.valid)"
+    (click)="updateUser()"
+  >
+    Modifier
+  </button>
+</div>

@@ -1,0 +1,128 @@
+<div class="timesheets-container">
+
+  <!-- Title Section -->
+  <div class="title-section" (click)="gotoProject()">
+    <div class="program-header">
+      <h1 class="program-title">Timesheets pour {{ project?.name }}</h1>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="profile-filter">Filtrer par profil</label>
+        <select
+          id="profile-filter"
+          class="custom-select"
+          [(ngModel)]="selectedProfileId"
+          (ngModelChange)="applyFilters()"
+        >
+          <option value="">Tous les profils</option>
+          <option
+            *ngFor="let profile of projectprofiles"
+            [value]="profile.id"
+          >
+            {{ profile.profile.firstname }} {{ profile.profile.lastname }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="status-filter">Filtrer par statut</label>
+        <select
+          id="status-filter"
+          class="custom-select"
+          [(ngModel)]="selectedStatus"
+          (ngModelChange)="onStatusChange()"
+        >
+          <option value="">Tous les statuts</option>
+          <option
+            *ngFor="
+              let status of [
+                'APPROVED',
+                'REJECTED',
+                'PENDING',
+                'DRAFT',
+                'SUBMITTED'
+              ]
+            "
+            [value]="status"
+          >
+            {{ status }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="month-filter">Filtrer par mois</label>
+        <select
+          id="month-filter"
+          class="custom-select"
+          [(ngModel)]="selectedMonth"
+          (ngModelChange)="onMonthChange()"
+        >
+          <option value="">Tous les mois</option>
+          <option *ngFor="let month of months" [value]="month.value">
+            {{ month.frname }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profiles Section -->
+  <div class="profiles-section">
+    <div class="profiles-wrapper">
+      <div class="profiles-container">
+        <div class="profiles-grid">
+          <div
+            class="profile-card"
+            *ngFor="let profileData of filteredProfileTimesheetsArray"
+          >
+            <div class="profile-header">
+              <h3 class="profile-name">
+                {{ profileData.profile?.profile.firstname }}
+                {{ profileData.profile?.profile.lastname }}
+              </h3>
+            </div>
+
+            <div class="timesheets-list">
+              <div
+                *ngFor="let timesheet of profileData.timesheets"
+                class="timesheet-item"
+                (click)="
+                  goToProfileTimesheet(
+                    profileData.profile?.profile.idp,
+                    timesheet.mois
+                  )
+                "
+              >
+                <div class="timesheet-icon">📅</div>
+                <div class="timesheet-details">
+                  <div class="timesheet-month">
+                    {{ getEngishMonthName(timesheet.mois) }}
+                  </div>
+                  <div
+                    class="timesheet-status"
+                    [ngClass]="{
+                      'status-draft': timesheet.status === 'DRAFT',
+                      'status-denied': timesheet.status === 'REJECTED',
+                      'status-approved': timesheet.status === 'APPROVED',
+                      'status-pending': timesheet.status === 'PENDING',
+                      'status-submitted': timesheet.status === 'SUBMITTED'
+                    }"
+                  >
+                    {{ timesheet.status }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

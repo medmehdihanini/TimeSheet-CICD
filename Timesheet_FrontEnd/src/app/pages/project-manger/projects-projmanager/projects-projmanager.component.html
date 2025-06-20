@@ -1,0 +1,74 @@
+<div class="projects-container">
+  <div class="header-section">
+    <h1 class="page-title">Mes Projets</h1>
+    <div class="search-container">
+      <mat-form-field class="search-field">
+        <mat-label>Rechercher un projet</mat-label>
+        <input matInput [(ngModel)]="searchQuery" (ngModelChange)="filterProjects()"
+               placeholder="Nom du projet ou manager...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="projects-grid">
+    <div class="project-card"
+         *ngFor="let project of paginatedProjects"
+         [@cardAnimation]>
+      <div class="card-header" (click)="goToProjectDetails(project.idproject)">
+        <div class="project-image">
+          <img [src]="getProjectImage(project)" alt="Project Manager">
+        </div>
+        <div class="project-info">
+          <h2 class="project-title">{{ project.name }}</h2>
+          <div class="manager-info">
+            <div class="manager-label">
+              <mat-icon class="manager-icon">person</mat-icon>
+              <span>Project Manager</span>
+            </div>
+            <p class="project-manager">{{ getProjectManagerName(project) }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button mat-icon-button matTooltip="View Project Details" (click)="goToProjectDetails(project.idproject)">
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="View Detailed Statistics" (click)="goToProjectDetailedStats(project.idproject); $event.stopPropagation();">
+          <mat-icon>bar_chart</mat-icon>
+        </button>
+      </div>
+
+      <div class="card-content">
+        <div class="status-container">
+          <span class="status-badge" [ngClass]="{
+            'status-in-progress': project?.status === 'IN_PROGRESS',
+            'status-on-hold': project.status === 'ON_HOLD',
+            'status-unlaunched': project.status === 'UNLAUNCHED',
+            'status-canceled': project.status === 'CANCELED',
+            'status-finished': project.status === 'FINISHED'
+          }">
+            {{ project.status }}
+          </span>
+
+        </div>
+
+        <div class="description-container">
+          <p class="truncate">
+            {{ project.description }}
+          </p>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+
+  <mat-paginator
+    [length]="(filteredProjects || myprojects).length"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="pageSizeOptions"
+    (page)="onPageChange($event)"
+    class="custom-paginator">
+  </mat-paginator>
+</div>

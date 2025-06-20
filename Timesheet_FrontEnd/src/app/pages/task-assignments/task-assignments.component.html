@@ -1,0 +1,366 @@
+<div class="container">
+  <!-- Coming Soon Overlay -->
+  <div class="coming-soon-overlay">
+    <div class="coming-soon-content">
+      <div class="coming-soon-icon">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <h1 class="coming-soon-title">Bientôt Disponible</h1>
+      <p class="coming-soon-subtitle">Cette fonctionnalité est en cours de développement</p>
+      <div class="coming-soon-decoration">
+        <div class="decoration-line"></div>
+        <mat-icon class="decoration-icon">hourglass_empty</mat-icon>
+        <div class="decoration-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="blurred-content">
+    <mat-card class="main-card">    <mat-card-header>      <mat-card-title class="simple-card-title">
+        Assignation de tâches multi-profils
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Selection panel (Program/Project) -->
+      <div class="selection-panel">
+        <!-- Program selection for PROGRAM_MANAGER -->
+        <mat-form-field *ngIf="userRole === 'PROGRAM_MANAGER'" appearance="fill" class="full-width">
+          <mat-label>Programme</mat-label>
+          <mat-select [(ngModel)]="selectedProgramId" (selectionChange)="onProgramChange()">
+            <mat-option *ngFor="let program of programs" [value]="program.idprog">
+              {{ program.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Project selection -->
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Projet</mat-label>
+          <mat-select [(ngModel)]="selectedProjectId" (selectionChange)="onProjectChange()">
+            <mat-option *ngFor="let project of projects" [value]="project.idproject || project.idp">
+              {{ project.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Month/Year selection -->
+      <div class="date-filter">
+        <mat-form-field appearance="fill">
+          <mat-label>Mois</mat-label>
+          <mat-select [(ngModel)]="selectedMonth" (selectionChange)="onDateFilterChange()">
+            <mat-option *ngFor="let month of months" [value]="month.value">
+              {{ month.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Année</mat-label>
+          <mat-select [(ngModel)]="selectedYear" (selectionChange)="onDateFilterChange()">
+            <mat-option *ngFor="let year of years" [value]="year">
+              {{ year }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Main content area -->
+      <div class="content-area" *ngIf="selectedProjectId">
+        <!-- Left panel: Profiles -->
+        <div class="profiles-panel">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Profils du projet</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="loading.profiles" class="loading-spinner">
+                <mat-spinner [diameter]="30"></mat-spinner>
+              </div>
+
+              <div *ngIf="!loading.profiles && profiles.length === 0" class="empty-message">
+                Aucun profil n'est associé à ce projet
+              </div>
+
+              <mat-selection-list #profileList>
+                <mat-list-option *ngFor="let profile of profiles"
+                                [value]="profile.idp"
+                                [selected]="selectedProfileIds.includes(profile.idp)"
+                                (selectedChange)="onProfileSelectionChange(profile.idp, $event)">
+                  <div class="profile-item">
+                    <div class="profile-image">
+                      <img *ngIf="profile.image" [src]="'data:image/jpeg;base64,' + profile.image" alt="Profile Image">
+                      <div *ngIf="!profile.image" class="placeholder-image">
+                        {{ profile.firstname.charAt(0) }}{{ profile.lastname.charAt(0) }}
+                      </div>
+                    </div>
+                    <div class="profile-details">
+                      <h3>{{ profile.firstname }} {{ profile.lastname }}</h3>
+                      <p>{{ profile.function }}</p>
+                    </div>
+                  </div>
+                </mat-list-option>
+              </mat-selection-list>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Middle panel: Tasks -->
+        <div class="tasks-panel">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Tâches existantes</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="selectedProfileIds.length === 0" class="empty-message">
+                Veuillez sélectionner au moins un profil pour voir les tâches
+              </div>
+
+              <div *ngIf="loading.tasks" class="loading-spinner">
+                <mat-spinner [diameter]="30"></mat-spinner>
+              </div>              <!-- Profile navigation -->
+              <div class="profile-nav" *ngIf="selectedProfileIds.length > 0">
+                <button
+                  *ngFor="let profileId of selectedProfileIds; let i = index"
+                  [class.active]="currentProfileIndex === i"
+                  (click)="setCurrentProfile(i)"
+                  [attr.aria-label]="getProfileName(profileId)"
+                  matTooltip="{{ getProfileName(profileId) }}">
+                  {{ i + 1 }}
+                </button>
+              </div>
+
+              <!-- Current profile tasks with pagination -->
+              <div *ngIf="selectedProfileIds.length > 0 && currentProfileIndex >= 0"
+                   class="profile-tasks"
+                   [@fadeIn]>
+                <h3>
+                  {{ getProfileName(currentProfileId) }}
+                </h3>
+
+                <div *ngIf="!profileTasksMap.get(currentProfileId) || profileTasksMap.get(currentProfileId)!.length === 0"
+                     class="empty-tasks">
+                  Aucune tâche pour ce mois
+                </div>                <!-- Always render the table section but conditionally show empty state -->
+                <div>
+                  <!-- Task table with headers - only show when there are tasks -->
+                  <table class="task-table" *ngIf="profileTasksMap.get(currentProfileId) && profileTasksMap.get(currentProfileId)!.length > 0">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Jours</th>
+                        <th>Lieu</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let task of getPaginatedTasks()" [@slideIn]>
+                        <td class="task-date">{{ task.datte }}</td>
+                        <td class="task-desc">{{ task.text }}</td>
+                        <td class="task-days">{{ task.nbJour }} </td>
+                        <td class="task-location">{{ task.workPlace }}</td>
+                      </tr>
+                    </tbody>
+                  </table>                  <!-- Pagination controls - always render when tasks exist in the map -->
+                  <div class="paginator-container" *ngIf="profileTasksMap.get(currentProfileId) && profileTasksMap.get(currentProfileId)!.length > 0">
+                    <mat-paginator
+                      [length]="getTasksLength()"
+                      [pageSize]="pageSize"
+                      [pageIndex]="getValidPageIndex()"
+                      [pageSizeOptions]="[5, 10, 25]"
+                      (page)="onPageChange($event)"
+                      aria-label="Sélectionnez une page">
+                    </mat-paginator>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Right panel: Activities -->
+        <div class="activities-panel">          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Dictionnaire d'activités</mat-card-title>
+              <span class="spacer"></span>
+              <button mat-icon-button matTooltip="Ajouter une catégorie" (click)="openCategoryDialog()">
+                <mat-icon>add_circle</mat-icon>
+              </button>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="loading.categories || loading.activities" class="loading-spinner">
+                <mat-spinner [diameter]="30"></mat-spinner>
+              </div>
+
+              <mat-accordion>                <mat-expansion-panel *ngFor="let category of categories; trackBy: trackByCategoryId">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      {{ category.name }}
+                    </mat-panel-title>
+                    <mat-panel-description class="panel-actions">
+                      <button mat-icon-button matTooltip="Modifier la catégorie"
+                              (click)="$event.stopPropagation(); $event.preventDefault(); openCategoryDialog(category)">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button mat-icon-button matTooltip="Supprimer la catégorie"
+                              (click)="$event.stopPropagation(); $event.preventDefault(); deleteCategory(category)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </mat-panel-description>
+                  </mat-expansion-panel-header>
+
+                  <div class="activities-header">
+                    <h4>Activités</h4>
+                    <button mat-mini-fab color="primary" matTooltip="Ajouter une activité"
+                            (click)="openActivityDialog(category.id)">
+                      <mat-icon>add</mat-icon>
+                    </button>
+                  </div>                  <div class="activities-list">
+                    <!-- Enhanced checkbox stability with extra event handling -->
+                    <mat-selection-list #activityList [multiple]="true" class="stable-checkboxes">                      <mat-list-option *ngFor="let activity of getActivitiesByCategory(category.id!); trackBy: trackByActivityId; let i = index"
+                                      [value]="activity.id"
+                                      [selected]="isActivitySelected(activity.id!)"
+                                      [attr.data-activity-id]="activity.id"
+                                      (selectedChange)="toggleActivitySelection(activity.id!, $event)"
+                                      (click)="toggleActivitySelection(activity.id!, $event)">
+                        <div class="activity-item">
+                          <span class="activity-description">{{ activity.description }}</span>
+                          <div class="activity-actions">
+                            <button mat-icon-button matTooltip="Modifier"
+                                    (click)="$event.stopPropagation(); $event.preventDefault(); openActivityDialog(category.id, activity)">
+                              <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button matTooltip="Supprimer"
+                                    (click)="$event.stopPropagation(); $event.preventDefault(); deleteActivity(activity)">
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          </div>
+                        </div>
+                      </mat-list-option>
+                    </mat-selection-list>
+                  </div>
+                </mat-expansion-panel>
+              </mat-accordion>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Assignment section -->
+      <div class="assignment-section" *ngIf="selectedProjectId && selectedProfileIds.length > 0">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Assigner des tâches</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>            <div class="assignment-form">
+              <div class="profile-activity-assignments">
+                <h3>Assignation des activités par profil</h3>
+
+                <!-- Tab group for profiles -->
+                <mat-tab-group animationDuration="200ms" class="profile-tabs">
+                  <mat-tab *ngFor="let profileId of selectedProfileIds; trackBy: trackById"
+                           [label]="getProfileName(profileId)">
+
+                    <div class="activity-assignment-table">                      <!-- Table header -->
+                      <div class="table-header">
+                        <div class="activity-column">Activité</div>
+                        <div class="date-column">Date</div>
+                        <div class="lieu-column">Lieu</div>
+                        <div class="jour-column">Jour</div>
+                        <div class="action-column">Actions</div>
+                      </div>
+
+                      <!-- Table rows -->
+                      <div class="table-body">
+                        <div class="table-row" *ngFor="let activityId of selectedActiviteDictionnaireIds; trackBy: trackById; let i = index">
+                          <div class="activity-column">
+                            {{ getActivityDescription(activityId) }}
+                          </div>                          <div class="date-column">
+                            <mat-form-field class="date-picker"
+                                          [ngClass]="{
+                                            'has-validation-error': getAssignmentErrors(profileId, activityId).length > 0,
+                                            'weekend-date': isWeekend(getProfileActivityDate(profileId, activityId)),
+                                            'holiday-date': isHoliday(getProfileActivityDate(profileId, activityId)),
+                                            'conflict-date': hasDateConflict(profileId, getProfileActivityDate(profileId, activityId))
+                                          }">
+                              <mat-label>Date</mat-label>                                <input matInput [matDatepicker]="dp"
+                                     [attr.data-profile-id]="profileId"
+                                     [attr.data-activity-id]="activityId"
+                                     [value]="getProfileActivityDate(profileId, activityId) || assignmentDate"
+                                     (dateChange)="handleDateChange($event.value, profileId, activityId)"
+                                     (click)="$event.stopPropagation(); $event.preventDefault()">
+                              <mat-datepicker-toggle matSuffix [for]="dp" [uniqueDatepicker]="dp"
+                                                    (click)="$event.stopPropagation(); $event.preventDefault()">
+                              </mat-datepicker-toggle>
+                              <mat-datepicker #dp="matDatepicker" [touchUi]="false"></mat-datepicker>                              <mat-error *ngIf="getAssignmentErrors(profileId, activityId).length">
+                                {{ getAssignmentErrors(profileId, activityId)[0] }}
+                              </mat-error>
+                            </mat-form-field>
+                          </div>
+
+                          <div class="lieu-column">
+                            <mat-form-field >
+                              <mat-label>Lieu</mat-label>
+                              <mat-select
+                                [value]="getProfileActivityWorkPlace(profileId, activityId) || 'EY'"
+                                (selectionChange)="updateProfileActivityWorkPlace(profileId, activityId, $event.value)"
+                                [disabled]="!isProfileActivityAssigned(profileId, activityId)">
+                                <mat-option value="EY">EY</mat-option>
+                                <mat-option value="Chez le client">Chez le client</mat-option>
+                              </mat-select>
+                            </mat-form-field>
+                          </div>
+
+                          <div class="jour-column">
+                            <mat-form-field >
+                              <mat-label>Jour</mat-label>
+                              <mat-select
+                                [value]="getProfileActivityNbJour(profileId, activityId) || 1"
+                                (selectionChange)="updateProfileActivityNbJour(profileId, activityId, $event.value)"
+                                [disabled]="!isProfileActivityAssigned(profileId, activityId)">
+                                <mat-option [value]="1">1</mat-option>
+                                <mat-option [value]="0.5">0.5</mat-option>
+                              </mat-select>
+                            </mat-form-field>
+                          </div>
+
+                          <div class="action-column">
+                            <button mat-icon-button color="warn"
+                                    (click)="removeProfileActivityAssignment(profileId, activityId)"
+                                    *ngIf="isProfileActivityAssigned(profileId, activityId)"
+                                    matTooltip="Supprimer cette assignation">
+                              <mat-icon>clear</mat-icon>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </mat-tab>
+                </mat-tab-group>
+              </div>              <!-- Error message section -->
+              <div class="validation-errors" *ngIf="hasDateValidationErrors()">
+                <div class="error-section" *ngFor="let profileId of selectedProfileIds">
+                  <div *ngIf="getDateValidationErrors(profileId).length > 0" class="error-card">
+                    <h4>{{ getProfileName(profileId) }}</h4>
+                    <ul>
+                      <li *ngFor="let error of getDateValidationErrors(profileId)">
+                        {{ error }}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="assignment-actions">
+                <button mat-raised-button color="primary" (click)="assignTasks()"
+                        [disabled]="selectedProfileIds.length === 0 || selectedActiviteDictionnaireIds.length === 0 || hasDateValidationErrors()">
+                  Assigner les tâches
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>      </div>
+    </mat-card-content>
+  </mat-card>
+  </div>
+</div>

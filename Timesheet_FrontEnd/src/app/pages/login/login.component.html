@@ -1,0 +1,49 @@
+<link
+  href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+  rel="stylesheet"
+/>
+<body>
+  <div class="wrapper">
+    <div class="logo-container">
+      <img src="assets/EY.png" alt="EY Logo" class="logo" />
+    </div>
+    <h1>TimeSheet Portal</h1>
+    <p class="subtitle">Connectez-vous à votre compte</p>
+
+    <div class="input-box">
+      <input
+        type="text"
+        name="email"
+        [(ngModel)]="credentials.email"
+        placeholder="Adresse email"
+        required
+      />
+      <i class="bx bxs-user"></i>
+    </div>
+
+    <div class="input-box">
+      <input
+        type="password"
+        name="password"
+        [(ngModel)]="credentials.password"
+        placeholder="Mot de passe"
+        required
+      />
+      <i class="bx bxs-lock-alt"></i>
+    </div>
+
+    <div class="forgot-link">
+      <a href="javascript:void(0);" (click)="forgotPassword()"
+        >Mot de passe oublié?</a
+      >
+    </div>
+
+    <button type="button" class="btn" (click)="login()">Se Connecter</button>
+
+    <div class="error-message" [class.visible]="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <p class="footer-text">&copy; {{ currentYear }} EY. Tous droits réservés.</p>
+  </div>
+</body>

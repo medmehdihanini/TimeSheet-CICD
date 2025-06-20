@@ -1,0 +1,153 @@
+<div mat-dialog-content class="update-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h2 class="page-title">Mettre à jour le programme</h2>
+  </div>
+
+  <!-- Image Update Section -->
+  <div class="content-section">
+    <h6 class="section-title">Image du programme</h6>
+
+    <div class="image-upload-container">
+      <!-- Current Image Preview -->
+      <div class="image-preview-section" *ngIf="program?.image">
+        <div class="current-image-wrapper">
+          <img
+            [src]="program.image ? 'data:image/png;base64,' + program.image : '../../../assets/téléchargé.jpg'"
+            alt="Program Image"
+            class="program-image"
+          />
+          <div class="image-overlay">
+            <span class="image-text">Image actuelle</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Section -->
+      <div class="upload-section">
+        <form [formGroup]="imageForm" (ngSubmit)="updateImage()">
+          <div class="upload-zone">
+            <label for="user_avatar" class="file-upload-label">
+              <div class="upload-content">
+                <mat-icon class="upload-icon">cloud_upload</mat-icon>
+                <div class="upload-title">Choisir une nouvelle image</div>
+                <div class="upload-subtitle">Glissez et déposez ou cliquez pour parcourir</div>
+                <div class="upload-format">PNG, JPG, GIF jusqu'à 10MB</div>
+              </div>
+            </label>
+            <input
+              id="user_avatar"
+              type="file"
+              accept="image/*"
+              (change)="onFileChange($event)"
+              class="file-input"
+            />
+          </div>
+
+          <div class="form-controls">
+            <button
+              [disabled]="imageForm.invalid"
+              mat-raised-button
+              type="submit"
+              class="submit-button"
+            >
+              <mat-icon>image</mat-icon>
+              <span>Mettre à jour l'image</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Program Information Section -->
+  <div class="content-section">
+    <h6 class="section-title">Informations du programme</h6>
+
+    <form [formGroup]="programForm" class="program-form">
+      <!-- Date Range Field -->
+      <div class="form-field-wrapper">
+        <mat-form-field  class="full-width">
+          <mat-label>Période du programme</mat-label>
+          <mat-date-range-input [rangePicker]="picker">
+            <input
+              matStartDate
+              formControlName="startdate"
+              placeholder="Date de début"
+            />
+            <input
+              matEndDate
+              formControlName="enddate"
+              placeholder="Date de fin"
+            />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="picker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+      </div>
+
+      <!-- Contract Number Field -->
+      <div class="form-field-wrapper">
+        <mat-form-field class="full-width">
+          <mat-label>Numéro de contrat</mat-label>
+          <input formControlName="numcontrat" matInput />
+          <mat-icon matPrefix>assignment</mat-icon>
+          <mat-error *ngIf="programForm.get('numcontrat')?.hasError('required')">
+            Ce champ est obligatoire
+          </mat-error>
+          <mat-error *ngIf="programForm.get('numcontrat')?.hasError('onlyNumbers')">
+            Seuls les chiffres sont acceptés
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Program Name Field -->
+      <div class="form-field-wrapper">
+        <mat-form-field  class="full-width">
+          <mat-label>Nom du programme</mat-label>
+          <input formControlName="name" matInput />
+          <mat-icon matPrefix>work</mat-icon>
+          <mat-error *ngIf="programForm.get('name')?.hasError('required')">
+            Ce champ est obligatoire
+          </mat-error>
+          <mat-error *ngIf="programForm.get('name')?.hasError('onlyLettersNumbersAndSpaces')">
+            Seules les lettres et les chiffres sont acceptés
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Status Field -->
+      <div class="form-field-wrapper">
+        <mat-form-field class="full-width">
+          <mat-label>Statut du programme</mat-label>
+          <mat-select formControlName="status">
+            <mat-option *ngFor="let status of statuses" [value]="status">
+              {{ status }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>flag</mat-icon>
+          <mat-error *ngIf="programForm.get('status')?.hasError('required')">
+            Ce champ est obligatoire
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </form>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button
+        [disabled]="!programForm.valid"
+        mat-raised-button
+        type="submit"
+        class="submit-button primary-action"
+        (click)="updateProgram()"
+      >
+        <mat-icon>save</mat-icon>
+        <span>Enregistrer les modifications</span>
+      </button>
+    </div>
+  </div>
+</div>

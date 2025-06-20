@@ -1,0 +1,551 @@
+<div class="program-container">
+  <!-- Header section with timesheet-table design -->
+  <div class="header-container">
+    <!-- Profile Section -->
+    <div class="profile-section">
+      <div class="profile-image">
+        <img
+          *ngIf="program?.chefprogram?.image"
+          [src]="'data:image/jpg;base64,' + program?.chefprogram?.image"
+          alt="Program Manager Image"
+        />
+        <img
+          *ngIf="!program?.chefprogram?.image"
+          src="../../../../assets/imgholder.jpg"
+          alt="Placeholder Image"
+        />
+      </div>
+      <div class="profile-info">
+        <h2>{{ program?.chefprogram?.firstname }} {{ program?.chefprogram?.lastname }}</h2>
+        <div class="profile-details">
+          <span>Chef de Programme</span>
+          <span class="department">{{ program?.chefprogram?.departement }}</span>
+        </div>
+        <div class="budget-info">
+          <div class="budget-item">
+            <span>Contrat:</span>
+            <strong>{{ program?.numcontrat || 'Non défini' }}</strong>
+          </div>
+          <div class="budget-item">
+            <span>Status:</span>
+            <strong>{{ program?.status }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Program Section -->
+    <div class="program-section">
+      <h1 class="program-title" (click)="goToPrograms()">{{ program?.name }}</h1>
+      <div class="program-dates">
+        <div class="program-date">
+          <span class="date-label">Début:</span>
+          <span *ngIf="program?.startdate">{{ program?.startdate }}</span>
+          <span *ngIf="!program?.startdate">Non défini</span>
+        </div>
+        <div class="program-date">
+          <span class="date-label">Clôture:</span>
+          <span *ngIf="program?.enddate">{{ program?.enddate }}</span>
+          <span *ngIf="!program?.enddate">Non défini</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions Section -->
+    <div class="actions-section">
+      <!-- Launch Date Section -->
+      <div class="launch-section">
+        <div class="section-title">Date de lancement</div>
+        <div class="launch-info">
+          <span>{{ getFrenchFormattedDate(program?.launchedat) || 'Non défini' }}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button
+          class="action-btn stats-btn"
+          (click)="viewProgramStats(programId)">
+          <mat-icon>bar_chart</mat-icon>
+          <span>Statistiques</span>
+        </button>
+        <button
+          *ngIf="connecteduser.email === program?.chefprogram?.email"
+          class="action-btn settings-btn"
+          (click)="goToProgramDetailsSettings()">
+          <mat-icon>settings</mat-icon>
+          <span>Configurer</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Redesigned Content Layout -->
+  <div class="redesigned-content">
+    <!-- Quick Stats Overview -->
+    <div class="stats-overview">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ allowedValue | number:'1.0-0' }} TND</div>
+          <div class="stat-label">Budget Total</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon consumed">
+          <mat-icon>trending_down</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ consumedValue | number:'1.0-0' }} TND</div>
+          <div class="stat-label">Budget Consommé</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getTotalMandayBudget() | number:'1.0-0' }} J/H</div>
+          <div class="stat-label">Temps Alloués</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <mat-icon class="icon-background">people</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ programProfiles.length || 0 }}</div>
+          <div class="stat-label">Profils Assignés</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <mat-icon>dashboard</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ programProjects.length || 0 }}</div>
+          <div class="stat-label">Projets</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Tabbed Interface -->
+    <div class="tabbed-interface">
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 0"
+          (click)="setActiveTab(0)">
+          <mat-icon>info</mat-icon>
+          <span>Vue d'ensemble</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 1"
+          (click)="setActiveTab(1)">
+          <mat-icon>account_balance_wallet</mat-icon>
+          <span>Budget Détaillé</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 2"
+          (click)="setActiveTab(2)">
+          <mat-icon>people</mat-icon>
+          <span>Équipe ({{ programProfiles.length || 0 }})</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 3"
+          (click)="setActiveTab(3)"
+          *ngIf="programProjects && programProjects.length > 0">
+          <mat-icon>dashboard</mat-icon>
+          <span>Projets ({{ programProjects.length || 0 }})</span>
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content-area">
+
+        <!-- Overview Tab -->
+        <div class="tab-content" [class.active]="activeTab === 0">
+          <div class="overview-layout">
+            <!-- Program Info Section -->
+            <div class="overview-card">
+              <div class="card-header">
+                <mat-icon>info</mat-icon>
+                <h3>Informations Générales</h3>
+              </div>
+              <div class="overview-content">
+                <div class="program-visual">
+                  <img
+                    [src]="program?.image ? 'data:image/png;base64,' + program?.image : '../../../../assets/téléchargé.png'"
+                    alt="Program Image"
+                    class="program-showcase-image"
+                  />
+                </div>
+                <div class="program-info-details">
+                  <div class="info-item">
+                    <span class="label">Numéro de contrat</span>
+                    <span class="value">{{ program?.numcontrat || 'Non défini' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">Date de lancement</span>
+                    <span class="value">{{ getFrenchFormattedDate(program?.launchedat) || 'Non défini' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">Statut actuel</span>
+                    <span class="value">
+                      <span
+                        class="status-badge"
+                        [ngClass]="{
+                          'status-in-progress': program?.status === 'IN_PROGRESS',
+                          'status-on-hold': program?.status === 'ON_HOLD',
+                          'status-unlaunched': program?.status === 'UNLAUNCHED',
+                          'status-finished': program?.status === 'FINISHED',
+                          'status-canceled': program?.status === 'CANCELED'
+                        }"
+                        *ngIf="program?.status"
+                        (click)="connecteduser.email === program?.chefprogram?.email ? openStatusModal() : null"
+                      >
+                        {{ program?.status }}
+                      </span>
+                    </span>
+                  </div>
+                  <div class="info-item" *ngIf="program?.chefprogram">
+                    <span class="label">Chef de Programme</span>
+                    <div class="manager-info">
+                      <img
+                        [src]="program.chefprogram.image ? 'data:image/png;base64,' + program.chefprogram.image : '../../../assets/imgholder.jpg'"
+                        alt="Chef Program Image"
+                        class="manager-avatar"
+                      />
+                      <div class="manager-details">
+                        <span class="manager-name">{{ program.chefprogram.firstname }} {{ program.chefprogram.lastname }}</span>
+                        <span class="manager-dept">{{ program.chefprogram.departement }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress Summary -->
+            <div class="progress-summary">
+              <div class="progress-header">
+                <mat-icon>trending_up</mat-icon>
+                <h3>Progression Budgétaire</h3>
+              </div>
+              <div class="progress-content">
+                <div class="progress-visual">
+                  <div class="circular-progress">
+                    <div class="progress-text">
+                      <span class="percentage">{{ allowedValue > 0 ? ((consumedValue / allowedValue) * 100).toFixed(0) : 0 }}%</span>
+                      <span class="label">Consommé</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="progress-details">
+                  <div class="progress-item">
+                    <span class="progress-label">Budget Alloué</span>
+                    <span class="progress-value authorized">{{ allowedValue | number:'1.0-0' }} TND</span>
+                  </div>
+                  <div class="progress-item">
+                    <span class="progress-label">Budget Utilisé</span>
+                    <span class="progress-value consumed">{{ consumedValue | number:'1.0-0' }} TND</span>
+                  </div>
+                  <div class="progress-item">
+                    <span class="progress-label">Budget Restant</span>
+                    <span class="progress-value remaining">{{ (allowedValue - consumedValue) | number:'1.0-0' }} TND</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Budget Details Tab -->
+        <div class="tab-content" [class.active]="activeTab === 1">
+          <div class="budget-detailed-layout">
+            <div class="budget-section">
+              <div class="section-header">
+                <mat-icon>account_balance</mat-icon>
+                <h3>Budget Financier (TND)</h3>
+              </div>
+              <div class="budget-cards">
+                <div class="budget-detail-card authorized">
+                  <div class="budget-icon">
+                    <mat-icon>savings</mat-icon>
+                  </div>
+                  <div class="budget-info">
+                    <div class="budget-amount">{{ allowedValue | number:'1.0-0' }}</div>
+                    <div class="budget-currency">TND</div>
+                    <div class="budget-title">Budget Autorisé</div>
+                  </div>
+                </div>
+                <div class="budget-detail-card consumed">
+                  <div class="budget-icon">
+                    <mat-icon>money_off</mat-icon>
+                  </div>
+                  <div class="budget-info">
+                    <div class="budget-amount">{{ consumedValue | number:'1.0-0' }}</div>
+                    <div class="budget-currency">TND</div>
+                    <div class="budget-title">Budget Consommé</div>
+                  </div>
+                </div>
+                <div class="budget-detail-card remaining">
+                  <div class="budget-icon">
+                    <mat-icon>account_balance_wallet</mat-icon>
+                  </div>
+                  <div class="budget-info">
+                    <div class="budget-amount">{{ (allowedValue - consumedValue) | number:'1.0-0' }}</div>
+                    <div class="budget-currency">TND</div>
+                    <div class="budget-title">Budget Restant</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="budget-section">
+              <div class="section-header">
+                <mat-icon>schedule</mat-icon>
+                <h3>Budget Temps (Jours/Homme)</h3>
+              </div>
+              <div class="budget-cards">
+                <div class="budget-detail-card authorized">
+                  <div class="budget-icon">
+                    <mat-icon>access_time</mat-icon>
+                  </div>
+                  <div class="budget-info">
+                    <div class="budget-amount">{{ getTotalMandayBudget() | number:'1.0-0' }}</div>
+                    <div class="budget-currency">J/H</div>
+                    <div class="budget-title">Temps Alloué</div>
+                  </div>
+                </div>
+                <div class="budget-detail-card consumed">
+                  <div class="budget-icon">
+                    <mat-icon>hourglass_empty</mat-icon>
+                  </div>
+                  <div class="budget-info">
+                    <div class="budget-amount">{{ getTotalConsumedMandayBudget() | number:'1.0-0' }}</div>
+                    <div class="budget-currency">J/H</div>
+                    <div class="budget-title">Temps Consommé</div>
+                  </div>
+                </div>
+                <div class="budget-detail-card remaining">
+                  <div class="budget-icon">
+                    <mat-icon>hourglass_full</mat-icon>
+                  </div>
+                  <div class="budget-info">
+                    <div class="budget-amount">{{ (getTotalMandayBudget() - getTotalConsumedMandayBudget()) | number:'1.0-0' }}</div>
+                    <div class="budget-currency">J/H</div>
+                    <div class="budget-title">Temps Restant</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Budget Progress Visualization -->
+            <div class="budget-visualization">
+              <div class="section-header">
+                <mat-icon>bar_chart</mat-icon>
+                <h3>Analyse Budgétaire</h3>
+              </div>
+              <div class="visualization-content">
+                <div class="progress-bar-container">
+                  <div class="progress-label">Progression Financière</div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="allowedValue > 0 ? (consumedValue / allowedValue) * 100 : 0"></div>
+                  </div>
+                  <div class="progress-percentage">{{ allowedValue > 0 ? ((consumedValue / allowedValue) * 100).toFixed(1) : 0 }}%</div>
+                </div>
+                <div class="progress-bar-container">
+                  <div class="progress-label">Progression chronologique</div>
+                  <div class="progress-bar">
+                    <div class="progress-fill time" [style.width.%]="getTotalMandayBudget() > 0 ? (getTotalConsumedMandayBudget() / getTotalMandayBudget()) * 100 : 0"></div>
+                  </div>
+                  <div class="progress-percentage">{{ getTotalMandayBudget() > 0 ? ((getTotalConsumedMandayBudget() / getTotalMandayBudget()) * 100).toFixed(1) : 0 }}%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Profiles Tab -->
+        <div class="tab-content" [class.active]="activeTab === 2">
+          <div class="team-layout">
+            <div class="team-header">
+              <div class="team-title">
+                <mat-icon>people</mat-icon>
+                <h3>Équipe du Programme</h3>
+                <span class="team-count">{{ programProfiles.length || 0 }} membres</span>
+              </div>
+            </div>
+
+            <div class="team-grid">
+              <div class="team-member-card" *ngFor="let item of paginatedProfiles">
+                <div class="member-avatar">
+                  <img
+                    [src]="item.profile.image ? 'data:image/png;base64,' + item.profile.image : '../../../assets/imgholder.jpg'"
+                    alt="Profile Image"
+                  />
+                </div>
+                <div class="member-info">
+                  <div class="member-name">{{ item.profile.firstname }} {{ item.profile.lastname }}</div>
+                  <div class="member-role">{{ item.profile.departement || 'Développeur' }}</div>
+                </div>
+                <div class="member-stats">
+                  <div class="stat-item">
+                    <span class="stat-label">Budget</span>
+                    <span class="stat-value">{{ item.mandaybudget }} J/H</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Consommé</span>
+                    <span class="stat-value consumed">{{ item.consumedmandaybudget }} J/H</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Taux</span>
+                    <span class="stat-value">{{ item.dailyrate }} TND/J</span>
+                  </div>
+                </div>
+                <div class="member-progress">
+                  <div class="progress-bar-mini">
+                    <div class="progress-fill-mini" [style.width.%]="item.mandaybudget > 0 ? (item.consumedmandaybudget / item.mandaybudget) * 100 : 0"></div>
+                  </div>
+                  <span class="progress-text">{{ item.mandaybudget > 0 ? ((item.consumedmandaybudget / item.mandaybudget) * 100).toFixed(0) : 0 }}%</span>
+                </div>
+                <div class="member-actions">
+                  <button
+                    mat-button
+                    class="stats-btn"
+                    (click)="viewProfileStats(item.profile.idp)"
+                    title="Voir les statistiques"
+                  >
+                    <mat-icon>bar_chart</mat-icon>
+                    Statistiques
+                  </button>
+                </div>
+              </div>
+
+              <div class="no-members" *ngIf="!programProfiles || programProfiles.length === 0">
+                <mat-icon>person_outline</mat-icon>
+                <h4>Aucun membre assigné</h4>
+                <p>Ce programme n'a pas encore de membres assignés.</p>
+              </div>
+            </div>
+
+            <!-- Team Pagination -->
+            <div class="team-pagination" *ngIf="profileTotalPages > 1">
+              <button class="pagination-btn" (click)="goToProfilePage(profileCurrentPage - 1)" [disabled]="profileCurrentPage === 1">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+
+              <div class="pagination-numbers">
+                <button
+                  class="page-number"
+                  *ngFor="let page of getProfilePaginationRange()"
+                  [class.active]="profileCurrentPage === page"
+                  (click)="goToProfilePage(page)"
+                >
+                  {{ page }}
+                </button>
+              </div>
+
+              <button class="pagination-btn" (click)="goToProfilePage(profileCurrentPage + 1)" [disabled]="profileCurrentPage === profileTotalPages">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects Tab -->
+        <div class="tab-content" [class.active]="activeTab === 3" *ngIf="programProjects && programProjects.length > 0">
+          <div class="projects-layout">
+            <div class="projects-header">
+              <div class="projects-title">
+                <mat-icon>dashboard</mat-icon>
+                <h3>Projets du Programme</h3>
+                <span class="projects-count">{{ programProjects.length || 0 }} projets</span>
+              </div>
+            </div>
+
+            <div class="projects-showcase">
+              <div class="project-showcase-card" *ngFor="let project of paginatedProjects" (click)="goToProjectDetails(project.idproject)">
+                <div class="project-image-section">
+                  <div class="project-image-container" [ngClass]="{'no-image': !project.image}">
+                    <div *ngIf="!project.image" class="project-placeholder">
+                      <div class="project-initial">{{ project.name.charAt(0).toUpperCase() }}</div>
+                    </div>
+                    <img
+                      *ngIf="project.image"
+                      class="project-image"
+                      [src]="'data:image/jpg;base64,' + project.image"
+                      alt="Project Image"
+                    />
+                  </div>
+                  <div class="project-status-overlay">
+                    <span
+                      class="status-badge"
+                      [ngClass]="{
+                        'status-in-progress': project.status === 'IN_PROGRESS',
+                        'status-on-hold': project.status === 'ON_HOLD',
+                        'status-unlaunched': project.status === 'UNLAUNCHED',
+                        'status-finished': project.status === 'FINISHED',
+                        'status-canceled': project.status === 'CANCELED'
+                      }"
+                    >
+                      {{ project.status }}
+                    </span>
+                  </div>
+                </div>
+                <div class="project-content-section">
+                  <h4 class="project-title">{{ project.name }}</h4>
+                  <p class="project-description">{{ project.description | slice:0:120 }}{{ project.description?.length > 120 ? '...' : '' }}</p>
+                  <div class="project-meta">
+                    <div class="meta-item">
+                      <mat-icon>calendar_today</mat-icon>
+                      <span>{{ project.startdate || 'Date non définie' }}</span>
+                    </div>
+                    <div class="meta-item">
+                      <mat-icon>trending_up</mat-icon>
+                      <span>En cours</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Projects Pagination -->
+            <div class="projects-pagination" *ngIf="totalPages > 1">
+              <button class="pagination-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+
+              <div class="pagination-numbers">
+                <button
+                  class="page-number"
+                  *ngFor="let page of getPaginationRange()"
+                  [class.active]="currentPage === page"
+                  (click)="goToPage(page)"
+                >
+                  {{ page }}
+                </button>
+              </div>
+
+              <button class="pagination-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

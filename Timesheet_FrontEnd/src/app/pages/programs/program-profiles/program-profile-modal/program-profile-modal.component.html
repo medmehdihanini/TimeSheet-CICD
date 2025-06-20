@@ -1,0 +1,123 @@
+<h2 mat-dialog-title class="modal-header">
+  <strong>Ajouter un profil au {{ context === 'project' ? 'projet' : 'programme' }}</strong>
+</h2>
+
+<mat-dialog-content class="modal-content">
+  <form [formGroup]="addProfileForm" class="form-container">
+    <!-- Profile Selection -->
+    <div class="form-group">
+      <label>Profil</label>
+      <div class="input-container">
+        <input
+          class="form-input"
+          type="text"
+          [formControl]="myControl"
+          placeholder="Sélectionnez un profil"
+          [matAutocomplete]="auto"
+        />
+        <mat-autocomplete
+          #auto="matAutocomplete"
+          [displayWith]="displayProfileName"
+          class="custom-autocomplete"
+        >
+          <mat-option
+            *ngFor="let option of filteredOptions | async"
+            [value]="option"
+            (onSelectionChange)="onOptionSelected(option)"
+          >
+            <div class="profile-option">
+              <img
+                *ngIf="option.image; else placeholderImage"
+                [src]="'data:image/jpg;base64,' + option.image"
+                alt="Profile"
+                class="profile-image"
+              />
+              <ng-template #placeholderImage>
+                <img
+                  src="../../../assets/imgholder.jpg"
+                  alt="Profile"
+                  class="profile-image"
+                />
+              </ng-template>
+              <span>{{ option.firstname }} {{ option.lastname }}</span>
+            </div>
+          </mat-option>
+        </mat-autocomplete>
+      </div>
+    </div>
+
+    <!-- Function Field -->
+    <div class="form-group" *ngIf="context === 'program'">
+      <label>Fonction</label>
+      <div class="input-container">
+        <input
+          class="form-input"
+          type="text"
+          formControlName="function"
+          placeholder="Entrez la fonction"
+        />
+        <div class="error-container" *ngIf="addProfileForm.get('function')?.touched">
+          <div class="error-message" *ngIf="addProfileForm.get('function')?.hasError('required')">
+            ⚠️ Une fonction est obligatoire
+          </div>
+          <div class="error-message" *ngIf="addProfileForm.get('function')?.hasError('onlyLettersNumbersSpacesAndSpecialChars')">
+            ⚠️ Une fonction ne doit pas être un numéro
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Rate Field -->
+    <div class="form-group" *ngIf="context === 'program'">
+      <label>Tarif journalier</label>
+      <div class="input-container">
+        <input
+          class="form-input"
+          type="text"
+          formControlName="dailyrate"
+          placeholder="Entrez le tarif"
+        />
+        <div class="error-container" *ngIf="addProfileForm.get('dailyrate')?.touched">
+          <div class="error-message" *ngIf="addProfileForm.get('dailyrate')?.hasError('required')">
+            ⚠️ Le tarif journalier est obligatoire
+          </div>
+          <div class="error-message" *ngIf="addProfileForm.get('dailyrate')?.hasError('onlyNumbers')">
+            ⚠️ Seuls les chiffres sont autorisés
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Man-day Budget Field -->
+    <div class="form-group" *ngIf="context !== 'projectManager'">
+      <label>Budget jours-hommes</label>
+      <div class="input-container">
+        <input
+          class="form-input"
+          type="text"
+          formControlName="mandaybudget"
+          placeholder="Entrez le budget"
+        />
+        <div class="error-container" *ngIf="addProfileForm.get('mandaybudget')?.touched">
+          <div class="error-message" *ngIf="addProfileForm.get('mandaybudget')?.hasError('required')">
+            ⚠️ Le budget jour-homme est obligatoire
+          </div>
+          <div class="error-message" *ngIf="addProfileForm.get('mandaybudget')?.hasError('onlyNumbers')">
+            ⚠️ Seuls les chiffres sont autorisés
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="modal-footer">
+  <button class="btn btn-cancel" (click)="onCancel()">Annuler</button>
+  <button
+    class="btn btn-submit"
+    [disabled]="!addProfileForm.valid"
+    (click)="onSubmit()"
+  >
+    Ajouter
+  </button>
+</mat-dialog-actions>

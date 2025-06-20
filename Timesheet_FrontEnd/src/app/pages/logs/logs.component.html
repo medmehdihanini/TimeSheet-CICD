@@ -1,0 +1,139 @@
+<div class="logs-container" [ngClass]="{'admin-view': userRole === 'SUPER_ADMIN', 'manager-view': userRole === 'PROGRAM_MANAGER' || userRole === 'PROJECT_MANAGER'}">
+  <!-- Common Search Container -->
+  <div class="search-container">
+    <div class="search-filters">
+      <select [(ngModel)]="selectedEmail" (ngModelChange)="onEmailChange()" class="email-select">
+        <option value="">All Users</option>
+        <option *ngFor="let email of getUniqueEmails()" [value]="email">{{ email }}</option>
+      </select>
+
+      <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()"
+             placeholder="Search by user, email, or action..." class="search-input">
+
+      <input type="date" [(ngModel)]="searchDate" (ngModelChange)="onDateChange()" class="date-input">
+
+      <div class="action-buttons">
+        <button class="btn-delete" (click)="deleteSelectedLogs()" [disabled]="selectedLogs.size === 0">
+          <i class="fas fa-trash"></i> Delete Selected
+        </button>
+        <button class="btn-delete-all" (click)="deleteAllLogs()" [disabled]="logs.length === 0">
+          <i class="fas fa-trash-alt"></i> Delete All
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin View -->
+  <ng-container *ngIf="userRole === 'SUPER_ADMIN'">
+    <div class="user-logs-container">
+      <div *ngFor="let user of userLogs" class="user-logs-section">
+        <div class="user-header" (click)="toggleUserLogs(user)">
+          <div class="user-info">
+            <div *ngIf="user.email === 'anonymousUser'; else normalUser" class="user-email">
+              Login/Logout Actions
+            </div>
+            <ng-template #normalUser>
+              <div class="user-email">{{ user.email }}</div>
+              <div class="user-name">{{ user.username }}</div>
+            </ng-template>
+          </div>
+          <div class="user-stats">
+            <div class="stat-item">
+              <i class="fas fa-clock"></i>
+              <span>Last Activity: {{ getTimeAgo(user.stats.lastActivity) }}</span>
+            </div>
+            <i class="fas" [ngClass]="{'fa-chevron-down': !user.isExpanded, 'fa-chevron-up': user.isExpanded}"></i>
+          </div>
+        </div>
+
+        <div class="user-logs-content" *ngIf="user.isExpanded">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>
+                  <input type="checkbox" [checked]="isAllSelected" (change)="toggleSelectAll()"
+                         class="select-all-checkbox">
+                </th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let log of user.logs">
+                <td>
+                  <input type="checkbox" [checked]="selectedLogs.has(log.id)"
+                         (change)="toggleSelectLog(log.id)" class="log-checkbox">
+                </td>
+                <td>{{ formatDate(log.timestamp) | date:'mediumDate' }}</td>
+                <td>{{ formatDate(log.timestamp) | date:'shortTime' }}</td>
+                <td>
+                  <div class="action-content" [ngClass]="'action-' + getActionType(log.action)">
+                    <pre>{{ getDisplayMessage(log) }}</pre>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Manager View -->
+  <ng-container *ngIf="userRole === 'PROGRAM_MANAGER' || userRole === 'PROJECT_MANAGER'">
+    <div class="logs-card">
+      <div class="card-header">
+        <h2>Activity Logs</h2>
+      </div>
+      <table class="manager-table">
+        <thead>
+          <tr>
+            <th>
+              <input type="checkbox" [checked]="isAllSelected" (change)="toggleSelectAll()"
+                     class="select-all-checkbox">
+            </th>
+            <th>User</th>
+            <th>Date & Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of filteredLogs">
+            <td>
+              <input type="checkbox" [checked]="selectedLogs.has(log.id)"
+                     (change)="toggleSelectLog(log.id)" class="log-checkbox">
+            </td>
+            <td>
+              <div class="user-info">
+                <strong>{{ log.username }}</strong><br>
+                <small>{{ log.email }}</small>
+              </div>
+            </td>
+            <td>
+              <div class="date-time-content">
+                {{ formatDate(log.timestamp) | date:'medium' }}<br>
+                <small>{{ getTimeAgo(log.timestamp) }}</small>
+              </div>
+            </td>
+            <td>
+              <div class="action-content" [ngClass]="'action-' + getActionType(log.action)">
+                <pre>{{ getDisplayMessage(log) }}</pre>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <!-- Undo Alert -->
+  <div class="undo-alert" *ngIf="showUndoButton">
+    <div class="undo-content">
+      <span>All logs will be deleted in {{ countdown }} seconds</span>
+      <button class="btn-undo" (click)="undoDeleteAll()">
+        <i class="fas fa-undo"></i> Undo
+      </button>
+    </div>
+  </div>
+</div>

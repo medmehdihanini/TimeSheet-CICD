@@ -1,0 +1,364 @@
+<!-- Program Detailed Stats -->
+<div class="detailed-stats-container">
+  <!-- Header with Back Button and Program Info -->
+  <div class="header-card" *ngIf="!stats">
+    <div class="header-content">
+      <div class="header-left">
+        <button mat-icon-button (click)="goBack()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="program-title">
+          <span class="subtitle">Programme</span>
+          <h1>Chargement...</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-card" *ngIf="stats">
+    <div class="header-content">
+      <div class="header-left">
+        <button mat-icon-button (click)="goBack()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="program-title">
+          <span class="subtitle">Programme</span>
+          <h1>{{stats.programName}}</h1>
+          <div class="status-badge" [ngClass]="'status-' + stats.programStatus.toLowerCase()">
+            <span class="status-dot"></span>
+            <span>{{stats.programStatus}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="program-meta">
+        <div class="meta-item">
+          <mat-icon>business</mat-icon>
+          <span>Client: {{stats.client}}</span>
+        </div>
+        <div class="meta-item">
+          <mat-icon>calendar_today</mat-icon>
+          <span>Période: {{stats.startDate}} - {{stats.endDate}}</span>
+        </div>
+        <div class="meta-item">
+          <mat-icon>confirmation_number</mat-icon>
+          <span>Contract N°: {{stats.contractNumber}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading and Error States -->
+  <div class="loading-error-container" *ngIf="loading || error">
+    <div *ngIf="loading" class="loading">
+      <p>Chargement des statistiques détaillées...</p>
+    </div>
+    <div *ngIf="error" class="error">
+      <p>Erreur lors du chargement des statistiques. Veuillez réessayer.</p>
+      <button mat-raised-button color="primary" (click)="loadStats()">Réessayer</button>
+    </div>
+  </div>
+
+  <!-- Stats Content -->
+  <div class="stats-content" *ngIf="!loading && !error && stats">
+    <!-- Program Overview Card -->
+    <mat-card class="overview-card">
+      <mat-card-header>
+        <mat-card-title>Vue d'ensemble du Programme</mat-card-title>
+        <mat-card-subtitle>Résumé des indicateurs clés</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-icon project-icon">
+              <mat-icon>folder</mat-icon>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">{{stats.totalProjects}}</div>
+              <div class="stat-label">Projets</div>
+            </div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-icon profile-icon">
+              <mat-icon>person</mat-icon>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">{{stats.totalProfiles}}</div>
+              <div class="stat-label">Profils</div>
+            </div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-icon task-icon">
+              <mat-icon>assignment</mat-icon>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">{{stats.totalTasks}}</div>
+              <div class="stat-label">Tâches</div>
+            </div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-icon budget-icon">
+              <mat-icon>attach_money</mat-icon>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">{{stats.totalBudgetAmount | number:'1.0-0'}}</div>
+              <div class="stat-label">Budget (TND)</div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Budget Financier Chart - Standalone Row -->
+    <mat-card class="chart-card budget-chart-card full-width-card">
+      <mat-card-header>
+        <mat-card-title>Budget Financier</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-financial-layout">
+          <div class="chart-container">
+            <canvas #budgetChart></canvas>
+          </div>
+          <div class="financial-details-container">              <div class="financial-item consumed-item">
+                <div class="financial-label">Budget Consommé</div>
+                <div class="financial-value consumed-value">{{stats.consumedBudgetAmount | number:'1.2-2'}} TND</div>
+              </div>
+              <mat-divider></mat-divider>
+              <div class="financial-item remaining-item">
+                <div class="financial-label">Budget Restant</div>
+                <div class="financial-value remaining-value">{{stats.remainingBudgetAmount | number:'1.2-2'}} TND</div>
+              </div>
+              <mat-divider></mat-divider>
+              <div class="financial-item">
+                <div class="financial-label">Budget Total</div>
+                <div class="financial-value">{{stats.totalBudgetAmount | number:'1.2-2'}} TND</div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Main Dashboard with Charts -->
+    <div class="dashboard-grid">
+
+      <!-- Manday Budget Chart -->
+      <mat-card class="chart-card manday-chart-card">
+        <mat-card-header>
+          <mat-card-title>Budget Jours/Homme</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="manday-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="(stats.consumedMandayBudget / stats.totalMandayBudget) * 100"></div>
+            </div>
+            <div class="progress-labels">
+              <span>{{(stats.consumedMandayBudget / stats.totalMandayBudget) * 100 | number:'1.1-1'}}%</span>
+            </div>
+          </div>
+
+          <div class="manday-stats">
+            <div class="manday-stat">
+              <div class="manday-label">J/H Total</div>
+              <div class="manday-value">{{stats.totalMandayBudget}}</div>
+            </div>
+            <div class="manday-stat">
+              <div class="manday-label">J/H Consommé</div>
+              <div class="manday-value consumed">{{stats.consumedMandayBudget}}</div>
+            </div>
+            <div class="manday-stat">
+              <div class="manday-label">J/H Restant</div>
+              <div class="manday-value remaining">{{stats.remainingMandayBudget}}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Project Status Display -->
+      <mat-card class="chart-card status-display-card">
+        <mat-card-header>
+          <mat-card-title>Statut des Projets</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="status-display" *ngIf="stats.projectsByStatus">
+            <div class="status-list">
+              <div class="status-item-text" *ngFor="let status of stats.projectsByStatus | keyvalue">
+                <div class="status-badge-large" [ngClass]="'status-' + status.key.toLowerCase()">
+                  <span class="status-dot"></span>
+                  <span class="status-name">{{status.key}}</span>
+                </div>
+                <div class="status-count-large">{{status.value}} projet<span *ngIf="status.value > 1">s</span></div>
+              </div>
+            </div>
+            <div class="status-summary">
+              <div class="summary-item">
+                <div class="summary-label">Total des projets</div>
+                <div class="summary-value">{{stats.totalProjects}}</div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Profiles by Function Display -->
+      <mat-card class="chart-card profiles-display-card">
+        <mat-card-header>
+          <mat-card-title>Profils par Fonction</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="function-display" *ngIf="stats.profilesByFunction">
+            <div class="function-list-text">
+              <div class="function-text-item" *ngFor="let function of paginatedProfilesByFunction">
+                <div class="function-icon" [style.background-color]="getProfileFunctionColor(function.key)">
+                  <mat-icon>person</mat-icon>
+                </div>
+                <div class="function-text-content">
+                  <div class="function-name-text">{{function.key}}</div>
+                  <div class="function-count-text">{{function.value}} profil<span *ngIf="function.value > 1">s</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pagination Controls for Profiles by Function -->
+            <div class="pagination-container" *ngIf="stats.profilesByFunction && getObjectKeysLength(stats.profilesByFunction) >= profilesFunctionPageSize">
+              <button class="pagination-button" [disabled]="profilesFunctionCurrentPage === 1" (click)="previousProfileFunctionPage()">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+
+              <button *ngFor="let page of getProfileFunctionPageNumbers()"
+                      class="pagination-button"
+                      [class.active]="profilesFunctionCurrentPage === page"
+                      (click)="goToProfileFunctionPage(page)">
+                {{page}}
+              </button>
+
+              <button class="pagination-button" [disabled]="profilesFunctionCurrentPage === profilesFunctionTotalPages" (click)="nextProfileFunctionPage()">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
+
+            <div class="pagination-info" *ngIf="stats.profilesByFunction && getObjectKeysLength(stats.profilesByFunction) > 0">
+              Affichage de {{(profilesFunctionCurrentPage - 1) * profilesFunctionPageSize + 1}} -
+              {{Math.min(profilesFunctionCurrentPage * profilesFunctionPageSize, getObjectKeysLength(stats.profilesByFunction))}}
+              sur {{getObjectKeysLength(stats.profilesByFunction)}} profils
+            </div>
+
+            <div class="function-summary">
+              <div class="summary-item">
+                <div class="summary-label">Total des profils</div>
+                <div class="summary-value">{{stats.totalProfiles}}</div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Tasks by Workplace Chart -->
+      <mat-card class="chart-card workplace-chart-card">
+        <mat-card-header>
+          <mat-card-title>Tâches par Lieu de Travail</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-wrapper">
+            <canvas #taskWorkplaceChart></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Project Comparison Chart -->
+    <mat-card class="comparison-chart-card">
+      <mat-card-header>
+        <mat-card-title>Comparaison des Projets (Top 10)</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-wrapper full-width">
+          <canvas #projectComparisonChart></canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Projects Table -->
+    <mat-card class="projects-table-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>folder</mat-icon>
+          Liste des Projets ({{stats.projects.length || 0}})
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="table-responsive">
+          <table class="projects-table">
+            <thead>
+              <tr>
+                <th>Projet</th>
+                <th>Statut</th>
+                <th>Profils</th>
+                <th>Tâches</th>
+                <th>Budget (J/H)</th>
+                <th>Consommé (J/H)</th>
+                <th>Progression</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let project of paginatedProjects" (click)="goToProjectDetails(project.projectId)" class="project-row">
+                <td>{{project.projectName}}</td>
+                <td>
+                  <div class="status-badge" [ngClass]="'status-' + project.projectStatus.toLowerCase()">
+                    <span class="status-dot"></span>
+                    <span>{{project.projectStatus}}</span>
+                  </div>
+                </td>
+                <td class="text-center">{{project.profileCount}}</td>
+                <td class="text-center">{{project.taskCount}}</td>
+                <td class="text-center">{{project.projectMandayBudget}}</td>
+                <td class="text-center">{{project.projectConsumedMandayBudget}}</td>
+                <td>
+                  <div class="progress-container">
+                    <div class="progress-bar">
+                      <div class="progress-fill"
+                           [style.width.%]="calculateCompletionPercentage(project)"
+                           [style.background-color]="getProgressBarColor(calculateCompletionPercentage(project))">
+                      </div>
+                    </div>
+                    <span class="progress-text">
+                      {{calculateCompletionPercentage(project) | number:'1.1-1'}}%
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Pagination Controls -->
+          <div class="pagination-container" *ngIf="stats.projects && stats.projects.length > pageSize">
+            <button class="pagination-button" [disabled]="currentPage === 1" (click)="previousPage()">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+
+            <button *ngFor="let page of getPageNumbers()"
+                    class="pagination-button"
+                    [class.active]="currentPage === page"
+                    (click)="goToPage(page)">
+              {{page}}
+            </button>
+
+            <button class="pagination-button" [disabled]="currentPage === totalPages" (click)="nextPage()">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+
+          <div class="pagination-info" *ngIf="stats.projects && stats.projects.length > 0">
+            Affichage de {{(currentPage - 1) * pageSize + 1}} - {{Math.min(currentPage * pageSize, stats.projects.length)}} sur {{stats.projects.length}} projets
+          </div>
+
+          <div *ngIf="!stats.projects || stats.projects.length === 0" class="no-projects">
+            <mat-icon>folder_off</mat-icon>
+            <p>Aucun projet n'est associé à ce programme</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

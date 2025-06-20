@@ -1,0 +1,432 @@
+/* Container Styles */
+.timesheets-container {
+  padding: 20px;
+  background: #ffffff;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Title Section */
+.title-section {
+  background: #333333;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(51, 51, 51, 0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  border: 2px solid #ffe600;
+}
+
+.title-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(51, 51, 51, 0.25);
+  border-color: #ffe600;
+}
+
+.program-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.program-title {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.3px;
+}
+
+/* Filters Section */
+.filters-section {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(51, 51, 51, 0.1);
+  border: 1px solid #cccccc;
+}
+
+.filters-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.filters-row:last-child {
+  margin-bottom: 0;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 140px;
+  max-width: 180px;
+}
+
+.filter-group label {
+  display: block;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 3px;
+  font-size: 0.8rem;
+  letter-spacing: 0.2px;
+}
+
+.custom-select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 0.85rem;
+  color: #333333;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 12px;
+  padding-right: 28px;
+  height: 30px;
+}
+
+.custom-select:focus {
+  outline: none;
+  border-color: #ffe600;
+  box-shadow: 0 0 0 2px rgba(255, 230, 0, 0.2);
+}
+
+.custom-select:hover {
+  border-color: #999999;
+}
+
+/* Multi-select specific styles */
+.custom-select[multiple] {
+  min-height: 60px;
+  padding-right: 10px;
+  background-image: none;
+  overflow-y: auto;
+}
+
+.custom-select[multiple] option {
+  padding: 4px 8px;
+  margin: 1px 0;
+  border-radius: 3px;
+}
+
+.custom-select[multiple] option:checked {
+  background: linear-gradient(135deg, #ffe600, #ffed33);
+  color: #333333;
+  font-weight: 500;
+}
+
+.custom-select[multiple] option:hover {
+  background: #f5f5f5;
+}
+
+/* Profiles Section */
+.profiles-section {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(51, 51, 51, 0.1);
+  border: 1px solid #cccccc;
+}
+
+.profiles-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.profiles-container {
+  flex: 1;
+  overflow: auto;
+}
+
+.profiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding: 4px;
+}
+
+/* Profile Card Styles */
+.profile-card {
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #cccccc;
+  box-shadow: 0 2px 8px rgba(51, 51, 51, 0.08);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.profile-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(51, 51, 51, 0.15);
+  border-color: #ffe600;
+}
+
+.profile-header {
+  background: #333333;
+  padding: 16px;
+  text-align: center;
+  border-bottom: 2px solid #ffe600;
+}
+
+.profile-name {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.2px;
+}
+
+/* Timesheets List */
+.timesheets-list {
+  padding: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ffe600 #f0f0f0;
+}
+
+/* Custom scrollbar for webkit browsers */
+.timesheets-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.timesheets-list::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.timesheets-list::-webkit-scrollbar-thumb {
+  background: #ffe600;
+  border-radius: 4px;
+  border: 1px solid #cccccc;
+}
+
+.timesheets-list::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+}
+
+.timesheet-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #ffffff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #cccccc;
+}
+
+.timesheet-item:hover {
+  background: #ffe600;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(51, 51, 51, 0.1);
+  border-color: #333333;
+}
+
+.timesheet-item:last-child {
+  margin-bottom: 0;
+}
+
+.timesheet-icon {
+  font-size: 1.2rem;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #333333;
+  border-radius: 6px;
+  color: #ffe600;
+  box-shadow: 0 1px 4px rgba(51, 51, 51, 0.2);
+}
+
+.timesheet-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.timesheet-month {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333333;
+  margin-bottom: 2px;
+  letter-spacing: 0.1px;
+}
+
+.timesheet-status {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 600;
+}
+
+/* Enhanced Status Styles */
+.status-draft {
+  color: #ffffff;
+  background: #999999;
+  border: 1px solid #999999;
+}
+
+.status-denied {
+  color: #ffffff;
+  background: #333333;
+  border: 1px solid #333333;
+}
+
+.status-approved {
+  color: #333333;
+  background: #ffe600;
+  border: 1px solid #ffe600;
+}
+
+.status-pending {
+  color: #333333;
+  background: #cccccc;
+  border: 1px solid #cccccc;
+}
+
+.status-submitted {
+  color: #ffffff;
+  background: #333333;
+  border: 1px solid #333333;
+}
+
+/* Responsive Design */
+@media only screen and (max-width: 1200px) {
+  .profiles-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .filter-group {
+    min-width: 160px;
+    max-width: 200px;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .timesheets-container {
+    padding: 12px;
+  }
+
+  .title-section {
+    padding: 20px 16px;
+    margin-bottom: 16px;
+  }
+
+  .program-title {
+    font-size: 1.6rem;
+  }
+
+  .filters-section {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .filter-group {
+    min-width: auto;
+    max-width: none;
+  }
+
+  .profiles-section {
+    padding: 16px;
+  }
+
+  .profiles-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .profile-card {
+    margin: 0;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .program-title {
+    font-size: 1.4rem;
+  }
+
+  .timesheet-item {
+    padding: 10px;
+  }
+
+  .timesheet-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+    margin-right: 10px;
+  }
+
+  .timesheet-month {
+    font-size: 0.9rem;
+  }
+
+  .timesheet-status {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+}
+
+/* Animation for loading states */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-card {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Scrollbar Styling */
+.profiles-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profiles-container::-webkit-scrollbar-track {
+  background: #cccccc;
+  border-radius: 3px;
+}
+
+.profiles-container::-webkit-scrollbar-thumb {
+  background: #999999;
+  border-radius: 3px;
+}
+
+.profiles-container::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+}

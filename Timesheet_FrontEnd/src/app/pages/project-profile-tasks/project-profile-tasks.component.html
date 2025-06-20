@@ -1,0 +1,131 @@
+<div class="container">
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <p>Chargement des tâches du profil...</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="!loading && error" class="error-container">
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="loadTaskData()">Réessayer</button>
+  </div>
+
+  <!-- Content when data is loaded -->
+  <div *ngIf="!loading && !error && taskData" class="content-container">
+    <!-- Header section -->
+    <mat-card class="header-card">
+      <mat-card-header>
+        <mat-card-title>
+          <div class="project-name">{{ taskData.projectName }}</div>
+          <mat-chip [ngClass]="getStatusClass(taskData.projectStatus)">{{ taskData.projectStatus }}</mat-chip>
+        </mat-card-title>
+        <mat-card-subtitle>{{ taskData.projectDescription }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="profile-section">
+          <div class="profile-info">
+            <h3>Profil: {{ taskData.profileName }}</h3>
+            <p>{{ taskData.profileEmail }}</p>
+          </div>
+          <div class="budget-info">
+            <div class="budget-progress">
+              <div class="budget-text">
+                <span>Budget (J/H): {{ taskData.mandayBudget }}</span>
+                <span>Consommé: {{ taskData.consumedMandayBudget }}</span>
+              </div>
+              <mat-progress-bar
+                mode="determinate"
+                [value]="getProgressPercentage()"
+                [color]="getProgressPercentage() > 90 ? 'warn' : 'primary'"
+              ></mat-progress-bar>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Chart and Tasks section -->
+    <div class="content-section">
+      <!-- Chart section -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Utilisation du Budget</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas #budgetChart></canvas>
+          </div>
+
+          <div class="workplace-counts">
+            <div class="count-title">Tâches par Lieu de Travail</div>
+            <div class="counts-container">
+              <div class="workplace-count-item">
+                <div class="count-circle ey">{{ eyWorkplaceCount }}</div>
+                <div class="count-label">EY</div>
+              </div>
+              <div class="workplace-count-item">
+                <div class="count-circle client">{{ clientWorkplaceCount }}</div>
+                <div class="count-label">Chez le client</div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Tasks section -->
+      <mat-card class="tasks-card">
+        <mat-card-header>
+          <mat-card-title>Tâches ({{ taskData.tasks.length }})</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="table-container">
+            <table mat-table [dataSource]="dataSource" matSort class="tasks-table">
+              <!-- Date Column -->
+              <ng-container matColumnDef="datte">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+                <td mat-cell *matCellDef="let task">{{ task.datte }}</td>
+              </ng-container>
+
+              <!-- Days Column -->
+              <ng-container matColumnDef="nbJour">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Jours/Homme</th>
+                <td mat-cell *matCellDef="let task">{{ task.nbJour }}</td>
+              </ng-container>
+
+              <!-- Description Column -->
+              <ng-container matColumnDef="text">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Description</th>
+                <td mat-cell *matCellDef="let task" class="description-cell">{{ task.text }}</td>
+              </ng-container>
+
+              <!-- Workplace Column -->
+              <ng-container matColumnDef="workPlace">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Lieu de Travail</th>
+                <td mat-cell *matCellDef="let task">{{ task.workPlace }}</td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+              <!-- Row shown when there is no matching data -->
+              <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
+                  Aucune donnée disponible
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <mat-paginator
+            [pageSizeOptions]="[5, 10, 20]"
+            [pageSize]="5"
+            showFirstLastButtons
+            aria-label="Sélectionner la page des tâches">
+          </mat-paginator>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

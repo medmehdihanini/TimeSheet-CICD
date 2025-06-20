@@ -1,0 +1,249 @@
+<div class="profiles-section">
+  <!-- Header Section -->
+  <div class="page-header">
+    <h1 class="page-title">Projets du programme</h1>
+    <button mat-fab extended class="custom-buttonn" (click)="openProjectModal()">
+      <mat-icon>library_add</mat-icon>
+      <b>Ajouter un projet</b>
+    </button>
+  </div>
+
+  <!-- Project Tabs -->
+  <mat-tab-group dynamicHeight (selectedTabChange)="onTabChange($event)" *ngIf="programProjects && programProjects.length > 0">
+    <mat-tab *ngFor="let project of programProjects" [label]="project.name">
+      <!-- Project Actions -->
+      <div class="page-header">
+        <div></div>
+        <div class="button-container">
+          <button mat-icon-button class="edit-button" (click)="openUpdateProjectModal(project)" matTooltip="Modifier le projet">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button class="delete-button" (click)="deleteProject(project.idproject)" matTooltip="Supprimer le projet">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Project Manager Section -->
+      <div class="chef-program-details">
+        <h2 class="section-title">Chef de projet</h2>
+        <div *ngIf="project?.chefprojet" class="chef-program-item">
+          <img [src]="project.chefprojet.image ? 'data:image/png;base64,' + project.chefprojet.image : '/assets/imgholder.jpg'"
+               alt="Chef Program Image" class="chef-program-image" />
+          <div class="chef-program-info">
+            <p><b>{{ project?.chefprojet.firstname }} {{ project?.chefprojet.lastname }}</b></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Budget Stats Cards -->
+      <div class="stats-cards">
+        <div class="stats-card">
+          <div class="stats-card-content">
+            <div class="stats-icon">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="stats-info">
+              <span class="stats-label">Budget Associé</span>
+              <span class="stats-value">{{ associatedBudget }} TND</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <div class="stats-card-content">
+            <div class="stats-icon consumed">
+              <mat-icon>payments</mat-icon>
+            </div>
+            <div class="stats-info">
+              <span class="stats-label">Budget Consommé</span>
+              <span class="stats-value">{{ consumedBudget  }} TND</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <div class="stats-card-content">
+            <div class="stats-icon">
+              <mat-icon>schedule</mat-icon>
+            </div>
+            <div class="stats-info">
+              <span class="stats-label">JH Associé</span>
+              <span class="stats-value">{{ associatedJH  }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <div class="stats-card-content">
+            <div class="stats-icon consumed">
+              <mat-icon>timer</mat-icon>
+            </div>
+            <div class="stats-info">
+              <span class="stats-label">JH Consommé</span>
+              <span class="stats-value">{{ consumedJH  }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profiles Section -->
+      <h2 class="section-title">Profils</h2>
+
+      <!-- Search and Add Profile -->
+      <div class="action-container">
+        <mat-form-field class="filter-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Ahmed" #input>
+        </mat-form-field>
+        <button mat-fab extended class="custom-buttonn" (click)="openProfileModal()">
+          <mat-icon>person_add</mat-icon>
+          <b>Ajouter un profil</b>
+        </button>
+      </div>
+
+      <!-- Profiles Table -->
+      <div class="table-container mat-elevation-z8">
+        <table mat-table [dataSource]="dataSource" matSort class="profiles-table">
+          <!-- Image Column -->
+          <ng-container matColumnDef="image">
+            <th mat-header-cell *matHeaderCellDef>Photo</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="profile-image-container">
+                <img [src]="row.image ? 'data:image/jpg;base64,' + row.image : '../../../assets/imgholder.jpg'"
+                     [alt]="row.firstname + ' ' + row.lastname"
+                     class="profile-image">
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="name-cell">
+                <span class="full-name">{{ row.firstname }} {{ row.lastname }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Function Column -->
+          <ng-container matColumnDef="function">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Fonction</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="function-badge">{{ row.function }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Manday Budget Column -->
+          <ng-container matColumnDef="mandaybudget">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>J/H associés</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="budget-cell">{{ row.mandaybudget }}</div>
+            </td>
+          </ng-container>
+
+          <!-- Progress Column -->
+          <ng-container matColumnDef="progress">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>J/H Consommés %</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="progress-cell">
+                <div class="progress-value">{{ row.progress }}</div>
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="(row.progress / row.mandaybudget) * 100"></div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Stats Column -->
+          <ng-container matColumnDef="stats">
+            <th mat-header-cell *matHeaderCellDef>Statistiques</th>
+            <td mat-cell *matCellDef="let row">
+              <a mat-icon-button class="action-button" [routerLink]="['/project-stats', row.idprofile,projectId]" matTooltip="Voir les statistiques">
+                <mat-icon>analytics</mat-icon>
+              </a>
+            </td>
+          </ng-container>
+
+          <!-- Timesheet Column -->
+          <ng-container matColumnDef="timesheet">
+            <th mat-header-cell *matHeaderCellDef>Timesheet</th>
+            <td mat-cell *matCellDef="let row">
+              <button mat-icon-button class="action-button" (click)="goToProfileTimesheet(row.idprofile)" matTooltip="Voir le timesheet">
+                <mat-icon>date_range</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <!-- Update Column -->
+          <ng-container matColumnDef="update">
+            <th mat-header-cell *matHeaderCellDef>Modifier</th>
+            <td mat-cell *matCellDef="let row">
+              <button mat-icon-button class="edit-button" (click)="openUpdateProjectProfileModal(row.idprofile,row.mandaybudget)" matTooltip="Modifier le profil">
+                <mat-icon>edit</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <!-- Delete Column -->
+          <ng-container matColumnDef="Delete">
+            <th mat-header-cell *matHeaderCellDef>Supprimer</th>
+            <td mat-cell *matCellDef="let row">
+              <button mat-icon-button class="delete-button" (click)="deleteProfile(row.id)" matTooltip="Supprimer le profil">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row"></tr>
+
+          <!-- No Data Row -->
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
+              <div class="no-data-message">
+                <mat-icon>search_off</mat-icon>
+                <span>Aucun profil ne correspond à "{{ input.value }}"</span>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Paginator -->
+        <mat-paginator class="custom-paginator"
+                       [pageSizeOptions]="[5, 10, 15, 20]"
+                       [pageSize]="5"
+                       [showFirstLastButtons]="true"
+                       aria-label="Sélectionner la page">
+        </mat-paginator>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <!-- No Projects Message -->
+  <div class="no-projects-container" *ngIf="!programProjects || programProjects.length === 0">
+    <div class="no-projects-content">
+      <div class="no-projects-icon">
+        <mat-icon>folder_off</mat-icon>
+      </div>
+      <h2 class="no-projects-title">Aucun projet trouvé</h2>
+      <p class="no-projects-description">
+        Ce programme ne contient aucun projet pour le moment. 
+        Commencez par ajouter votre premier projet en cliquant sur le bouton ci-dessous.
+      </p>
+      <button mat-fab extended class="custom-buttonn" (click)="openProjectModal()">
+        <mat-icon>add</mat-icon>
+        <b>Créer le premier projet</b>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Notification -->
+<div *ngIf="showSuccessNotification" class="success-notification">
+  <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+  </svg>
+  <span class="font-medium">Mise à jour effectuée avec succès !</span>
+</div>

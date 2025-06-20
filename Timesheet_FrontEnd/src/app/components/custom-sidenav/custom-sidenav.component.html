@@ -1,0 +1,129 @@
+<div class="sidenav-container">
+  <!-- Profile Section -->
+  <div class="profile-section">
+    <div class="profile-image-wrapper" (click)="triggerFileInput()">
+      <div class="profile-image-container" [class.collapsed]="sideNavCollapsed()">
+        <img
+          *ngIf="connecteduser.image"
+          class="profile-image"
+          [src]="'data:image/jpg;base64,' + connecteduser.image"
+          alt="Profile Image"
+        />
+        <img
+          *ngIf="!connecteduser.image"
+          class="profile-image"
+          src="../../../assets/imgholder.jpg"
+          alt="Default Profile"
+        />
+        <div class="image-overlay">
+          <mat-icon>photo_camera</mat-icon>
+        </div>
+      </div>
+    </div>
+    <input
+      type="file"
+      #fileInput
+      (change)="onFileSelected($event)"
+      style="display: none"
+      accept="image/*"
+    />
+    <div class="profile-info" [class.collapsed]="sideNavCollapsed()">
+      <h4 class="user-name">{{ connecteduser.firstname }} {{ connecteduser.lastname }}</h4>
+      <p class="user-role">{{ connecteduser.role | titlecase }}</p>
+    </div>
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav class="nav-menu">
+    <ng-container *ngIf="connecteduser?.role === 'PROJECT_MANAGER'">
+      <a
+        *ngFor="let item of projectManagerMenuItems(); let i = index"
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [style.--index]="i"
+      >
+        <div class="nav-item-content">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label" *ngIf="!sideNavCollapsed()">{{ item.label }}</span>
+        </div>
+        <div class="nav-indicator"></div>
+      </a>
+    </ng-container>
+
+    <ng-container *ngIf="connecteduser?.role === 'PROGRAM_MANAGER'">
+      <a
+        *ngFor="let item of programManagerMenuItems(); let i = index"
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [style.--index]="i"
+        (click)="item.onClick ? item.onClick() : null"
+      >
+        <div class="nav-item-content">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label" *ngIf="!sideNavCollapsed()">{{ item.label }}</span>
+        </div>
+        <div class="nav-indicator"></div>
+      </a>
+    </ng-container>
+
+    <ng-container *ngIf="connecteduser?.role === 'GPS_LEAD'">
+      <a
+        *ngFor="let item of marouenMenuItems(); let i = index"
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [style.--index]="i"
+        (click)="item.onClick ? item.onClick() : null"
+      >
+        <div class="nav-item-content">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label" *ngIf="!sideNavCollapsed()">{{ item.label }}</span>
+        </div>
+        <div class="nav-indicator"></div>
+      </a>
+    </ng-container>
+
+    <ng-container *ngIf="connecteduser?.role === 'PARTNER'">
+      <a
+        *ngFor="let item of partnerMenuItems(); let i = index"
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [style.--index]="i"
+        (click)="item.onClick ? item.onClick() : null"
+      >
+        <div class="nav-item-content">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label" *ngIf="!sideNavCollapsed()">{{ item.label }}</span>
+        </div>
+        <div class="nav-indicator"></div>
+      </a>
+    </ng-container>
+
+    <ng-container *ngIf="connecteduser?.role === 'SUPER_ADMIN'">
+      <a
+        *ngFor="let item of adminMenuItems(); let i = index"
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [style.--index]="i"
+      >
+        <div class="nav-item-content">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label" *ngIf="!sideNavCollapsed()">{{ item.label }}</span>
+        </div>
+        <div class="nav-indicator"></div>
+      </a>
+    </ng-container>
+  </nav>
+
+  <!-- Footer Section -->
+  <div class="sidenav-footer">
+    <div class="logout-button" (click)="logout()">
+      <mat-icon>exit_to_app</mat-icon>
+      <span *ngIf="!sideNavCollapsed()">Se déconnecter</span>
+    </div>
+  </div>
+</div>

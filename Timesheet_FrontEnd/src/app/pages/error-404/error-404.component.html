@@ -1,0 +1,41 @@
+<div class="error-container">
+  <div class="error-content">
+    <div class="error-card">
+      <div class="error-icon-container">
+        <mat-icon class="error-icon">search_off</mat-icon>
+      </div>
+
+      <div class="error-details">
+        <h1 class="error-code">404</h1>
+        <h2 class="error-title">Page non trouvée</h2>
+        <p class="error-description">
+          Désolé, la page que vous recherchez n'existe pas ou a été déplacée.
+        </p>
+      </div>
+
+      <div class="error-actions">
+        <button
+          mat-raised-button
+          class="primary-button"
+          (click)="goToHome()">
+          <mat-icon>home</mat-icon>
+          Retour à l'accueil
+        </button>
+
+        <button
+          mat-outlined-button
+          class="secondary-button"
+          (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Retour
+        </button>
+      </div>
+    </div>
+
+    <div class="background-pattern">
+      <div class="pattern-circle circle-1"></div>
+      <div class="pattern-circle circle-2"></div>
+      <div class="pattern-circle circle-3"></div>
+    </div>
+  </div>
+</div>

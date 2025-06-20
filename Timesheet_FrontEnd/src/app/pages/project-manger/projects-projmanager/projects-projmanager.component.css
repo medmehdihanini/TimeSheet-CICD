@@ -1,0 +1,496 @@
+.example-card {
+  width: 350px;
+  height: 500px;
+}
+
+.example-header-image {
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%; /* Ensures the image fits within a circle */
+  width: 40px; /* Adjust size as needed */
+  height: 40px; /* Adjust size as needed */
+}
+
+.wrapper {
+  max-height: 600px;
+  border: 1px solid #ddd;
+  display: flex;
+  overflow-x: auto; /* Allow horizontal scrolling */
+  overflow-y: hidden; /* Hide vertical scrolling */
+  user-select: none; /* Disable text selection */
+  white-space: nowrap; /* Ensure items are displayed in a single line */
+  cursor: grab; /* Set cursor to grab */
+}
+
+.wrapper:active {
+  cursor: grabbing; /* Change cursor to grabbing when clicked and held */
+}
+
+.wrapper::-webkit-scrollbar {
+  height: 12px; /* Adjust height as needed for horizontal scrollbar */
+}
+
+.wrapper::-webkit-scrollbar-thumb {
+  background-color: #888; /* Color of the scrollbar handle */
+  border-radius: 10px; /* Make it rounded */
+}
+
+.wrapper::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Darker color on hover */
+}
+
+.wrapper .item {
+  display: inline-block; /* Ensure items are displayed in a single line */
+  width: 350px;
+  height: 515px;
+  text-align: center;
+  background-color: #ddd;
+  margin-right: 20px; /* Ensure space between items */
+}
+
+.custom-button {
+  background-color: #FFEB3B;
+  color: #000;
+  position: absolute;
+  right: 2rem;
+}
+
+.medium-tile {
+  width: 200px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background-color: #ffeb3b00;
+}
+
+.medium-tile p {
+  color: #000;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-blue {
+  background-color: blue;
+  color: white;
+}
+
+.status-grey {
+  background-color: grey;
+  color: white;
+}
+
+.status-red {
+  background-color: red;
+  color: white;
+}
+
+.status-green {
+  background-color: green;
+  color: white;
+}
+.mat-card-actions-align-end {
+  justify-content: flex-end;
+}
+.example-button-row {
+  display: table-cell;
+  max-width: 600px;
+}
+
+.example-button-row .mat-mdc-button-base {
+  margin: 8px 8px 8px 0;
+}
+.truncate {
+  display: -webkit-box;
+  -webkit-line-clamp: 1; /* Number of lines to show */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal; /* Ensures text can wrap */
+}
+
+.header-text {
+  flex-grow: 1;
+  max-width: 70%; /* Add this to constrain the width of the header text */
+  overflow: hidden; /* Hide any overflow */
+}
+.program-title {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-left:15px;
+  color: #3f51b5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
+}
+
+.program-subtitle{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.projects-container {
+  padding: 2rem;
+  background-color: #ffffff;
+  min-height: 100vh;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  color: #333333;
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.search-container {
+  width: 300px;
+}
+
+.search-field {
+  width: 100%;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.project-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
+  border: 1px solid #cccccc;
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #cccccc;
+}
+
+.project-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.project-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.project-info {
+  flex: 1;
+}
+
+.project-title {
+  color: #333333;
+  font-size: 1.2rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.project-program {
+  color: #999999;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0;
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+.status-container {
+  margin-bottom: 1rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-in-progress {
+  background-color: #ffe600;
+  color: #333333;
+}
+
+.status-on-hold {
+  background-color: #cccccc;
+  color: #333333;
+}
+
+.status-unlaunched {
+  background-color: #999999;
+  color: #ffffff;
+}
+
+.status-canceled {
+  background-color: #ff4444;
+  color: #ffffff;
+}
+
+.status-finished {
+  background-color: #4CAF50;
+  color: #ffffff;
+}
+
+.description-container {
+  margin-top: 1rem;
+}
+
+.description-container p {
+  color: #333333;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.truncate {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-footer {
+  padding: 1rem 1.5rem;
+  background-color: #f8f8f8;
+  border-top: 1px solid #cccccc;
+}
+
+.progress-indicator {
+  margin-top: 0.5rem;
+}
+
+::ng-deep .mat-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+}
+
+::ng-deep .mat-progress-bar-fill::after {
+  background-color: #ffe600;
+}
+
+::ng-deep .mat-progress-bar-buffer {
+  background-color: #cccccc;
+}
+
+::ng-deep .mat-form-field {
+  width: 100%;
+}
+
+::ng-deep .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+::ng-deep .mat-form-field-underline {
+  display: none;
+}
+
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-flex {
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+}
+
+::ng-deep .mat-form-field-label {
+  color: #999999;
+}
+
+::ng-deep .mat-input-element {
+  color: #333333;
+}
+
+.project-manager {
+  color: #333333;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0.25rem 0;
+}
+
+.project-email {
+  color: #999999;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.state-indicator {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+  background-color: #cccccc;
+  color: #333333;
+}
+
+.state-indicator.active {
+  background-color: #4CAF50;
+  color: #ffffff;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #ffe600;
+  color: #333333;
+  text-transform: capitalize;
+}
+
+.card-footer {
+  padding: 1rem 1.5rem;
+  background-color: #f8f8f8;
+  border-top: 1px solid #cccccc;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.manager-info, .email-info {
+  margin: 0.75rem 0;
+  padding: 0.5rem;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  border-left: 4px solid #ffe600;
+}
+
+.manager-label, .email-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.manager-label span, .email-label span {
+  color: #999999;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.manager-icon, .email-icon {
+  color: #ffe600;
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.project-manager {
+  color: #333333;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  padding-left: 1.6rem;
+}
+
+.project-email {
+  color: #333333;
+  font-size: 0.9rem;
+  margin: 0;
+  padding-left: 1.6rem;
+  word-break: break-all;
+}
+
+.custom-paginator {
+  margin-top: 2rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+::ng-deep .custom-paginator .mat-paginator-container {
+  justify-content: center;
+}
+
+::ng-deep .custom-paginator .mat-paginator-page-size {
+  margin-right: 0;
+}
+
+::ng-deep .custom-paginator .mat-paginator-range-label {
+  margin: 0 1rem;
+}
+
+::ng-deep .custom-paginator .mat-paginator-navigation-previous,
+::ng-deep .custom-paginator .mat-paginator-navigation-next {
+  color: #333333;
+}
+
+::ng-deep .custom-paginator .mat-paginator-page-size-label {
+  color: #999999;
+}
+
+::ng-deep .custom-paginator .mat-select-value {
+  color: #333333;
+}
+
+::ng-deep .custom-paginator .mat-paginator-page-size-select {
+  margin: 0 0.5rem;
+}
+
+::ng-deep .custom-paginator .mat-paginator-page-size-select .mat-form-field-underline {
+  display: none;
+}
+
+::ng-deep .custom-paginator .mat-paginator-page-size-select .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+::ng-deep .custom-paginator .mat-paginator-page-size-select .mat-form-field-flex {
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  padding: 0 0.5rem;
+}
+
+::ng-deep .custom-paginator .mat-paginator-page-size-select .mat-select-arrow {
+  color: #333333;
+}

@@ -1,0 +1,60 @@
+<h2 mat-dialog-title class="modal-header">
+  <strong>Ajouter J/H au profile du {{ context === 'project' ? 'projet' : 'programme' }}</strong>
+</h2>
+
+<mat-dialog-content class="modal-content">
+  <form [formGroup]="addBudgetForm" class="form-container">
+    <!-- Budget Field -->
+    <div class="form-group">
+      <label>Budget jours-hommes</label>
+      <div class="input-container">
+        <input
+          class="form-input"
+          type="text"
+          formControlName="mandaybudget"
+          placeholder="Entrez le budget J/H"
+        />
+        <div class="error-container" *ngIf="addBudgetForm.get('mandaybudget')?.touched">
+          <div class="error-message" *ngIf="addBudgetForm.get('mandaybudget')?.hasError('required')">
+            ⚠️ Le budget jour-homme est obligatoire
+          </div>
+          <div class="error-message" *ngIf="addBudgetForm.get('mandaybudget')?.hasError('onlyNumbers')">
+            ⚠️ Seuls les chiffres sont autorisés
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Rate Field -->
+    <div class="form-group" *ngIf="context != 'project'">
+      <label>Tarif journalier</label>
+      <div class="input-container">
+        <input
+          class="form-input"
+          type="text"
+          formControlName="dailyrate"
+          placeholder="Entrez le tarif journalier"
+        />
+        <div class="error-container" *ngIf="addBudgetForm.get('dailyrate')?.touched">
+          <div class="error-message" *ngIf="addBudgetForm.get('dailyrate')?.hasError('required')">
+            ⚠️ Le champ est obligatoire
+          </div>
+          <div class="error-message" *ngIf="addBudgetForm.get('dailyrate')?.hasError('onlyNumbers')">
+            ⚠️ Seuls les chiffres sont autorisés
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="modal-footer">
+  <button class="btn btn-cancel" (click)="onCancel()">Annuler</button>
+  <button
+    class="btn btn-submit"
+    [disabled]="!addBudgetForm.valid"
+    (click)="onSubmit()"
+  >
+    Ajouter
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,293 @@
+<div class="profile-stats-container" [@fadeIn]>
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+    <div class="loading-text">Loading profile statistics...</div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <div class="error-text">Failed to Load Profile Statistics</div>
+    <div class="error-description">We couldn't load the profile statistics. Please try again later</div>
+    <button mat-raised-button (click)="loadProfileData()">
+      <mat-icon>refresh</mat-icon>
+      Try Again
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="profileStats && !loading && !error" class="stats-content" [@staggerIn]>
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-info">
+        <div class="profile-avatar">
+          <div class="avatar-circle">
+            <img *ngIf="profileDetails?.image" [src]="profileDetails.image" alt="Profile Image" class="profile-image">
+            <mat-icon *ngIf="!profileDetails?.image" class="profile-icon">person</mat-icon>
+          </div>
+          <div class="status-indicator">
+            <div class="status-dot"></div>
+          </div>
+        </div>
+        <div class="profile-details">
+          <h1>{{ profileDetails?.firstname }} {{ profileDetails?.lastname }}</h1>
+          <div class="profile-meta">
+            <div class="badge">
+              <mat-icon>work</mat-icon>
+              <span>{{ profileDetails?.pfunction || 'N/A' }}</span>
+            </div>
+            <div class="badge">
+              <mat-icon>business</mat-icon>
+              <span>{{ profileDetails?.departement || 'N/A' }}</span>
+            </div>
+            <div class="badge email-badge">
+              <mat-icon>email</mat-icon>
+              <span>{{ profileDetails?.email }}</span>
+            </div>
+            <div class="badge manday-badge">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ profileDetails?.mandaybudget || 0 }} Mandays</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="stats-summary">
+          <div class="stat-item">
+            <span class="stat-value">{{ profileStats.programs.length || 0 }}</span>
+            <span class="stat-label">Programs</span>
+          </div>
+          <mat-divider [vertical]="true"></mat-divider>
+          <div class="stat-item">
+            <span class="stat-value">{{ getTotalProjects() }}</span>
+            <span class="stat-label">Projects</span>
+          </div>
+          <mat-divider [vertical]="true"></mat-divider>
+          <div class="stat-item">
+            <span class="stat-value">{{ getTotalTasks() }}</span>
+            <span class="stat-label">Tasks</span>
+          </div>
+          <mat-divider [vertical]="true"></mat-divider>
+          <div class="stat-item">
+            <span class="stat-value">{{ getTotalMandays() }}</span>
+            <span class="stat-label">Mandays</span>
+          </div>
+        </div>
+        <div class="workplace-chart">
+          <p-chart type="doughnut" 
+                   [data]="workplaceChartData" 
+                   [options]="workplaceChartOptions"
+                   style="width: 200px; height: 200px;">
+          </p-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <p-card class="summary-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <mat-icon>business</mat-icon>
+            <span>Programs Overview</span>
+          </div>
+        </ng-template>
+        <div class="overview-section">
+          <h3>Programs Overview</h3>
+          <div class="status-cards">
+            <div class="status-card" *ngFor="let status of getProgramStatuses()">
+              <div class="status-indicator" [style.background-color]="getStatusColor(status)"></div>
+              <div class="status-info">
+                <span class="status-label">{{ getStatusLabel(status) }}</span>
+                <span class="status-count">{{ countStatuses(profileStats.programs, 'status')[status] || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card class="summary-card">
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <mat-icon>assignment</mat-icon>
+            <span>Timesheets Overview</span>
+          </div>
+        </ng-template>
+        <div class="overview-section">
+          <h3>Timesheets Overview</h3>
+          <div class="status-cards">
+            <div class="status-card" *ngFor="let status of getTimesheetStatuses()">
+              <div class="status-indicator" [style.background-color]="getStatusColor(status)"></div>
+              <div class="status-info">
+                <span class="status-label">{{ getStatusLabel(status) }}</span>
+                <span class="status-count">{{ countTimesheetStatuses(profileStats.programs)[status] || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Programs List -->
+    <div class="programs-section">
+      <div class="programs-header">
+        <h2>Programs</h2>
+        <div class="program-pagination-controls" *ngIf="profileStats.programs.length > programsPerPage">
+          <div class="pagination-info">
+            Showing {{ (currentProgramPage - 1) * programsPerPage + 1 }} - 
+            {{ Math.min(currentProgramPage * programsPerPage, profileStats.programs.length) }} 
+            of {{ profileStats.programs.length }} programs
+          </div>
+          <div class="pagination-buttons">
+            <button mat-icon-button 
+                    [disabled]="currentProgramPage === 1"
+                    (click)="changeProgramPage(currentProgramPage - 1)"
+                    matTooltip="Previous page">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            
+            <button mat-icon-button 
+                    *ngFor="let page of getProgramPageNumbers()"
+                    [class.active]="currentProgramPage === page"
+                    (click)="changeProgramPage(page)">
+              {{ page }}
+            </button>
+
+            <button mat-icon-button 
+                    [disabled]="currentProgramPage === getTotalProgramPages()"
+                    (click)="changeProgramPage(currentProgramPage + 1)"
+                    matTooltip="Next page">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="programs-grid" *ngIf="profileStats.programs.length > 0; else noPrograms">
+        <p-card *ngFor="let program of getPaginatedPrograms()" 
+                class="program-card">
+          <ng-template pTemplate="header">
+            <div class="program-header">
+              <div class="program-title">
+                <h3 (click)="navigateToProgram(program.programId)" class="clickable-title">{{ program.name }}</h3>
+                <div class="status-tag" [ngClass]="'status-' + program.status.toLowerCase()">
+                  <mat-icon class="status-icon" [style.fontSize]="'16px'">
+                    {{ getStatusIcon(program.status) }}
+                  </mat-icon>
+                  {{ getStatusLabel(program.status) }}
+                </div>
+              </div>
+              <div class="client-info">
+                <mat-icon>business</mat-icon>
+                <span>{{ program.client }}</span>
+              </div>
+            </div>
+          </ng-template>
+
+          <!-- Program Progress -->
+          <div class="progress-section">
+            <div class="progress-info">
+              <span>Manday Budget</span>
+              <span>{{ program.consumedMandayBudget }} / {{ program.mandayBudget }}</span>
+            </div>
+            <p-progressBar [value]="calculateProgress(program.consumedMandayBudget, program.mandayBudget)"
+                          [showValue]="false"
+                          [style.background]="'#333333'"
+                          [style.border-radius]="'4px'"></p-progressBar>
+          </div>
+
+          <!-- Projects List -->
+          <div class="projects-list">
+            <div *ngIf="program.projects.length > 0; else noProjects">
+              <div *ngFor="let project of getPaginatedProjects(program.programId, program.projects)" 
+                   class="project-item"
+                   (click)="navigateToProject(project.projectId)"
+                   [style.cursor]="'pointer'">
+                <div class="project-header">
+                  <h4>{{ project.name }}</h4>
+                  <div class="status-container" *ngIf="project.timesheetStatus; else noTimesheet">
+                    <div class="status-indicator" [style.background-color]="getStatusColor(project.timesheetStatus)"></div>
+                    <span class="status-text">{{ getStatusLabel(project.timesheetStatus) }}</span>
+                  </div>
+                  <ng-template #noTimesheet>
+                    <div class="no-timesheet">
+                      <mat-icon>info</mat-icon>
+                      <span>No timesheet yet</span>
+                    </div>
+                  </ng-template>
+                </div>
+                
+                <div class="project-details">
+                  <div class="detail-item">
+                    <mat-icon>assignment</mat-icon>
+                    <span>{{ project.taskCount }} Tasks</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>schedule</mat-icon>
+                    <span>{{ project.consumedMandayBudget }} / {{ project.mandayBudget }} Mandays</span>
+                  </div>
+                  <div class="detail-item">
+                    <button mat-icon-button 
+                            class="timesheet-button"
+                            (click)="goToProfileTimesheet(profileStats.profileId, project.projectId)"
+                            matTooltip="View Timesheet">
+                      <mat-icon>date_range</mat-icon>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="workplace-distribution">
+                  <div class="workplace-item">
+                    <mat-icon>business</mat-icon>
+                    <span>{{ project.workplaceCounts.EY }} EY</span>
+                  </div>
+                  <div class="workplace-item">
+                    <mat-icon>location_on</mat-icon>
+                    <span>{{ project.workplaceCounts['Chez le client'] }} Client</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pagination Controls -->
+              <div class="pagination-controls" *ngIf="program.projects.length > projectsPerPage">
+                <div class="pagination-buttons">
+                  <button mat-icon-button 
+                          [disabled]="(currentPage[program.programId] || 1) === 1"
+                          (click)="changePage(program.programId, (currentPage[program.programId] || 1) - 1)">
+                    <mat-icon>chevron_left</mat-icon>
+                  </button>
+                  
+                  <button mat-icon-button 
+                          *ngFor="let page of getPageNumbers(program.programId, program.projects)"
+                          [class.active]="(currentPage[program.programId] || 1) === page"
+                          (click)="changePage(program.programId, page)">
+                    {{ page }}
+                  </button>
+
+                  <button mat-icon-button 
+                          [disabled]="(currentPage[program.programId] || 1) === getTotalPages(program.projects)"
+                          (click)="changePage(program.programId, (currentPage[program.programId] || 1) + 1)">
+                    <mat-icon>chevron_right</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <ng-template #noProjects>
+              <div class="no-projects-message">
+                <mat-icon>info</mat-icon>
+                <p>No projects in this program for now</p>
+              </div>
+            </ng-template>
+          </div>
+        </p-card>
+      </div>
+      <ng-template #noPrograms>
+        <div class="no-programs-message">
+          <mat-icon>info</mat-icon>
+          <p>{{ profileDetails?.firstname }} {{ profileDetails?.lastname }} has no programs for now</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,301 @@
+<div class="container">
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <p>Loading program profile tasks...</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="!loading && error" class="error-container">
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="loadTaskData()">Retry</button>
+  </div>
+
+  <!-- Content when data is loaded -->
+  <div *ngIf="!loading && !error && taskData" class="content-container">
+    <!-- Header section -->
+    <mat-card class="header-card">
+      <mat-card-header>
+        <div mat-card-avatar>
+          <mat-icon>account_circle</mat-icon>
+        </div>
+        <mat-card-title>
+          <div class="profile-name">{{ taskData.profileName }}</div>
+          <div class="profile-function">{{ taskData.profileFunction }}</div>
+        </mat-card-title>
+        <mat-card-subtitle>
+          <div class="program-name">{{ taskData.programName }}</div>
+          <div class="contract-number">Contract #: {{ taskData.contractNumber }}</div>
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <!-- Stats cards -->
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-card-title">Total Manday Budget</div>
+            <div class="stat-card-value">{{ taskData.totalMandayBudget }} days</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Consumed Mandays</div>
+            <div class="stat-card-value">{{ taskData.totalConsumedMandayBudget }} days</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Daily Rate</div>
+            <div class="stat-card-value">{{ taskData.dailyRate }} TND</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Total Budget Value</div>
+            <div class="stat-card-value">{{ taskData.totalMandayBudget * taskData.dailyRate  }} TND</div>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>Budget Usage</span>
+            <span>{{ getProgressPercentage() | number:'1.0-0' }}%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" [style.width.%]="getProgressPercentage()"></div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Content section -->
+    <div class="content-section">
+      <!-- Left column: Chart -->
+      <mat-card class="chart-card budget-overview-card">
+        <mat-card-header class="ey-card-header">
+          <mat-card-title>
+            <div class="ey-title-container">
+              <mat-icon class="ey-title-icon">pie_chart</mat-icon>
+              <span>Vue d'ensemble du budget</span>
+            </div>
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas #budgetChart></canvas>
+          </div>
+          <div class="budget-stats-container">
+            <div class="budget-stat">
+              <div class="budget-stat-circle consumed">
+                <mat-icon>schedule</mat-icon>
+              </div>
+              <div class="budget-value">{{ taskData.totalConsumedMandayBudget }} jours</div>
+              <div class="budget-label">Consommé</div>
+            </div>
+            <div class="budget-divider"></div>
+            <div class="budget-stat">
+              <div class="budget-stat-circle remaining">
+                <mat-icon>update</mat-icon>
+              </div>
+              <div class="budget-value">{{ taskData.totalMandayBudget - taskData.totalConsumedMandayBudget }} jours</div>
+              <div class="budget-label">Restant</div>
+            </div>
+            <div class="budget-divider"></div>
+            <div class="budget-stat">
+              <div class="budget-stat-circle total">
+                <mat-icon>donut_large</mat-icon>
+              </div>
+              <div class="budget-value">{{ taskData.totalMandayBudget }} jours</div>
+              <div class="budget-label">Total</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Right column: Workplace distribution chart -->
+      <mat-card class="chart-card workplace-chart-card">
+        <mat-card-header class="ey-card-header">
+          <mat-card-title>
+            <div class="ey-title-container">
+              <mat-icon class="ey-title-icon">location_on</mat-icon>
+              <span>Distribution des lieux de travail</span>
+            </div>
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas #workplaceChart></canvas>
+          </div>
+          <div class="workplace-legend">
+            <div class="legend-item">
+              <div class="legend-color ey-color"></div>
+              <div class="legend-label">EY ({{ eyWorkplaceCount }})</div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color client-color"></div>
+              <div class="legend-label">Client ({{ clientWorkplaceCount }})</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Project tabs navigation with improved scrolling for many projects -->
+    <div class="project-tabs-container">
+      <!-- Custom Project selector dropdown -->
+
+
+      <!-- Tab navigation with scroll controls -->
+      <div class="scroll-tabs-container">
+        <button mat-icon-button class="scroll-button scroll-left" (click)="scrollTabs('left')"
+                [disabled]="scrollPosition <= 0">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <div class="tabs-wrapper" #tabsWrapper>
+          <mat-tab-group mat-align-tabs="start" animationDuration="300ms"
+                        (selectedTabChange)="onTabChange($event)"
+                        [(selectedIndex)]="selectedProjectIndex"
+                        class="ey-tabs scrollable-tabs">
+            <mat-tab *ngFor="let project of taskData.projects; let i = index" [label]="project.projectName">
+              <ng-template matTabContent>
+                <!-- Project content -->
+                <mat-card class="projects-card">
+                  <mat-card-header class="ey-card-header project-header-card">
+                    <mat-card-title>
+                      <div class="project-header">
+                        <div class="ey-title-container">
+                          <mat-icon class="ey-title-icon">folder_special</mat-icon>
+                          <span class="project-title">{{ project.projectName }}</span>
+                        </div>
+                        <div class="project-status" [ngClass]="getStatusClass(project.projectStatus)">
+                          {{ project.projectStatus }}
+                        </div>
+                      </div>
+                    </mat-card-title>
+                    <mat-card-subtitle>
+                      {{ project.projectDescription }}
+                    </mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <!-- Project stats -->
+                    <div class="stat-cards project-stat-cards">
+                      <div class="stat-card project-stat">
+                        <div class="stat-icon-container">
+                          <mat-icon class="stat-icon">work</mat-icon>
+                        </div>
+                        <div class="stat-info">
+                          <div class="stat-card-title">Budget en J/H</div>
+                          <div class="stat-card-value">{{ project.mandayBudget }} jours</div>
+                        </div>
+                      </div>
+                      <div class="stat-card project-stat">
+                        <div class="stat-icon-container">
+                          <mat-icon class="stat-icon">hourglass_bottom</mat-icon>
+                        </div>
+                        <div class="stat-info">
+                          <div class="stat-card-title">Consommé</div>
+                          <div class="stat-card-value">{{ project.consumedMandayBudget }} jours</div>
+                        </div>
+                      </div>
+                      <div class="stat-card project-stat">
+                        <div class="stat-icon-container">
+                          <mat-icon class="stat-icon">trending_up</mat-icon>
+                        </div>
+                        <div class="stat-info">
+                          <div class="stat-card-title">Progression</div>
+                          <div class="stat-card-value">{{ getProjectProgressPercentage(project) | number:'1.0-0' }}%</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Workplace distribution stats for this project -->
+                    <div class="workplace-distribution-container">
+                      <h3 class="workplace-distribution-title">
+                        <mat-icon>location_on</mat-icon>
+                        Distribution des lieux de travail
+                      </h3>
+                      <div class="workplace-distribution-stats">
+                        <div class="workplace-stat">
+                          <div class="workplace-icon-container ey-workplace">
+                            <mat-icon>business</mat-icon>
+                          </div>
+                          <div class="workplace-details">
+                            <div class="workplace-name">EY</div>
+                            <div class="workplace-count">{{ getProjectWorkplaceCount(project, 'EY') }} tâches</div>
+                          </div>
+                        </div>
+                        <div class="workplace-stats-divider"></div>
+                        <div class="workplace-stat">
+                          <div class="workplace-icon-container client-workplace">
+                            <mat-icon>location_city</mat-icon>
+                          </div>
+                          <div class="workplace-details">
+                            <div class="workplace-name">Client</div>
+                            <div class="workplace-count">{{ getProjectWorkplaceCount(project, 'Chez le Client') }} tâches</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="progress-section">
+                      <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" [style.width.%]="getProjectProgressPercentage(project)"></div>
+                      </div>
+                    </div>
+
+                    <!-- Tasks table -->
+                    <div class="table-container">
+                      <table class="tasks-table mat-elevation-z0" mat-table [dataSource]="projectDataSources[project.projectId]" matSort>
+                        <!-- Date Column -->
+                        <ng-container matColumnDef="taskDate">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
+                          <td mat-cell *matCellDef="let task"> {{ task.taskDate }} </td>
+                        </ng-container>
+
+                        <!-- Work Days Column -->
+                        <ng-container matColumnDef="workDays">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header> Days </th>
+                          <td mat-cell *matCellDef="let task"> {{ task.workDays }} </td>
+                        </ng-container>
+
+                        <!-- Description Column -->
+                        <ng-container matColumnDef="description">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header> Description </th>
+                          <td mat-cell *matCellDef="let task"> {{ task.description }} </td>
+                        </ng-container>
+
+                        <!-- Workplace Column -->
+                        <ng-container matColumnDef="workPlace">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header> Workplace </th>
+                          <td mat-cell *matCellDef="let task">
+                            <span class="workplace-tag" [ngClass]="task.workPlace === 'EY' ? 'workplace-ey' : 'workplace-client'">
+                              {{ task.workPlace }}
+                            </span>
+                          </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+                        <!-- Row shown when there is no matching data. -->
+                        <tr class="mat-row" *matNoDataRow>
+                          <td class="mat-cell" colspan="4">No tasks found for this project</td>
+                        </tr>
+                      </table>
+
+                      <mat-paginator [pageSizeOptions]="[5, 10, 25]"
+                                    [pageSize]="5"
+                                    aria-label="Select page of tasks"
+                                    class="ey-paginator"></mat-paginator>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </ng-template>
+            </mat-tab>
+          </mat-tab-group>
+        </div>
+
+        <button mat-icon-button class="scroll-button scroll-right" (click)="scrollTabs('right')"
+                [disabled]="isScrolledToEnd">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

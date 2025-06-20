@@ -1,0 +1,135 @@
+<div class="program-title">
+  <h1>Add New Program</h1>
+  <button mat-icon-button class="close-button" (click)="dialogRef.close()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-stepper linear #stepper class="custom-stepper" [disableRipple]="true">
+  <mat-step [stepControl]="programForm" label="Program Details" [completed]="false" [editable]="false">
+    <ng-template matStepLabel>
+      <span class="step-label">Program Details</span>
+    </ng-template>
+    <form [formGroup]="programForm" class="form-container">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="contractNumber">Contract Number</label>
+          <input type="text" 
+                 id="contractNumber" 
+                 formControlName="numcontrat" 
+                 placeholder="Enter contract number">
+          <div class="error-message" *ngIf="programForm.get('numcontrat')?.touched && programForm.get('numcontrat')?.hasError('required')">
+            Contract number is required
+          </div>
+          <div class="error-message" *ngIf="programForm.get('numcontrat')?.touched && programForm.get('numcontrat')?.hasError('onlyNumbers')">
+            Contract number must contain only numbers
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="programName">Program Name</label>
+          <input type="text" 
+                 id="programName" 
+                 formControlName="name" 
+                 placeholder="Enter program name">
+          <div class="error-message" *ngIf="programForm.get('name')?.touched && programForm.get('name')?.hasError('required')">
+            Program name is required
+          </div>
+          <div class="error-message" *ngIf="programForm.get('name')?.touched && programForm.get('name')?.hasError('onlyLettersNumbersSpacesAndSpecialChars')">
+            Program name must contain at least one letter
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group date-group">
+        <label>Program Period</label>
+        <mat-form-field class="date-range-field">
+          <mat-label>Choose a date range</mat-label>
+          <mat-date-range-input [rangePicker]="picker" [formGroup]="dateRangeGroup">
+            <input matStartDate formControlName="start" placeholder="Start date">
+            <input matEndDate formControlName="end" placeholder="End date">
+          </mat-date-range-input>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+          <mat-error *ngIf="dateRangeGroup.get('start')?.hasError('required')">
+            Start date is required
+          </mat-error>
+          <mat-error *ngIf="dateRangeGroup.get('end')?.hasError('required')">
+            End date is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button mat-raised-button type="button" [disabled]="!programForm.valid" (click)="AddProgram(stepper)">
+          <mat-icon>arrow_forward</mat-icon>
+          <span>Next</span>
+        </button>
+      </div>
+    </form>
+  </mat-step>
+
+  <mat-step [stepControl]="imageForm" label="Program Image" [completed]="false" [editable]="false">
+    <ng-template matStepLabel>
+      <span class="step-label">Program Image</span>
+    </ng-template>
+    <form class="form-container" [formGroup]="imageForm" (ngSubmit)="updateImage()">
+      <div class="file-upload-container" (click)="fileInput.click()">
+        <mat-icon class="upload-icon">cloud_upload</mat-icon>
+        <h3>Upload Program Image</h3>
+        <p>Accepted types: JPEG, PNG, GIF</p>
+        <input #fileInput 
+               type="file" 
+               accept="image/*" 
+               (change)="onFileChange($event)" 
+               class="file-input"
+               style="display: none">
+      </div>
+
+      <div class="image-preview" *ngIf="imagePreviewUrl">
+        <img [src]="imagePreviewUrl" alt="Preview" class="preview-image">
+        <button mat-icon-button class="remove-image" (click)="removeImage()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="form-actions">
+        <button mat-raised-button 
+                type="submit" 
+                [disabled]="!imageForm.valid || isUploading"
+                color="primary">
+          <div class="button-content">
+            <mat-icon *ngIf="!isUploading">save</mat-icon>
+            <div class="upload-progress" *ngIf="isUploading">
+              <div class="progress-circle"></div>
+            </div>
+            <span>{{ isUploading ? 'Uploading' : 'Save Image' }}</span>
+          </div>
+        </button>
+        <button mat-stroked-button 
+                type="button" 
+                [disabled]="isUploading"
+                (click)="skipStep(stepper)">
+          <mat-icon>skip_next</mat-icon>
+          <span>Skip This Step</span>
+        </button>
+      </div>
+    </form>
+  </mat-step>
+
+  <mat-step [completed]="false" [editable]="false">
+    <ng-template matStepLabel>
+      <span class="step-label">Confirmation</span>
+    </ng-template>
+    <div class="confirmation-content">
+      <div class="success-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <p>Program has been added successfully!</p>
+      <button mat-raised-button color="primary" (click)="redirectToProgramProfiles()">
+        <mat-icon>group</mat-icon>
+        <span>View Program Profiles</span>
+      </button>
+    </div>
+  </mat-step>
+</mat-stepper>

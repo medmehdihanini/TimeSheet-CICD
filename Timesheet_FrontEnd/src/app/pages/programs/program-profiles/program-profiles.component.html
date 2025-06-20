@@ -1,0 +1,187 @@
+<br />
+<div class="profiles-container">
+  <!-- Header Section -->
+  <div class="page-header">
+    <h1 class="page-title">Profils associés au programme</h1>
+    <button mat-fab extended class="add-profile-button" (click)="openProfileModal()">
+      <mat-icon>person_add</mat-icon>
+      Ajouter un profil
+    </button>
+  </div>
+
+  <!-- Stats Cards Section -->
+  <div class="budget-cards">
+    <!-- Budget Cards -->
+    <div class="budget-card">
+      <div class="budget-card-content">
+        <div class="budget-icon">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+        <div class="budget-info">
+          <span class="budget-label">Budget Associé</span>
+          <span class="budget-value">{{ allowedValue | number:'1.0-0' }} TND</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="budget-card">
+      <div class="budget-card-content">
+        <div class="budget-icon consumed">
+          <mat-icon>payments</mat-icon>
+        </div>
+        <div class="budget-info">
+          <span class="budget-label">Budget Consommé</span>
+          <span class="budget-value">{{ consumedValue | number:'1.0-0' }} TND</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- JH Cards -->
+    <div class="budget-card">
+      <div class="budget-card-content">
+        <div class="budget-icon">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <div class="budget-info">
+          <span class="budget-label">JH Associé</span>
+          <span class="budget-value">{{ totalMandayBudget | number:'1.0-0' }} JH</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="budget-card">
+      <div class="budget-card-content">
+        <div class="budget-icon consumed">
+          <mat-icon>hourglass_empty</mat-icon>
+        </div>
+        <div class="budget-info">
+          <span class="budget-label">JH Consommé</span>
+          <span class="budget-value">{{ totalConsumedManday | number:'1.0-0' }} JH</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simple Search Section -->
+  <div class="search-section">
+    <mat-form-field class="search-field">
+      <mat-label>Search</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Ahmed" #input>
+    </mat-form-field>
+  </div>
+
+  <!-- Table Section -->
+  <div class="table-container mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource" matSort class="profiles-table">
+      <!-- Image Column -->
+      <ng-container matColumnDef="image">
+        <th mat-header-cell *matHeaderCellDef>Photo</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="profile-image-container">
+            <img [src]="row.image ? 'data:image/jpg;base64,' + row.image : '../../../assets/imgholder.jpg'"
+                 [alt]="row.firstname + ' ' + row.lastname"
+                 class="profile-image">
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="name-cell">
+            <span class="full-name">{{ row.firstname }} {{ row.lastname }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Function Column -->
+      <ng-container matColumnDef="function">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Fonction</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="function-badge">{{ row.function }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Daily Rate Column -->
+      <ng-container matColumnDef="Dailyrate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Taux journalier</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="rate-value">{{ row.Dailyrate | number:'1.0-0' }} TND</div>
+        </td>
+      </ng-container>
+
+      <!-- Progress Column -->
+      <ng-container matColumnDef="progress">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>J/H Consommés %</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="progress-cell">
+            <div class="progress-value">{{ row.consumedmandaybudget }}</div>
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="(row.consumedmandaybudget / row.mandaybudget) * 100"></div>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Manday Budget Column -->
+      <ng-container matColumnDef="mandaybudget">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>J/H associés</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="budget-cell">{{ row.mandaybudget }}</div>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="stats">
+        <th mat-header-cell *matHeaderCellDef>statistique</th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button class="action-button" (click)="viewStats(row.idprofile)" matTooltip="Voir les statistiques">
+            <mat-icon>assessment</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <!-- Update Column -->
+      <ng-container matColumnDef="update">
+        <th mat-header-cell *matHeaderCellDef>Modifier</th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button class="edit-button" (click)="openUpdateProjectProfileModal(row.idprofile,row.mandaybudget,row.Dailyrate)" matTooltip="Modifier le profil">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <!-- Delete Column -->
+      <ng-container matColumnDef="Delete">
+        <th mat-header-cell *matHeaderCellDef>Supprimer</th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button class="delete-button" (click)="deleteProfile(row.idp)" matTooltip="Supprimer le profil">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row"></tr>
+
+      <!-- No Data Row -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
+          <div class="no-data-message">
+            <mat-icon>search_off</mat-icon>
+            <span>Aucun profil ne correspond à "{{ input.value }}"</span>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Paginator -->
+    <mat-paginator class="custom-paginator"
+                   [pageSizeOptions]="[5, 10, 25, 100]"
+                   [pageSize]="10"
+                   [showFirstLastButtons]="true"
+                   aria-label="Sélectionner la page">
+    </mat-paginator>
+  </div>
+</div>

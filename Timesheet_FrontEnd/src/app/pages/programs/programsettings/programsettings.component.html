@@ -1,0 +1,62 @@
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<div class="menu-container">
+  <div class="header-container">
+    <!-- Profile Section -->
+    <div class="profile-section">
+      <div class="settings-icon">
+        <mat-icon>settings</mat-icon>
+      </div>
+      <div class="settings-info">
+        <h2>Configuration du Programme</h2>
+        <div class="settings-details">
+          <span>Paramètres et gestion du programme</span>
+          <span class="settings-subtitle">Modification des informations, profils et projets</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Return Button Section -->
+    <div class="return-section">
+      <button class="action-btn return-btn" (click)="goToProgramDetails()">
+        <mat-icon>keyboard_return</mat-icon>
+        <span>Retour au Programme</span>
+      </button>
+    </div>
+  </div>
+
+  <nav class="menu-nav">
+    <div class="menu-items">
+      <div [routerLink]="['program-informations']"
+           routerLinkActive="active"
+           class="menu-item">
+        <mat-icon>info</mat-icon>
+        <span>Détails</span>
+      </div>
+
+      <div [routerLink]="['program-profiles']"
+           routerLinkActive="active"
+           class="menu-item">
+        <mat-icon>group_add</mat-icon>
+        <span>Profils</span>
+      </div>
+
+      <div [routerLink]="['program-projects']"
+           routerLinkActive="active"
+           class="menu-item">
+        <mat-icon>work</mat-icon>
+        <span>Projets</span>
+      </div>
+
+      <div (click)="onCloseProgram()" class="close-program">
+        <mat-icon>work_off</mat-icon>
+        <span>Clôturer</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="content-area">
+    <router-outlet></router-outlet>
+  </div>
+</div>
