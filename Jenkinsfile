@@ -31,15 +31,16 @@ pipeline {
         }
         
         stage('Security Scan - Backend') {
-            steps {
-                dir('Timesheet-Client-monolithic-arch') {
+            steps {                dir('Timesheet-Client-monolithic-arch') {
                     script {
                         echo 'Running security scan on Backend...'
                         sh 'trivy fs --security-checks vuln,secret,config . || true'
                     }
                 }
             }
-        }          stage('Build Backend') {
+        }
+        
+        stage('Build Backend') {
             steps {
                 dir('Timesheet-Client-monolithic-arch') {
                     script {
