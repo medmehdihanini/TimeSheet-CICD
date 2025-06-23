@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     environment {
         DOCKER_REGISTRY = 'localhost:5000'
         FRONTEND_IMAGE = "${DOCKER_REGISTRY}/timesheet-frontend"
@@ -10,7 +10,7 @@ pipeline {
         DOCKER_BUILDKIT = '1'
         COMPOSE_DOCKER_CLI_BUILD = '1'
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
@@ -18,7 +18,7 @@ pipeline {
                 checkout scm
             }
         }
-        
+
         stage('Security Scan - Frontend') {
             steps {
                 dir('Timesheet_FrontEnd') {
@@ -29,15 +29,18 @@ pipeline {
                 }
             }
         }
-          stage('Security Scan - Backend') {
+
+        stage('Security Scan - Backend') {
             steps {
                 dir('Timesheet-Client-monolithic-arch') {
+            steps {                dir('Timesheet-Client-monolithic-arch') {
                     script {
                         echo 'Running security scan on Backend...'
                         sh 'trivy fs --security-checks vuln,secret,config . || true'
                     }
                 }
             }
+        }          stage('Build Backend') {
         }
         
         stage('Build Backend') {
@@ -60,7 +63,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Build Frontend') {
             steps {
                 dir('Timesheet_FrontEnd') {
@@ -71,7 +74,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Container Security Scan') {
             parallel {
                 stage('Scan Frontend Image') {
@@ -88,97 +91,57 @@ pipeline {
                             echo 'Scanning Backend Docker image for vulnerabilities...'
                             sh "trivy image ${BACKEND_IMAGE}:latest || true"
                         }
-                    }                }
+                    }
+                }
             }
         }
-        
-        stage('Deploy') {
+          stage('Deploy') {
             steps {
                 script {
                     echo 'Deploying application stack...'
-                    
+
                     // Get Jenkins host IP
                     def hostIP = sh(script: "hostname -I | awk '{print \$1}'", returnStdout: true).trim()
                     if (!hostIP) {
                         hostIP = sh(script: "ip route get 8.8.8.8 | awk -F'src ' 'NR==1{split(\$2,a,\" \");print a[1]}'", returnStdout: true).trim()
                     }
-                    
+
                     echo "Using host IP: ${hostIP}"
-                    
-                    // Set environment variable for docker-compose
+                      // Set environment variable for docker-compose
                     withEnv(["HOST_IP=${hostIP}"]) {
-                        // Clean up existing containers
-                        echo 'Stopping existing containers...'
                         sh 'docker-compose down || true'
-                        
                         // Clean up nginx exporter specifically to force recreation
                         sh 'docker rm -f timesheet-nginx-exporter || true'
-                        
-                        // Start only application services (exclude Jenkins)
-                        echo 'Starting application services...'
-                        sh 'docker-compose up --build -d mysql backend frontend nginx-exporter prometheus grafana node-exporter'
-                        
-                        // Wait for MySQL to be ready (longer wait time)
-                        echo 'Waiting for MySQL to initialize...'
-                        sh 'sleep 90'
-                        
-                        // Check if MySQL is healthy
-                        sh '''
-                            echo "Checking MySQL health..."
-                            for i in {1..30}; do
-                                if docker exec timesheet-mysql mysqladmin ping -h localhost --silent; then
-                                    echo "MySQL is ready!"
-                                    break
-                                fi
-                                echo "Waiting for MySQL... attempt $i/30"
-                                sleep 10
-                            done
-                        '''
-                        
-                        // Wait additional time for backend to start
-                        echo 'Waiting for backend to start...'
-                        sh 'sleep 60'
+                        sh 'docker-compose up --build -d'
                     }
-                    
-                    echo 'Verifying deployment...'                    sh 'docker-compose ps'
+
+                    echo 'Waiting for services to be ready...'
+                    sh 'sleep 30'
+
+                    echo 'Verifying deployment...'
+                    sh 'docker-compose ps'
                 }
             }
-            timeout(time: 15, unit: 'MINUTES')  // Add timeout for the entire deploy stage
         }
-        
+
         stage('Health Check') {
             steps {
                 script {
                     echo 'Performing health checks...'
                     sh '''
                         echo "Checking Frontend..."
-                        for i in {1..10}; do
-                            if curl -f http://localhost:4200 --connect-timeout 10; then
-                                echo "Frontend is healthy!"
-                                break
-                            fi
-                            echo "Frontend not ready, waiting... attempt $i/10"
-                            sleep 15
-                        done
+                        curl -f http://localhost:8080 || exit 1
                         
                         echo "Checking Backend..."
-                        for i in {1..10}; do
-                            if curl -f http://localhost:8083/actuator/health --connect-timeout 10; then
-                                echo "Backend is healthy!"
-                                break
-                            fi
-                            echo "Backend not ready, waiting... attempt $i/10"
-                            sleep 15
-                        done
+                        curl -f http://localhost:8083/actuator/health || exit 1
                         
                         echo "All services are healthy!"
                     '''
                 }
             }
-            timeout(time: 10, unit: 'MINUTES')  // Add timeout for health checks
         }
     }
-    
+
     post {
         always {
             echo 'Cleaning up...'
@@ -188,7 +151,7 @@ pipeline {
             echo 'Pipeline completed successfully!'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo 'Pipeline failed!'More actions
             sh 'docker-compose logs'
         }
     }
