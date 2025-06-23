@@ -29,9 +29,9 @@ pipeline {
                 }
             }
         }
-        
-        stage('Security Scan - Backend') {
-            steps {                dir('Timesheet-Client-monolithic-arch') {
+          stage('Security Scan - Backend') {
+            steps {
+                dir('Timesheet-Client-monolithic-arch') {
                     script {
                         echo 'Running security scan on Backend...'
                         sh 'trivy fs --security-checks vuln,secret,config . || true'
@@ -88,10 +88,11 @@ pipeline {
                             echo 'Scanning Backend Docker image for vulnerabilities...'
                             sh "trivy image ${BACKEND_IMAGE}:latest || true"
                         }
-                    }
-                }
+                    }                }
             }
-        }          stage('Deploy') {
+        }
+        
+        stage('Deploy') {
             steps {
                 script {
                     echo 'Deploying application stack...'
@@ -139,14 +140,13 @@ pipeline {
                         sh 'sleep 60'
                     }
                     
-                    echo 'Verifying deployment...'
-                    sh 'docker-compose ps'
+                    echo 'Verifying deployment...'                    sh 'docker-compose ps'
                 }
             }
             timeout(time: 15, unit: 'MINUTES')  // Add timeout for the entire deploy stage
-            }
         }
-          stage('Health Check') {
+        
+        stage('Health Check') {
             steps {
                 script {
                     echo 'Performing health checks...'
