@@ -78,7 +78,29 @@ services:  # MySQL Database
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     networks:
-      - timesheet-network  # Grafana for Visualization
+      - timesheet-network  # Jenkins CI/CD Server
+  jenkins:
+    build: ./jenkins
+    container_name: timesheet-jenkins
+    ports:
+      - "8086:8080"  # Jenkins web interface
+      - "50000:50000"  # Jenkins agent port
+    environment:
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker socket for building images
+      - ./:/workspace:ro  # Mount project workspace as read-only
+    networks:
+      - timesheet-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Grafana for Visualization
   grafana:
     image: grafana/grafana:latest
     container_name: timesheet-grafana
@@ -116,6 +138,7 @@ volumes:
   mysql_data:
   prometheus_data:
   grafana_data:
+  jenkins_data:
 
 networks:
   timesheet-network:

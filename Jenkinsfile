@@ -39,14 +39,16 @@ pipeline {
                     }
                 }
             }
-        }
-          stage('Build Backend') {
+        }          stage('Build Backend') {
             steps {
                 dir('Timesheet-Client-monolithic-arch') {
                     script {
                         echo 'Building Spring Boot application...'
                         // Use wrapper script for cross-platform compatibility
                         if (isUnix()) {
+                            // Make Maven wrapper executable and fix line endings
+                            sh 'chmod +x mvnw'
+                            sh 'sed -i "s/\\r$//" mvnw'
                             sh './mvnw clean package -DskipTests'
                         } else {
                             bat '.\\mvnw.cmd clean package -DskipTests'
