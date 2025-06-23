@@ -86,13 +86,16 @@ pipeline {
                     steps {
                         script {
                             echo 'Scanning Backend Docker image for vulnerabilities...'
-                            sh "trivy image ${BACKEND_IMAGE}:latest || true"
-                        }
-                    }                }
+                            sh "trivy image ${BACKEND_IMAGE}:latest || true"                        }
+                    }
+                }
             }
         }
         
         stage('Deploy') {
+            options {
+                timeout(time: 15, unit: 'MINUTES')  // Add timeout for the entire deploy stage
+            }
             steps {
                 script {
                     echo 'Deploying application stack...'
@@ -137,16 +140,18 @@ pipeline {
                         
                         // Wait additional time for backend to start
                         echo 'Waiting for backend to start...'
-                        sh 'sleep 60'
-                    }
+                        sh 'sleep 60'                    }
                     
-                    echo 'Verifying deployment...'                    sh 'docker-compose ps'
+                    echo 'Verifying deployment...'
+                    sh 'docker-compose ps'
                 }
             }
-            timeout(time: 15, unit: 'MINUTES')  // Add timeout for the entire deploy stage
         }
         
         stage('Health Check') {
+            options {
+                timeout(time: 10, unit: 'MINUTES')  // Add timeout for health checks
+            }
             steps {
                 script {
                     echo 'Performing health checks...'
@@ -170,12 +175,10 @@ pipeline {
                             echo "Backend not ready, waiting... attempt $i/10"
                             sleep 15
                         done
-                        
-                        echo "All services are healthy!"
+                          echo "All services are healthy!"
                     '''
                 }
             }
-            timeout(time: 10, unit: 'MINUTES')  // Add timeout for health checks
         }
     }
     
