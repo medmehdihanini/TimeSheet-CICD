@@ -82,15 +82,18 @@ services:  # MySQL Database
   jenkins:
     build: ./jenkins
     container_name: timesheet-jenkins
+    user: root  # Start as root to fix permissions, then switch to jenkins user
     ports:
       - "8086:8080"  # Jenkins web interface
       - "50000:50000"  # Jenkins agent port
     environment:
       JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
+      DOCKER_HOST: "unix:///var/run/docker.sock"
     volumes:
       - jenkins_data:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock  # Docker socket for building images
+      - /var/run/docker.sock:/var/run/docker.sock:rw  # Docker socket with read-write permissions
       - ./:/workspace:ro  # Mount project workspace as read-only
+    command: ["/usr/local/bin/jenkins-init.sh"]
     networks:
       - timesheet-network
     restart: unless-stopped
