@@ -89,13 +89,24 @@ pipeline {
                 }
             }
         }
-        
-        stage('Deploy') {
+          stage('Deploy') {
             steps {
                 script {
                     echo 'Deploying application stack...'
-                    sh 'docker-compose down || true'
-                    sh 'docker-compose up -d'
+                    
+                    // Get Jenkins host IP
+                    def hostIP = sh(script: "hostname -I | awk '{print \$1}'", returnStdout: true).trim()
+                    if (!hostIP) {
+                        hostIP = sh(script: "ip route get 8.8.8.8 | awk -F'src ' 'NR==1{split(\$2,a,\" \");print a[1]}'", returnStdout: true).trim()
+                    }
+                    
+                    echo "Using host IP: ${hostIP}"
+                    
+                    // Set environment variable for docker-compose
+                    withEnv(["HOST_IP=${hostIP}"]) {
+                        sh 'docker-compose down || true'
+                        sh 'docker-compose up --build -d'
+                    }
                     
                     echo 'Waiting for services to be ready...'
                     sh 'sleep 30'

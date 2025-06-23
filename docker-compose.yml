@@ -1,7 +1,6 @@
 version: '3.8'
 
-services:
-  # MySQL Database
+services:  # MySQL Database
   mysql:
     image: mysql:8.0
     container_name: timesheet-mysql
@@ -9,7 +8,7 @@ services:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: timesheetintegration
     ports:
-      - "3306:3306"
+      - "3307:3306"  # Changed from 3306:3306 to avoid conflict
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -17,11 +16,9 @@ services:
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 5s
-      retries: 10
-
-  # Spring Boot Backend
+      retries: 10  # Spring Boot Backend
   backend:
-    image: localhost:5000/timesheet-backend:latest
+    build: ./Timesheet-Client-monolithic-arch
     container_name: timesheet-backend
     depends_on:
       mysql:
@@ -31,23 +28,23 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: rootpassword
     ports:
-      - "8083:8083"
+      - "0.0.0.0:8083:8083"  # Listen on all interfaces
     networks:
       - timesheet-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
       interval: 30s
       timeout: 10s
-      retries: 5
-
-  # Angular Frontend
+      retries: 5  # Angular Frontend
   frontend:
-    image: localhost:5000/timesheet-frontend:latest
+    build: ./Timesheet_FrontEnd
     container_name: timesheet-frontend
     depends_on:
       - backend
+    environment:
+      - API_HOST=${HOST_IP:-localhost}  # Use HOST_IP environment variable or localhost as fallback
     ports:
-      - "8080:80"
+      - "0.0.0.0:4200:80"  # Changed from 8080 to 4200 to avoid Jenkins conflict
     networks:
       - timesheet-network
 
