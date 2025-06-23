@@ -1,8 +1,6 @@
 version: '3.8'
 
-services:
-  # MySQL Database
-  mysql:
+services:  # MySQL Database  mysql:
     image: mysql:8.0
     container_name: timesheet-mysql
     environment:
@@ -13,8 +11,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - timesheet-network
-    healthcheck:
+      - timesheet-network    healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 10s
@@ -40,9 +37,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
       interval: 30s
       timeout: 10s
-      retries: 5
-
-  # Angular Frontend
+      retries: 5  # Angular Frontend
   frontend:
     build: ./Timesheet_FrontEnd
     container_name: timesheet-frontend
@@ -54,7 +49,6 @@ services:
       - "0.0.0.0:4200:80"  # Changed from 8080 to 4200 to avoid Jenkins conflict
     networks:
       - timesheet-network
-
   # Nginx Exporter for Frontend metrics
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
@@ -86,7 +80,29 @@ services:
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     networks:
+      - timesheet-network  # Jenkins CI/CD Server
+  jenkins:
+    build: ./jenkins
+    container_name: timesheet-jenkins
+    privileged: true  # Grant privileged access for Docker operations
+    ports:
+      - "8086:8080"  # Jenkins web interface
+      - "50000:50000"  # Jenkins agent port
+    environment:
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
+      DOCKER_HOST: "unix:///var/run/docker.sock"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock:rw  # Docker socket with read-write permissions
+      - ./:/workspace:ro  # Mount project workspace as read-only
+    networks:
       - timesheet-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   # Grafana for Visualization
   grafana:

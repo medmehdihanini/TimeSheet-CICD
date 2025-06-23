@@ -91,8 +91,7 @@ pipeline {
                     }
                 }
             }
-        }
-          stage('Deploy') {
+        }          stage('Deploy') {
             steps {
                 script {
                     echo 'Deploying application stack...'
@@ -104,38 +103,79 @@ pipeline {
                     }
                     
                     echo "Using host IP: ${hostIP}"
-                      // Set environment variable for docker-compose
+                    
+                    // Set environment variable for docker-compose
                     withEnv(["HOST_IP=${hostIP}"]) {
+                        // Clean up existing containers
+                        echo 'Stopping existing containers...'
                         sh 'docker-compose down || true'
+                        
                         // Clean up nginx exporter specifically to force recreation
                         sh 'docker rm -f timesheet-nginx-exporter || true'
-                        sh 'docker-compose up --build -d'
+                        
+                        // Start only application services (exclude Jenkins)
+                        echo 'Starting application services...'
+                        sh 'docker-compose up --build -d mysql backend frontend nginx-exporter prometheus grafana node-exporter'
+                        
+                        // Wait for MySQL to be ready (longer wait time)
+                        echo 'Waiting for MySQL to initialize...'
+                        sh 'sleep 90'
+                        
+                        // Check if MySQL is healthy
+                        sh '''
+                            echo "Checking MySQL health..."
+                            for i in {1..30}; do
+                                if docker exec timesheet-mysql mysqladmin ping -h localhost --silent; then
+                                    echo "MySQL is ready!"
+                                    break
+                                fi
+                                echo "Waiting for MySQL... attempt $i/30"
+                                sleep 10
+                            done
+                        '''
+                        
+                        // Wait additional time for backend to start
+                        echo 'Waiting for backend to start...'
+                        sh 'sleep 60'
                     }
-                    
-                    echo 'Waiting for services to be ready...'
-                    sh 'sleep 30'
                     
                     echo 'Verifying deployment...'
                     sh 'docker-compose ps'
                 }
             }
+            timeout(time: 15, unit: 'MINUTES')  // Add timeout for the entire deploy stage
+            }
         }
-        
-        stage('Health Check') {
+          stage('Health Check') {
             steps {
                 script {
                     echo 'Performing health checks...'
                     sh '''
                         echo "Checking Frontend..."
-                        curl -f http://localhost:8080 || exit 1
+                        for i in {1..10}; do
+                            if curl -f http://localhost:4200 --connect-timeout 10; then
+                                echo "Frontend is healthy!"
+                                break
+                            fi
+                            echo "Frontend not ready, waiting... attempt $i/10"
+                            sleep 15
+                        done
                         
                         echo "Checking Backend..."
-                        curl -f http://localhost:8083/actuator/health || exit 1
+                        for i in {1..10}; do
+                            if curl -f http://localhost:8083/actuator/health --connect-timeout 10; then
+                                echo "Backend is healthy!"
+                                break
+                            fi
+                            echo "Backend not ready, waiting... attempt $i/10"
+                            sleep 15
+                        done
                         
                         echo "All services are healthy!"
                     '''
                 }
             }
+            timeout(time: 10, unit: 'MINUTES')  // Add timeout for health checks
         }
     }
     

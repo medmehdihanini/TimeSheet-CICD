@@ -31,17 +31,15 @@ RUN groupadd -f docker
 # Set up Jenkins permissions to access Docker
 RUN usermod -aG docker jenkins
 
-# Create initialization script to handle docker permissions
+# Create a script to fix docker socket permissions at runtime
 RUN echo '#!/bin/bash\n\
-# Ensure jenkins user can access docker socket\n\
 if [ -S /var/run/docker.sock ]; then\n\
-    chown root:docker /var/run/docker.sock\n\
-    chmod 660 /var/run/docker.sock\n\
+    DOCKER_GID=$(stat -c "%g" /var/run/docker.sock)\n\
+    groupmod -g $DOCKER_GID docker\n\
+    usermod -aG docker jenkins\n\
 fi\n\
-\n\
-# Start Jenkins as the jenkins user\n\
-su - jenkins -c "/usr/local/bin/jenkins.sh"' > /usr/local/bin/jenkins-init.sh && \
-    chmod +x /usr/local/bin/jenkins-init.sh
+exec "$@"' > /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Install Docker Compose
 RUN curl -L "https://github.com/docker/compose/releases/download/v2.18.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
