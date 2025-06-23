@@ -52,8 +52,57 @@
             "expr": "jvm_memory_used_bytes / jvm_memory_max_bytes * 100",
             "refId": "A"
           }
+        ],        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Nginx Active Connections",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "nginx_connections_active{job=\"frontend-nginx\"}",
+            "refId": "A"
+          }
         ],
-        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "short"
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 16}
+      },
+      {
+        "id": 5,
+        "title": "Nginx HTTP Requests Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(nginx_http_requests_total{job=\"frontend-nginx\"}[5m])",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 16}
+      },
+      {
+        "id": 6,
+        "title": "Nginx Connection States",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "nginx_connections_accepted{job=\"frontend-nginx\"}",
+            "refId": "A",
+            "legendFormat": "Accepted"
+          },
+          {
+            "expr": "nginx_connections_handled{job=\"frontend-nginx\"}",
+            "refId": "B",
+            "legendFormat": "Handled"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 16}
       }
     ],
     "time": {

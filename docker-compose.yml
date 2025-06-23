@@ -47,6 +47,19 @@ services:  # MySQL Database
       - "0.0.0.0:4200:80"  # Changed from 8080 to 4200 to avoid Jenkins conflict
     networks:
       - timesheet-network
+  # Nginx Exporter for Frontend metrics
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: timesheet-nginx-exporter
+    ports:
+      - "9113:9113"
+    command:
+      - '-nginx.scrape-uri=http://frontend:80/nginx_status'
+    depends_on:
+      - frontend
+    networks:
+      - timesheet-network
+    restart: unless-stopped
 
   # Prometheus for Monitoring
   prometheus:
@@ -65,9 +78,7 @@ services:  # MySQL Database
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     networks:
-      - timesheet-network
-
-  # Grafana for Visualization
+      - timesheet-network  # Grafana for Visualization
   grafana:
     image: grafana/grafana:latest
     container_name: timesheet-grafana
@@ -81,6 +92,25 @@ services:  # MySQL Database
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     networks:
       - timesheet-network
+
+  # Node Exporter for system metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: timesheet-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - timesheet-network
+    restart: unless-stopped
 
 volumes:
   mysql_data:

@@ -101,10 +101,11 @@ pipeline {
                     }
                     
                     echo "Using host IP: ${hostIP}"
-                    
-                    // Set environment variable for docker-compose
+                      // Set environment variable for docker-compose
                     withEnv(["HOST_IP=${hostIP}"]) {
                         sh 'docker-compose down || true'
+                        // Clean up nginx exporter specifically to force recreation
+                        sh 'docker rm -f timesheet-nginx-exporter || true'
                         sh 'docker-compose up --build -d'
                     }
                     

@@ -1,0 +1,302 @@
+{
+  "__inputs": [],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "8.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "graph",
+      "name": "Graph",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    "panels": [
+      {
+        "id": 1,
+        "title": "Uptime",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "process_uptime_seconds{job=\"timesheet-backend\"}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Heap Used",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(jvm_memory_used_bytes{job=\"timesheet-backend\",area=\"heap\"}) / sum(jvm_memory_max_bytes{job=\"timesheet-backend\",area=\"heap\"}) * 100",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 70},
+                {"color": "red", "value": 90}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Non-Heap Used",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(jvm_memory_used_bytes{job=\"timesheet-backend\",area=\"nonheap\"}) / 1024 / 1024",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "MB",
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Process Open Files",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "process_files_open_files{job=\"timesheet-backend\"}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Start Time",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "process_start_time_seconds{job=\"timesheet-backend\"} * 1000",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "dateTimeAsIso",
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 6}
+      },
+      {
+        "id": 6,
+        "title": "CPU Usage",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "process_cpu_usage{job=\"timesheet-backend\"} * 100",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 50},
+                {"color": "red", "value": 80}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 6}
+      },
+      {
+        "id": 7,
+        "title": "Load Average",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "system_load_average_1m{job=\"timesheet-backend\"}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 6}
+      },
+      {
+        "id": 8,
+        "title": "HikariCP Active Connections",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "hikaricp_connections_active{job=\"timesheet-backend\"}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 6}
+      },
+      {
+        "id": 9,
+        "title": "Memory Usage Over Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(jvm_memory_used_bytes{job=\"timesheet-backend\",area=\"heap\"}) / 1024 / 1024",
+            "refId": "A",
+            "legendFormat": "Heap Memory (MB)"
+          },
+          {
+            "expr": "sum(jvm_memory_used_bytes{job=\"timesheet-backend\",area=\"nonheap\"}) / 1024 / 1024",
+            "refId": "B",
+            "legendFormat": "Non-Heap Memory (MB)"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+      },
+      {
+        "id": 10,
+        "title": "HTTP Requests Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_server_requests_seconds_count{job=\"timesheet-backend\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Requests/sec"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12}
+      },
+      {
+        "id": 11,
+        "title": "HikariCP Connection Pool",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "hikaricp_connections_active{job=\"timesheet-backend\"}",
+            "refId": "A",
+            "legendFormat": "Active"
+          },
+          {
+            "expr": "hikaricp_connections_idle{job=\"timesheet-backend\"}",
+            "refId": "B",
+            "legendFormat": "Idle"
+          },
+          {
+            "expr": "hikaricp_connections{job=\"timesheet-backend\"}",
+            "refId": "C",
+            "legendFormat": "Total"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20}
+      },
+      {
+        "id": 12,
+        "title": "JVM Threads",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "jvm_threads_live_threads{job=\"timesheet-backend\"}",
+            "refId": "A",
+            "legendFormat": "Live Threads"
+          },
+          {
+            "expr": "jvm_threads_daemon_threads{job=\"timesheet-backend\"}",
+            "refId": "B",
+            "legendFormat": "Daemon Threads"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "5s"
+  }
+}

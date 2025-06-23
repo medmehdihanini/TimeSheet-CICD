@@ -49,10 +49,10 @@ public class securityConfiguration {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtValidationFilter,UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(handle -> handle.authenticationEntryPoint(authExceptionHandler) )
-                .authorizeHttpRequests(auth -> auth
+                .exceptionHandling(handle -> handle.authenticationEntryPoint(authExceptionHandler) )                .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**",
-                                "/ws/**","/chat-socket/**")
+                                "/ws/**","/chat-socket/**",
+                                "/actuator/**")
                         .permitAll()
                         .requestMatchers("/api/v1/logs/test-websocket")  // Allow test endpoint
                         .permitAll()
