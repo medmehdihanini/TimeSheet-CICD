@@ -1,0 +1,89 @@
+<?xml     <servers>
+        <!-- Nexus Server Authentication -->
+        <server>
+            <id>nexus-releases</id>
+            <username>admin</username>
+            <password>Med50706334@</password>
+        </server>
+        <server>
+            <id>nexus-snapshots</id>
+            <username>admin</username>
+            <password>Med50706334@</password>
+        </server>
+        <server>
+            <id>nexus-public</id>
+            <username>admin</username>
+            <password>Med50706334@</password>
+        </server>
+    </servers>ding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 
+          http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <servers>
+        <!-- Nexus Server Authentication -->
+        <server>
+            <id>nexus-releases</id>
+            <username>admin</username>
+            <password>admin123</password>
+        </server>
+        <server>
+            <id>nexus-snapshots</id>
+            <username>admin</username>
+            <password>admin123</password>
+        </server>
+        <server>
+            <id>nexus-public</id>
+            <username>admin</username>
+            <password>admin123</password>
+        </server>
+    </servers>
+
+    <mirrors>
+        <!-- Mirror for Maven Central via Nexus -->
+        <mirror>
+            <id>nexus-public</id>
+            <mirrorOf>central</mirrorOf>
+            <name>Nexus Public Repository</name>
+            <url>http://localhost:8081/repository/maven-public/</url>
+        </mirror>
+    </mirrors>
+
+    <profiles>
+        <profile>
+            <id>nexus</id>
+            <repositories>
+                <repository>
+                    <id>nexus-public</id>
+                    <name>Nexus Public Repository</name>
+                    <url>http://localhost:8081/repository/maven-public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>nexus-public</id>
+                    <name>Nexus Public Repository</name>
+                    <url>http://localhost:8081/repository/maven-public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>nexus</activeProfile>
+    </activeProfiles>
+
+</settings>

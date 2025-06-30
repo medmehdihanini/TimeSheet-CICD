@@ -39,6 +39,128 @@ pipeline {
             }
         }
         
+        stage('Unit Tests') {
+            steps {
+                dir('Timesheet-Client-monolithic-arch') {
+                    script {
+                        echo 'Running unit tests with JaCoCo coverage...'
+                        if (isUnix()) {
+                            sh 'chmod +x mvnw'
+                            sh './mvnw clean test jacoco:report'
+                        } else {
+                            bat '.\\mvnw.cmd clean test jacoco:report'
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    publishTestResults testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/*.xml'
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'Timesheet-Client-monolithic-arch/target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'JaCoCo Code Coverage Report'
+                    ])
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                dir('Timesheet-Client-monolithic-arch') {
+                    script {
+                        echo 'Running SonarQube code quality analysis...'
+                        // Wait for SonarQube to be available
+                        sh '''
+                            echo "Waiting for SonarQube to be ready..."
+                            for i in {1..30}; do
+                                if curl -f http://localhost:9000/api/system/status --connect-timeout 10; then
+                                    echo "SonarQube is ready!"
+                                    break
+                                fi
+                                echo "SonarQube not ready, waiting... attempt $i/30"
+                                sleep 10
+                            done
+                        '''
+                        
+                        if (isUnix()) {
+                            sh '''
+                                chmod +x mvnw
+                                ./mvnw sonar:sonar \
+                                    -Dsonar.host.url=http://localhost:9000 \
+                                    -Dsonar.login=sqp_f1faddc336afb599195d7151b784f32e97aadc5f \
+                                    -Dsonar.projectKey=TimeSheet \
+                                    -Dsonar.projectName="TimeSheet" \
+                                    -Dsonar.sources=src/main/java \
+                                    -Dsonar.tests=src/test/java \
+                                    -Dsonar.java.binaries=target/classes \
+                                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                            '''
+                        } else {
+                            bat '''
+                                .\\mvnw.cmd sonar:sonar ^
+                                    -Dsonar.host.url=http://localhost:9000 ^
+                                    -Dsonar.login=sqp_f1faddc336afb599195d7151b784f32e97aadc5f ^
+                                    -Dsonar.projectKey=timesheet-backend ^
+                                    -Dsonar.projectName="TimeSheet Backend" ^
+                                    -Dsonar.sources=src/main/java ^
+                                    -Dsonar.tests=src/test/java ^
+                                    -Dsonar.java.binaries=target/classes ^
+                                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Nexus') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                    branch 'develop'
+                }
+            }
+            steps {
+                dir('Timesheet-Client-monolithic-arch') {
+                    script {
+                        echo 'Deploying artifacts to Nexus Repository...'
+                        // Wait for Nexus to be available
+                        sh '''
+                            echo "Waiting for Nexus to be ready..."
+                            for i in {1..30}; do
+                                if curl -f http://localhost:8081/service/rest/v1/status --connect-timeout 10; then
+                                    echo "Nexus is ready!"
+                                    break
+                                fi
+                                echo "Nexus not ready, waiting... attempt $i/30"
+                                sleep 10
+                            done
+                        '''
+                        
+                        if (isUnix()) {
+                            sh '''
+                                chmod +x mvnw
+                                ./mvnw clean deploy -DskipTests \
+                                    -s ../settings.xml \
+                                    -DaltDeploymentRepository=nexus-snapshots::default::http://localhost:8081/repository/maven-snapshots/
+                            '''
+                        } else {
+                            bat '''
+                                .\\mvnw.cmd clean deploy -DskipTests ^
+                                    -s ..\\settings.xml ^
+                                    -DaltDeploymentRepository=nexus-snapshots::default::http://localhost:8081/repository/maven-snapshots/
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
         stage('Build Backend') {
             steps {
                 dir('Timesheet-Client-monolithic-arch') {
@@ -155,6 +277,8 @@ EOF
                             docker rm -f timesheet-grafana || true
                             docker rm -f timesheet-node-exporter || true
                             docker rm -f timesheet-nginx-exporter || true
+                            docker rm -f timesheet-sonarqube || true
+                            docker rm -f timesheet-nexus || true
                         '''
                         
                         // Clean up any lingering containers
@@ -193,6 +317,10 @@ EOF
                                 sleep 10
                             done
                         '''
+                        
+                        // Start SonarQube and Nexus (depend on MySQL)
+                        echo 'Starting SonarQube and Nexus services...'
+                        sh 'docker-compose up -d sonarqube nexus'
                         
                         // Start backend (depends on MySQL)
                         echo 'Starting backend service...'
@@ -260,6 +388,26 @@ EOF
                             fi
                             echo "Grafana not ready, waiting... attempt $i/3"
                             sleep 5
+                        done
+                        
+                        echo "Checking SonarQube..."
+                        for i in {1..5}; do
+                            if curl -f http://localhost:9000/api/system/status --connect-timeout 10; then
+                                echo "SonarQube is healthy!"
+                                break
+                            fi
+                            echo "SonarQube not ready, waiting... attempt $i/5"
+                            sleep 10
+                        done
+                        
+                        echo "Checking Nexus..."
+                        for i in {1..5}; do
+                            if curl -f http://localhost:8081/service/rest/v1/status --connect-timeout 10; then
+                                echo "Nexus is healthy!"
+                                break
+                            fi
+                            echo "Nexus not ready, waiting... attempt $i/5"
+                            sleep 10
                         done
                         
                         echo "All services are healthy!"
