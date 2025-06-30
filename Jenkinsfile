@@ -145,6 +145,18 @@ EOF
                         echo 'Stopping existing containers...'
                         sh 'docker-compose down || true'
                         
+                        // Clean up any lingering containers by name
+                        echo 'Forcefully removing any existing containers...'
+                        sh '''
+                            docker rm -f timesheet-mysql || true
+                            docker rm -f timesheet-backend || true
+                            docker rm -f timesheet-frontend || true
+                            docker rm -f timesheet-prometheus || true
+                            docker rm -f timesheet-grafana || true
+                            docker rm -f timesheet-node-exporter || true
+                            docker rm -f timesheet-nginx-exporter || true
+                        '''
+                        
                         // Clean up any lingering containers
                         sh 'docker container prune -f || true'
                         
