@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Jenkins CI/CD Server
+  jenkins:
+    build: ./jenkins
+    container_name: timesheet-jenkins
+    user: root  # Start as root to handle Docker socket permissions
+    ports:
+      - "8086:8080"  # Jenkins web interface
+      - "50000:50000"  # Jenkins agent port
+    environment:
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
+      DOCKER_HOST: "unix:///var/run/docker.sock"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock:rw  # Docker socket with read-write permissions
+      - ./monitoring:/var/jenkins_home/monitoring:ro  # Mount only monitoring files
+    networks:
+      - jenkins-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  jenkins_data:
+
+networks:
+  jenkins-network:
+    driver: bridge
