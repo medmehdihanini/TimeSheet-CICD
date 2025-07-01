@@ -221,15 +221,19 @@
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
                     </includes>
+                    <!-- Exclude integration tests by default -->
+                    <excludes>
+                        <exclude>**/*IntegrationTest.java</exclude>
+                    </excludes>
                     <!-- Enable test reports for Jenkins -->
                     <printSummary>true</printSummary>
                     <useFile>true</useFile>
-                    <!-- System property to disable Spring Boot's automatic test configuration -->
-                    <systemPropertyVariables>
-                        <spring.test.context.cache.maxSize>1</spring.test.context.cache.maxSize>
-                    </systemPropertyVariables>
+                    <!-- Fail fast on first error -->
+                    <skipAfterFailureCount>1</skipAfterFailureCount>
                     <!-- JaCoCo argLine will be set by JaCoCo plugin -->
-                    <argLine>@{argLine}</argLine>
+                    <argLine>@{argLine} -Xmx512m</argLine>
+                    <!-- Set test timeout -->
+                    <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
                 </configuration>
             </plugin>
             

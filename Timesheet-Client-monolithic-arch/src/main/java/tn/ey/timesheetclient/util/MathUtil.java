@@ -1,12 +1,9 @@
 package tn.ey.timesheetclient.util;
 
-import org.springframework.stereotype.Component;
-
 /**
  * Simple utility class for basic operations
  * This class is created for demonstration and testing purposes
  */
-@Component
 public class MathUtil {
 
     /**

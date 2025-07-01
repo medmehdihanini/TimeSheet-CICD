@@ -2,14 +2,13 @@ package tn.ey.timesheetclient.util;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for MathUtil class
+ * These are pure unit tests that don't require Spring context
  */
-@SpringBootTest
 class MathUtilTest {
 
     private MathUtil mathUtil;
