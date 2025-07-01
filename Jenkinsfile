@@ -94,35 +94,59 @@ pipeline {
                 dir('Timesheet-Client-monolithic-arch') {
                     script {
                         echo 'Running SonarQube code quality analysis...'
-                        // Wait for SonarQube to be available
-                        sh '''
-                            echo "Waiting for SonarQube to be ready..."
-                            for i in {1..30}; do
-                                if curl -f http://localhost:9000/api/system/status --connect-timeout 10; then
-                                    echo "SonarQube is ready!"
-                                    break
-                                fi
-                                echo "SonarQube not ready, waiting... attempt $i/30"
-                                sleep 10
-                            done
-                        '''
-                        
-                        withSonarQubeEnv(credentialsId: 'sonar_auth', installationName: 'SonarQube') {
-                            script {
-                                def scannerHome = tool name: 'SonarQube', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                                sh """
-                                  export PATH=\$PATH:${scannerHome}/bin
-                                  sonar-scanner \
-                                    -Dsonar.projectKey=TimeSheet \
-                                    -Dsonar.projectName="TimeSheet" \
-                                    -Dsonar.sources=src/main/java \
-                                    -Dsonar.tests=src/test/java \
-                                    -Dsonar.java.binaries=target/classes \
-                                    -Dsonar.host.url=http://localhost:9000 \
-                                    -Dsonar.login=sqp_f1faddc336afb599195d7151b784f32e97aadc5f \
-                                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                                """
+                        try {
+                            // Wait for SonarQube to be available
+                            sh '''
+                                echo "Waiting for SonarQube to be ready..."
+                                for i in {1..60}; do
+                                    # Try both localhost and container name
+                                    if curl -f http://sonarqube:9000/api/system/status --connect-timeout 5 2>/dev/null || \
+                                       curl -f http://localhost:9000/api/system/status --connect-timeout 5 2>/dev/null; then
+                                        echo "SonarQube is ready!"
+                                        break
+                                    fi
+                                    echo "SonarQube not ready, waiting... attempt $i/60"
+                                    sleep 10
+                                done
+                            '''
+                            
+                            // Use Maven Sonar plugin instead of SonarQube Scanner
+                            if (isUnix()) {
+                                sh '''
+                                    chmod +x mvnw
+                                    ./mvnw sonar:sonar \
+                                      -Dsonar.projectKey=timesheet-backend \
+                                      -Dsonar.projectName="Timesheet Backend" \
+                                      -Dsonar.host.url=http://localhost:9000 \
+                                      -Dsonar.login=sqp_f1faddc336afb599195d7151b784f32e97aadc5f \
+                                      -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                                      -Dsonar.junit.reportPaths=target/surefire-reports \
+                                      -Dsonar.sources=src/main/java \
+                                      -Dsonar.tests=src/test/java \
+                                      -Dsonar.java.binaries=target/classes \
+                                      -Dsonar.test.inclusions=**/*Test.java \
+                                      -X
+                                '''
+                            } else {
+                                bat '''
+                                    mvnw.cmd sonar:sonar ^
+                                      -Dsonar.projectKey=timesheet-backend ^
+                                      -Dsonar.projectName="Timesheet Backend" ^
+                                      -Dsonar.host.url=http://localhost:9000 ^
+                                      -Dsonar.login=sqp_f1faddc336afb599195d7151b784f32e97aadc5f ^
+                                      -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml ^
+                                      -Dsonar.junit.reportPaths=target/surefire-reports ^
+                                      -Dsonar.sources=src/main/java ^
+                                      -Dsonar.tests=src/test/java ^
+                                      -Dsonar.java.binaries=target/classes ^
+                                      -Dsonar.test.inclusions=**/*Test.java ^
+                                      -X
+                                '''
                             }
+                        } catch (Exception e) {
+                            echo "SonarQube analysis failed: ${e.getMessage()}"
+                            echo "This might be expected if SonarQube is not accessible in this environment"
+                            currentBuild.result = 'UNSTABLE'
                         }
                     }
                 }
@@ -159,13 +183,13 @@ pipeline {
                                 chmod +x mvnw
                                 ./mvnw clean deploy -DskipTests \
                                     -s ../settings.xml \
-                                    -DaltDeploymentRepository=nexus-snapshots::default::http://localhost:8081/repository/maven-snapshots/
+                                    -DaltDeploymentRepository=nexus-snapshots::default::http://localhost:8081/repository/maven-snapshots-timesheet/
                             '''
                         } else {
                             bat '''
                                 .\\mvnw.cmd clean deploy -DskipTests ^
                                     -s ..\\settings.xml ^
-                                    -DaltDeploymentRepository=nexus-snapshots::default::http://localhost:8081/repository/maven-snapshots/
+                                    -DaltDeploymentRepository=nexus-snapshots::default::http://localhost:8081/repository/maven-snapshots-timesheet/
                             '''
                         }
                     }

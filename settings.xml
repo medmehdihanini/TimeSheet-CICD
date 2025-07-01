@@ -8,18 +8,18 @@
         <!-- Nexus Server Authentication -->
         <server>
             <id>nexus-releases</id>
-            <username>admin</username>
-            <password>admin123</password>
+            <username>maven-deploy</username>
+            <password>maven123</password>
         </server>
         <server>
             <id>nexus-snapshots</id>
-            <username>admin</username>
-            <password>admin123</password>
+            <username>maven-deploy</username>
+            <password>maven123</password>
         </server>
         <server>
             <id>nexus-public</id>
-            <username>admin</username>
-            <password>admin123</password>
+            <username>maven-deploy</username>
+            <password>maven123</password>
         </server>
     </servers>
 
@@ -29,7 +29,7 @@
             <id>nexus-public</id>
             <mirrorOf>central</mirrorOf>
             <name>Nexus Public Repository</name>
-            <url>http://localhost:8081/repository/maven-public/</url>
+            <url>http://nexus:8081/repository/maven-public/</url>
         </mirror>
     </mirrors>
 
@@ -40,7 +40,7 @@
                 <repository>
                     <id>nexus-public</id>
                     <name>Nexus Public Repository</name>
-                    <url>http://localhost:8081/repository/maven-public/</url>
+                    <url>http://nexus:8081/repository/maven-public/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
@@ -53,7 +53,7 @@
                 <pluginRepository>
                     <id>nexus-public</id>
                     <name>Nexus Public Repository</name>
-                    <url>http://localhost:8081/repository/maven-public/</url>
+                    <url>http://nexus:8081/repository/maven-public/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
