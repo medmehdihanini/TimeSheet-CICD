@@ -22,13 +22,19 @@ This document outlines the enhancements made to the Jenkins CI/CD pipeline to ad
 
 **Trivy Implementation Details**:
 ```bash
-# Backend Image Scan
-trivy image --format json --output backend-trivy-report.json ${BACKEND_IMAGE}:${BUILD_NUMBER}
-trivy image --format table ${BACKEND_IMAGE}:${BUILD_NUMBER}
+# Backend Image Scan using Docker
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+    -v $(pwd)/security-reports:/reports \
+    aquasec/trivy:latest image \
+    --format json --output /reports/backend-trivy-report.json \
+    ${BACKEND_IMAGE}:${BUILD_NUMBER}
 
-# Frontend Image Scan  
-trivy image --format json --output frontend-trivy-report.json ${FRONTEND_IMAGE}:${BUILD_NUMBER}
-trivy image --format table ${FRONTEND_IMAGE}:${BUILD_NUMBER}
+# Frontend Image Scan using Docker
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+    -v $(pwd)/security-reports:/reports \
+    aquasec/trivy:latest image \
+    --format json --output /reports/frontend-trivy-report.json \
+    ${FRONTEND_IMAGE}:${BUILD_NUMBER}
 ```
 
 ### 2. Enhanced Stage Names for Better Clarity
@@ -92,15 +98,15 @@ Updated all deployment stage names to include specific components being deployed
 
 ### Trivy Installation Strategy
 ```bash
-# Check if Trivy exists, install if needed
-if ! command -v trivy &> /dev/null; then
-    # Install Trivy from official repository
-    sudo apt-get update
-    sudo apt-get install -y trivy
-else
-    # Update vulnerability database
-    trivy image --download-db-only
-fi
+# Use Trivy Docker image (no installation required)
+docker pull aquasec/trivy:latest
+
+# Scan images using containerized Trivy
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+    -v $(pwd)/security-reports:/reports \
+    aquasec/trivy:latest image \
+    --format json --output /reports/scan-report.json \
+    [IMAGE_NAME]
 ```
 
 ### Error Handling
@@ -133,9 +139,12 @@ fi
 ## Configuration Notes
 
 ### Trivy Configuration
-- **Database Updates**: Automatic vulnerability database updates
+- **Docker-based Execution**: No system-level installation required, avoiding sudo/permission issues
+- **Container Isolation**: Trivy runs in its own container, preventing conflicts
+- **Automatic Updates**: Always uses the latest Trivy image with updated vulnerability database
 - **Output Formats**: Both JSON (automation) and table (human) formats
 - **Error Tolerance**: Continues pipeline execution on scan failures
+- **Volume Mounting**: Access to Docker socket for image scanning, reports directory for output
 
 ### Stage Naming Convention
 - **Format**: `[Stage Purpose] ([Components Deployed])`

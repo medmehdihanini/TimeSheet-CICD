@@ -332,38 +332,54 @@ pipeline {
                 script {
                     echo 'Performing comprehensive container security scanning with Trivy...'
                     try {
-                        // Install Trivy if not present
+                        // Use Trivy Docker image for scanning (no installation required)
                         sh '''
-                            echo "Installing/Updating Trivy security scanner..."
-                            if ! command -v trivy &> /dev/null; then
-                                echo "Installing Trivy..."
-                                sudo apt-get update
-                                sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-                                wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-                                echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-                                sudo apt-get update
-                                sudo apt-get install -y trivy
-                            else
-                                echo "Trivy is already installed, updating database..."
-                                trivy image --download-db-only
-                            fi
+                            echo "Preparing Trivy security scanner..."
+                            # Pull Trivy Docker image if not present
+                            docker pull aquasec/trivy:latest || echo "Failed to pull Trivy image, using cached version"
+                            
+                            # Create reports directory
+                            mkdir -p security-reports
                         '''
                         
-                        // Scan Backend Image
+                        // Scan Backend Image using Trivy Docker container
                         sh """
                             echo "Scanning backend Docker image for security vulnerabilities..."
-                            trivy image --format json --output backend-trivy-report.json ${BACKEND_IMAGE}:${BUILD_NUMBER} || true
-                            trivy image --format table ${BACKEND_IMAGE}:${BUILD_NUMBER} || true
+                            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+                                -v \$(pwd)/security-reports:/reports \\
+                                aquasec/trivy:latest image \\
+                                --format json --output /reports/backend-trivy-report.json \\
+                                ${BACKEND_IMAGE}:${BUILD_NUMBER} || echo "Backend scan completed with warnings"
+                                
+                            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+                                aquasec/trivy:latest image \\
+                                --format table \\
+                                ${BACKEND_IMAGE}:${BUILD_NUMBER} || echo "Backend table scan completed"
                             echo "Backend image security scan completed"
                         """
                         
-                        // Scan Frontend Image
+                        // Scan Frontend Image using Trivy Docker container
                         sh """
                             echo "Scanning frontend Docker image for security vulnerabilities..."
-                            trivy image --format json --output frontend-trivy-report.json ${FRONTEND_IMAGE}:${BUILD_NUMBER} || true
-                            trivy image --format table ${FRONTEND_IMAGE}:${BUILD_NUMBER} || true
+                            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+                                -v \$(pwd)/security-reports:/reports \\
+                                aquasec/trivy:latest image \\
+                                --format json --output /reports/frontend-trivy-report.json \\
+                                ${FRONTEND_IMAGE}:${BUILD_NUMBER} || echo "Frontend scan completed with warnings"
+                                
+                            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+                                aquasec/trivy:latest image \\
+                                --format table \\
+                                ${FRONTEND_IMAGE}:${BUILD_NUMBER} || echo "Frontend table scan completed"
                             echo "Frontend image security scan completed"
                         """
+                        
+                        // Move reports to workspace root for archiving
+                        sh '''
+                            echo "Organizing security scan reports..."
+                            mv security-reports/*.json . 2>/dev/null || echo "No JSON reports to move"
+                            ls -la *trivy*.json 2>/dev/null || echo "No Trivy reports found in current directory"
+                        '''
                         
                         echo 'Container security scanning completed successfully!'
                     } catch (Exception e) {
