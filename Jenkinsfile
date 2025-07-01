@@ -35,6 +35,19 @@ pipeline {
                 echo 'Initiating source code checkout from SCM repository...'
                 checkout scm
                 echo 'Source code checkout completed successfully'
+                
+                // Platform detection for debugging
+                script {
+                    if (isUnix()) {
+                        echo 'Jenkins is running on Unix/Linux platform'
+                        sh 'uname -a || echo "uname not available"'
+                        sh 'which docker || echo "Docker location not found"'
+                    } else {
+                        echo 'Jenkins is running on Windows platform'
+                        bat 'ver'
+                        bat 'where docker || echo "Docker location not found"'
+                    }
+                }
             }
         }
         
@@ -229,11 +242,19 @@ pipeline {
                             }
                             
                             // Build Docker image
-                            sh """
-                                echo "Building backend Docker image..."
-                                docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} -t ${BACKEND_IMAGE}:latest .
-                                echo "Backend Docker image built: ${BACKEND_IMAGE}:${BUILD_NUMBER}"
-                            """
+                            if (isUnix()) {
+                                sh """
+                                    echo "Building backend Docker image..."
+                                    docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} -t ${BACKEND_IMAGE}:latest .
+                                    echo "Backend Docker image built: ${BACKEND_IMAGE}:${BUILD_NUMBER}"
+                                """
+                            } else {
+                                bat """
+                                    echo "Building backend Docker image..."
+                                    docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} -t ${BACKEND_IMAGE}:latest .
+                                    echo "Backend Docker image built: ${BACKEND_IMAGE}:${BUILD_NUMBER}"
+                                """
+                            }
                             echo 'Backend application build completed successfully!'
                         } catch (Exception e) {
                             echo "Backend build failed: ${e.getMessage()}"
@@ -251,11 +272,19 @@ pipeline {
                     script {
                         echo 'Building Angular frontend application and Docker image...'
                         try {
-                            sh """
-                                echo "Building frontend Docker image..."
-                                docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} -t ${FRONTEND_IMAGE}:latest .
-                                echo "Frontend Docker image built: ${FRONTEND_IMAGE}:${BUILD_NUMBER}"
-                            """
+                            if (isUnix()) {
+                                sh """
+                                    echo "Building frontend Docker image..."
+                                    docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} -t ${FRONTEND_IMAGE}:latest .
+                                    echo "Frontend Docker image built: ${FRONTEND_IMAGE}:${BUILD_NUMBER}"
+                                """
+                            } else {
+                                bat """
+                                    echo "Building frontend Docker image..."
+                                    docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} -t ${FRONTEND_IMAGE}:latest .
+                                    echo "Frontend Docker image built: ${FRONTEND_IMAGE}:${BUILD_NUMBER}"
+                                """
+                            }
                             echo 'Frontend application build completed successfully!'
                         } catch (Exception e) {
                             echo "Frontend build failed: ${e.getMessage()}"
