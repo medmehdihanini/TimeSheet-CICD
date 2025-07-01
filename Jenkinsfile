@@ -56,38 +56,37 @@ pipeline {
                         
                         // Publish test results with better error handling
                         try {
-                            if (fileExists('Timesheet-Client-monolithic-arch/target/surefire-reports/TEST-*.xml')) {
-                                publishTestResults testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/TEST-*.xml'
-                                echo 'Test results published successfully'
-                            } else {
-                                echo 'No test result files found - checking for any XML files'
-                                if (fileExists('Timesheet-Client-monolithic-arch/target/surefire-reports/')) {
-                                    publishTestResults(
-                                        testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/*.xml',
-                                        allowEmptyResults: true
-                                    )
-                                }
-                            }
+                            // Direct publish - files clearly exist based on debug output
+                            publishTestResults(
+                                testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/TEST-*.xml',
+                                allowEmptyResults: false
+                            )
+                            echo 'Test results published successfully'
                         } catch (Exception e) {
                             echo "Warning: Could not publish test results: ${e.getMessage()}"
-                            // Don't fail the build for this
+                            // Try alternative pattern
+                            try {
+                                publishTestResults(
+                                    testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/*.xml',
+                                    allowEmptyResults: true
+                                )
+                                echo 'Test results published with alternative pattern'
+                            } catch (Exception e2) {
+                                echo "Warning: Alternative test result publishing also failed: ${e2.getMessage()}"
+                            }
                         }
                         
                         // Publish JaCoCo coverage report with better error handling
                         try {
-                            if (fileExists('Timesheet-Client-monolithic-arch/target/site/jacoco/index.html')) {
-                                publishHTML([
-                                    allowMissing: true,
-                                    alwaysLinkToLastBuild: true,
-                                    keepAll: true,
-                                    reportDir: 'Timesheet-Client-monolithic-arch/target/site/jacoco',
-                                    reportFiles: 'index.html',
-                                    reportName: 'JaCoCo Code Coverage Report'
-                                ])
-                                echo 'JaCoCo coverage report published successfully'
-                            } else {
-                                echo 'JaCoCo HTML report not found - skipping HTML publication'
-                            }
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'Timesheet-Client-monolithic-arch/target/site/jacoco',
+                                reportFiles: 'index.html',
+                                reportName: 'JaCoCo Code Coverage Report'
+                            ])
+                            echo 'JaCoCo coverage report published successfully'
                         } catch (Exception e) {
                             echo "Warning: Could not publish JaCoCo report: ${e.getMessage()}"
                             // Don't fail the build for this
