@@ -38,14 +38,89 @@ pipeline {
                 
                 // Platform detection for debugging
                 script {
-                    if (isUnix()) {
-                        echo 'Jenkins is running on Unix/Linux platform'
-                        sh 'uname -a || echo "uname not available"'
-                        sh 'which docker || echo "Docker location not found"'
-                    } else {
-                        echo 'Jenkins is running on Windows platform'
-                        bat 'ver'
-                        bat 'where docker || echo "Docker location not found"'
+                    echo 'Jenkins is running on Unix/Linux platform'
+                    sh 'uname -a || echo "uname not available"'
+                    sh 'which docker || echo "Docker location not found"'
+                }
+            }
+        }
+        
+        stage('Code Analysis & Repository Services Deployment') {
+            steps {
+                script {
+                    echo 'Deploying SonarQube and Nexus services for code analysis and artifact management...'
+                    try {
+                        // Cleanup any existing instances
+                        sh '''
+                            echo "Cleaning up existing SonarQube and Nexus containers..."
+                            docker-compose down sonarqube nexus postgres --remove-orphans || true
+                        '''
+                        
+                        // Deploy PostgreSQL for SonarQube
+                        sh '''
+                            echo "Deploying PostgreSQL database for SonarQube..."
+                            docker-compose up -d postgres
+                            echo "Waiting for PostgreSQL to initialize..."
+                            sleep 20
+                        '''
+                        
+                        // Deploy SonarQube and Nexus
+                        sh '''
+                            echo "Deploying SonarQube and Nexus services..."
+                            docker-compose up -d sonarqube nexus
+                            echo "Services deployment initiated, waiting for readiness..."
+                        '''
+                        
+                        // Wait for SonarQube to be ready
+                        sh '''
+                            echo "Waiting for SonarQube to become operational..."
+                            max_attempts=30
+                            attempt=1
+                            while [ $attempt -le $max_attempts ]; do
+                                echo "Checking SonarQube readiness (attempt $attempt/$max_attempts)..."
+                                if curl -f -s http://sonarqube:9000/api/system/status --connect-timeout 10 --max-time 15 | grep -q '"status":"UP"'; then
+                                    echo "SonarQube is now operational and ready for analysis"
+                                    break
+                                elif [ $attempt -eq $max_attempts ]; then
+                                    echo "ERROR: SonarQube failed to become ready after $max_attempts attempts"
+                                    docker logs sonarqube --tail 50 || echo "Could not retrieve SonarQube logs"
+                                    exit 1
+                                else
+                                    echo "SonarQube not ready yet, waiting 20 seconds..."
+                                    sleep 20
+                                    attempt=$((attempt + 1))
+                                fi
+                            done
+                        '''
+                        
+                        // Wait for Nexus to be ready
+                        sh '''
+                            echo "Waiting for Nexus Repository Manager to become operational..."
+                            max_attempts=30
+                            attempt=1
+                            while [ $attempt -le $max_attempts ]; do
+                                echo "Checking Nexus readiness (attempt $attempt/$max_attempts)..."
+                                if curl -f -s http://nexus:8081/service/rest/v1/status --connect-timeout 10 --max-time 15 >/dev/null 2>&1 && \\
+                                   curl -f -s http://nexus:8081/ --connect-timeout 10 --max-time 15 >/dev/null 2>&1; then
+                                    echo "Nexus Repository Manager is now operational and ready"
+                                    break
+                                elif [ $attempt -eq $max_attempts ]; then
+                                    echo "ERROR: Nexus failed to become ready after $max_attempts attempts"
+                                    docker logs nexus --tail 50 || echo "Could not retrieve Nexus logs"
+                                    exit 1
+                                else
+                                    echo "Nexus not ready yet, waiting 20 seconds..."
+                                    sleep 20
+                                    attempt=$((attempt + 1))
+                                fi
+                            done
+                        '''
+                        
+                        echo 'SonarQube and Nexus services are ready for pipeline operations!'
+                    } catch (Exception e) {
+                        echo "Code analysis services deployment failed: ${e.getMessage()}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
                     }
                 }
             }
@@ -57,18 +132,11 @@ pipeline {
                     script {
                         echo 'Executing comprehensive unit test suite with JaCoCo coverage analysis...'
                         try {
-                            if (isUnix()) {
-                                sh '''
-                                    chmod +x mvnw
-                                    echo "Running Maven test lifecycle with JaCoCo coverage reporting..."
-                                    ./mvnw clean test jacoco:report -Dmaven.test.failure.ignore=false
-                                '''
-                            } else {
-                                bat '''
-                                    echo "Running Maven test lifecycle with JaCoCo coverage reporting..."
-                                    .\\mvnw.cmd clean test jacoco:report -Dmaven.test.failure.ignore=false
-                                '''
-                            }
+                            sh '''
+                                chmod +x mvnw
+                                echo "Running Maven test lifecycle with JaCoCo coverage reporting..."
+                                ./mvnw clean test jacoco:report -Dmaven.test.failure.ignore=false
+                            '''
                             echo 'Unit tests and coverage analysis completed successfully!'
                         } catch (Exception e) {
                             echo "Unit tests failed: ${e.getMessage()}"
@@ -129,39 +197,25 @@ pipeline {
                     script {
                         echo 'Initiating comprehensive static code quality analysis via SonarQube...'
                         try {
-                            // Verify SonarQube service availability
+                            // Quick SonarQube connectivity verification
                             sh '''
                                 echo "Verifying SonarQube service connectivity..."
-                                timeout 30s bash -c 'until curl -f http://sonarqube:9000/api/system/status --connect-timeout 5 --max-time 10; do 
-                                    echo "Waiting for SonarQube service to be ready..."
-                                    sleep 5
-                                done'
-                                echo "SonarQube service is operational"
+                                if ! curl -f -s http://sonarqube:9000/api/system/status --connect-timeout 10 --max-time 15 | grep -q '"status":"UP"'; then
+                                    echo "WARNING: SonarQube may not be fully ready, but proceeding with analysis..."
+                                fi
                             '''
                             
                             // Execute SonarQube analysis
-                            if (isUnix()) {
-                                sh '''
-                                    chmod +x mvnw
-                                    echo "Executing SonarQube static analysis..."
-                                    ./mvnw sonar:sonar \\
-                                        -Dsonar.projectKey=TimeSheet \\
-                                        -Dsonar.projectName="TimeSheet Application" \\
-                                        -Dsonar.host.url=http://sonarqube:9000 \\
-                                        -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f \\
-                                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                                '''
-                            } else {
-                                bat '''
-                                    echo "Executing SonarQube static analysis..."
-                                    .\\mvnw.cmd sonar:sonar ^
-                                        -Dsonar.projectKey=TimeSheet ^
-                                        -Dsonar.projectName="TimeSheet Application" ^
-                                        -Dsonar.host.url=http://sonarqube:9000 ^
-                                        -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f ^
-                                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                                '''
-                            }
+                            sh '''
+                                chmod +x mvnw
+                                echo "Executing SonarQube static analysis..."
+                                ./mvnw sonar:sonar \\
+                                    -Dsonar.projectKey=TimeSheet \\
+                                    -Dsonar.projectName="TimeSheet Application" \\
+                                    -Dsonar.host.url=http://sonarqube:9000 \\
+                                    -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f \\
+                                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                            '''
                             echo 'Static code quality analysis completed successfully!'
                         } catch (Exception e) {
                             echo "SonarQube analysis encountered issues: ${e.getMessage()}"
@@ -179,38 +233,23 @@ pipeline {
                     script {
                         echo 'Deploying application artifacts to Nexus Repository Manager...'
                         try {
-                            // Verify Nexus service availability
+                            // Quick Nexus connectivity verification
                             sh '''
                                 echo "Verifying Nexus Repository Manager connectivity..."
-                                for attempt in {1..15}; do
-                                    if curl -f http://nexus:8081/service/rest/v1/status --connect-timeout 10 --max-time 15 >/dev/null 2>&1; then
-                                        echo "Nexus Repository Manager is operational"
-                                        break
-                                    fi
-                                    echo "Nexus not ready, attempt $attempt/15, retrying in 10 seconds..."
-                                    sleep 10
-                                done
+                                if ! curl -f -s http://nexus:8081/service/rest/v1/status --connect-timeout 10 --max-time 15 >/dev/null 2>&1; then
+                                    echo "WARNING: Nexus may not be fully ready, but proceeding with deployment..."
+                                fi
                             '''
                             
                             // Deploy artifacts to Nexus
-                            if (isUnix()) {
-                                sh '''
-                                    chmod +x mvnw
-                                    echo "Deploying artifacts to Nexus Repository..."
-                                    ./mvnw clean deploy -DskipTests \\
-                                        -s ../settings.xml \\
-                                        -DaltDeploymentRepository=nexus-snapshots::default::http://nexus:8081/repository/maven-snapshots-timesheet/ \\
-                                        -Dmaven.deploy.skip=false
-                                '''
-                            } else {
-                                bat '''
-                                    echo "Deploying artifacts to Nexus Repository..."
-                                    .\\mvnw.cmd clean deploy -DskipTests ^
-                                        -s ..\\settings.xml ^
-                                        -DaltDeploymentRepository=nexus-snapshots::default::http://nexus:8081/repository/maven-snapshots-timesheet/ ^
-                                        -Dmaven.deploy.skip=false
-                                '''
-                            }
+                            sh '''
+                                chmod +x mvnw
+                                echo "Deploying artifacts to Nexus Repository..."
+                                ./mvnw clean deploy -DskipTests \\
+                                    -s ../settings.xml \\
+                                    -DaltDeploymentRepository=nexus-snapshots::default::http://nexus:8081/repository/maven-snapshots-timesheet/ \\
+                                    -Dmaven.deploy.skip=false
+                            '''
                             echo 'Artifact deployment to Nexus completed successfully!'
                         } catch (Exception e) {
                             echo "Nexus deployment failed: ${e.getMessage()}"
@@ -228,33 +267,18 @@ pipeline {
                         echo 'Building Spring Boot backend application and Docker image...'
                         try {
                             // Build Spring Boot application
-                            if (isUnix()) {
-                                sh '''
-                                    chmod +x mvnw
-                                    echo "Compiling Spring Boot application..."
-                                    ./mvnw clean package -DskipTests -Dmaven.test.skip=true
-                                '''
-                            } else {
-                                bat '''
-                                    echo "Compiling Spring Boot application..."
-                                    .\\mvnw.cmd clean package -DskipTests -Dmaven.test.skip=true
-                                '''
-                            }
+                            sh '''
+                                chmod +x mvnw
+                                echo "Compiling Spring Boot application..."
+                                ./mvnw clean package -DskipTests -Dmaven.test.skip=true
+                            '''
                             
                             // Build Docker image
-                            if (isUnix()) {
-                                sh """
-                                    echo "Building backend Docker image..."
-                                    docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} -t ${BACKEND_IMAGE}:latest .
-                                    echo "Backend Docker image built: ${BACKEND_IMAGE}:${BUILD_NUMBER}"
-                                """
-                            } else {
-                                bat """
-                                    echo "Building backend Docker image..."
-                                    docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} -t ${BACKEND_IMAGE}:latest .
-                                    echo "Backend Docker image built: ${BACKEND_IMAGE}:${BUILD_NUMBER}"
-                                """
-                            }
+                            sh """
+                                echo "Building backend Docker image..."
+                                docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} -t ${BACKEND_IMAGE}:latest .
+                                echo "Backend Docker image built: ${BACKEND_IMAGE}:${BUILD_NUMBER}"
+                            """
                             echo 'Backend application build completed successfully!'
                         } catch (Exception e) {
                             echo "Backend build failed: ${e.getMessage()}"
@@ -272,19 +296,11 @@ pipeline {
                     script {
                         echo 'Building Angular frontend application and Docker image...'
                         try {
-                            if (isUnix()) {
-                                sh """
-                                    echo "Building frontend Docker image..."
-                                    docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} -t ${FRONTEND_IMAGE}:latest .
-                                    echo "Frontend Docker image built: ${FRONTEND_IMAGE}:${BUILD_NUMBER}"
-                                """
-                            } else {
-                                bat """
-                                    echo "Building frontend Docker image..."
-                                    docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} -t ${FRONTEND_IMAGE}:latest .
-                                    echo "Frontend Docker image built: ${FRONTEND_IMAGE}:${BUILD_NUMBER}"
-                                """
-                            }
+                            sh """
+                                echo "Building frontend Docker image..."
+                                docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} -t ${FRONTEND_IMAGE}:latest .
+                                echo "Frontend Docker image built: ${FRONTEND_IMAGE}:${BUILD_NUMBER}"
+                            """
                             echo 'Frontend application build completed successfully!'
                         } catch (Exception e) {
                             echo "Frontend build failed: ${e.getMessage()}"
@@ -299,29 +315,22 @@ pipeline {
         stage('Infrastructure Services Deployment') {
             steps {
                 script {
-                    echo 'Deploying core infrastructure services (databases, repositories)...'
+                    echo 'Deploying remaining infrastructure services (databases)...'
                     try {
-                        // Cleanup existing containers
+                        // Cleanup existing database containers
                         sh '''
-                            echo "Cleaning up existing container instances..."
-                            docker-compose down mysql postgres --remove-orphans || true
+                            echo "Cleaning up existing database containers..."
+                            docker-compose down mysql --remove-orphans || true
                         '''
                         
-                        // Deploy database services
+                        // Deploy MySQL database service
                         sh '''
-                            echo "Deploying database services..."
-                            docker-compose up -d mysql postgres
-                            echo "Allowing database initialization time..."
+                            echo "Deploying MySQL database service..."
+                            docker-compose up -d mysql
+                            echo "Allowing MySQL database initialization time..."
                             sleep 30
                         '''
                         
-                        // Deploy repository and analysis services
-                        sh '''
-                            echo "Deploying SonarQube and Nexus services..."
-                            docker-compose up -d sonarqube nexus
-                            echo "Allowing services to initialize..."
-                            sleep 15
-                        '''
                         echo 'Infrastructure services deployment completed!'
                     } catch (Exception e) {
                         echo "Infrastructure deployment failed: ${e.getMessage()}"
