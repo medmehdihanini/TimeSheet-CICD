@@ -22,7 +22,7 @@ and improve overall productivity and client satisfaction.
 
 Provide a brief overview of your project here.
 
-## Architecture
+## Architecturer
 
 The project follows a monolithic architecture.
 
