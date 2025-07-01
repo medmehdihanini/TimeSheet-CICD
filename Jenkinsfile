@@ -22,11 +22,29 @@ pipeline {
                 dir('Timesheet-Client-monolithic-arch') {
                     script {
                         echo 'Running unit tests with JaCoCo coverage...'
+                        try {
+                            if (isUnix()) {
+                                sh 'chmod +x mvnw'
+                                sh './mvnw clean test jacoco:report'
+                            } else {
+                                bat '.\\mvnw.cmd clean test jacoco:report'
+                            }
+                            echo 'Unit tests completed successfully!'
+                        } catch (Exception e) {
+                            echo "Unit tests execution failed: ${e.getMessage()}"
+                            currentBuild.result = 'FAILURE'
+                            error("Unit tests failed: ${e.getMessage()}")
+                        }
+                        
+                        echo 'Checking test results...'
+                        // List files to debug
                         if (isUnix()) {
-                            sh 'chmod +x mvnw'
-                            sh './mvnw clean test jacoco:report'
+                            sh 'find target -name "*.xml" -o -name "*.html" | head -10 || true'
+                            sh 'ls -la target/surefire-reports/ || echo "No surefire-reports directory"'
+                            sh 'ls -la target/site/jacoco/ || echo "No jacoco directory"'
                         } else {
-                            bat '.\\mvnw.cmd clean test jacoco:report'
+                            bat 'dir target\\surefire-reports\\ || echo "No surefire-reports directory"'
+                            bat 'dir target\\site\\jacoco\\ || echo "No jacoco directory"'
                         }
                     }
                 }
@@ -34,18 +52,57 @@ pipeline {
             post {
                 always {
                     script {
+                        echo 'Publishing test results and coverage reports...'
+                        
+                        // Publish test results with better error handling
                         try {
-                            publishTestResults testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/*.xml'
-                            publishHTML([
-                                allowMissing: true,
-                                alwaysLinkToLastBuild: true,
-                                keepAll: true,
-                                reportDir: 'Timesheet-Client-monolithic-arch/target/site/jacoco',
-                                reportFiles: 'index.html',
-                                reportName: 'JaCoCo Code Coverage Report'
-                            ])
+                            if (fileExists('Timesheet-Client-monolithic-arch/target/surefire-reports/TEST-*.xml')) {
+                                publishTestResults testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/TEST-*.xml'
+                                echo 'Test results published successfully'
+                            } else {
+                                echo 'No test result files found - checking for any XML files'
+                                if (fileExists('Timesheet-Client-monolithic-arch/target/surefire-reports/')) {
+                                    publishTestResults(
+                                        testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/*.xml',
+                                        allowEmptyResults: true
+                                    )
+                                }
+                            }
                         } catch (Exception e) {
-                            echo "Warning: Could not publish reports: ${e.getMessage()}"
+                            echo "Warning: Could not publish test results: ${e.getMessage()}"
+                            // Don't fail the build for this
+                        }
+                        
+                        // Publish JaCoCo coverage report with better error handling
+                        try {
+                            if (fileExists('Timesheet-Client-monolithic-arch/target/site/jacoco/index.html')) {
+                                publishHTML([
+                                    allowMissing: true,
+                                    alwaysLinkToLastBuild: true,
+                                    keepAll: true,
+                                    reportDir: 'Timesheet-Client-monolithic-arch/target/site/jacoco',
+                                    reportFiles: 'index.html',
+                                    reportName: 'JaCoCo Code Coverage Report'
+                                ])
+                                echo 'JaCoCo coverage report published successfully'
+                            } else {
+                                echo 'JaCoCo HTML report not found - skipping HTML publication'
+                            }
+                        } catch (Exception e) {
+                            echo "Warning: Could not publish JaCoCo report: ${e.getMessage()}"
+                            // Don't fail the build for this
+                        }
+                        
+                        // Archive artifacts for debugging
+                        try {
+                            archiveArtifacts(
+                                artifacts: 'Timesheet-Client-monolithic-arch/target/surefire-reports/**,Timesheet-Client-monolithic-arch/target/site/jacoco/**',
+                                allowEmptyArchive: true,
+                                fingerprint: false
+                            )
+                            echo 'Test artifacts archived successfully'
+                        } catch (Exception e) {
+                            echo "Warning: Could not archive artifacts: ${e.getMessage()}"
                         }
                     }
                 }
