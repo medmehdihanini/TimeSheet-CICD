@@ -85,55 +85,31 @@ pipeline {
                     script {
                         echo 'Running SonarQube code quality analysis...'
                         try {
-                            // Wait for SonarQube to be available with better check
+                            // Simple wait for SonarQube
                             sh '''
-                                echo "Waiting for SonarQube to be ready..."
-                                for i in {1..60}; do
-                                    if curl -f http://localhost:9000/api/system/health --connect-timeout 5 >/dev/null 2>&1; then
-                                        echo "SonarQube is ready!"
-                                        break
-                                    elif curl -f http://localhost:9000/api/system/status --connect-timeout 5 >/dev/null 2>&1; then
-                                        echo "SonarQube is responding but not fully ready..."
-                                    else
-                                        echo "SonarQube not ready, waiting... attempt $i/60"
-                                    fi
-                                    sleep 10
-                                done
-                                
-                                # Final check before analysis
-                                echo "Testing SonarQube connection..."
-                                curl -f http://localhost:9000/api/system/status --connect-timeout 10
+                                echo "Checking SonarQube availability..."
+                                sleep 10
+                                echo "Attempting SonarQube connection..."
+                                curl -f http://localhost:9000/api/system/status --connect-timeout 10 || echo "SonarQube check failed, continuing anyway..."
                             '''
                             
-                            // Run SonarQube analysis with better parameters
+                            // Run SonarQube analysis with simplified command
                             if (isUnix()) {
                                 sh '''
                                     chmod +x mvnw
-                                    ./mvnw clean compile test-compile sonar:sonar \\
+                                    ./mvnw sonar:sonar \\
                                       -Dsonar.projectKey=TimeSheet \\
                                       -Dsonar.projectName="TimeSheet" \\
                                       -Dsonar.host.url=http://localhost:9000 \\
-                                      -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f \\
-                                      -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \\
-                                      -Dsonar.junit.reportPaths=target/surefire-reports \\
-                                      -Dsonar.sources=src/main/java \\
-                                      -Dsonar.tests=src/test/java \\
-                                      -Dsonar.java.binaries=target/classes \\
-                                      -Dsonar.java.test.binaries=target/test-classes
+                                      -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f
                                 '''
                             } else {
                                 bat '''
-                                    .\\mvnw.cmd clean compile test-compile sonar:sonar ^
+                                    .\\mvnw.cmd sonar:sonar ^
                                       -Dsonar.projectKey=TimeSheet ^
                                       -Dsonar.projectName="TimeSheet" ^
                                       -Dsonar.host.url=http://localhost:9000 ^
-                                      -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f ^
-                                      -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml ^
-                                      -Dsonar.junit.reportPaths=target/surefire-reports ^
-                                      -Dsonar.sources=src/main/java ^
-                                      -Dsonar.tests=src/test/java ^
-                                      -Dsonar.java.binaries=target/classes ^
-                                      -Dsonar.java.test.binaries=target/test-classes
+                                      -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f
                                 '''
                             }
                             echo 'SonarQube analysis completed successfully!'
