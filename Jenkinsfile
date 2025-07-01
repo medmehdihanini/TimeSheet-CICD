@@ -304,7 +304,7 @@ pipeline {
                         // Cleanup existing containers
                         sh '''
                             echo "Cleaning up existing container instances..."
-                            docker-compose down --remove-orphans || true
+                            docker-compose down mysql postgres --remove-orphans || true
                         '''
                         
                         // Deploy database services
