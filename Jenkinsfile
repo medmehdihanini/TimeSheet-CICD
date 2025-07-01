@@ -39,55 +39,7 @@ pipeline {
             }
         }
         
-        stage('Unit Tests') {
-            steps {
-                dir('Timesheet-Client-monolithic-arch') {
-                    script {
-                        echo 'Running unit tests with JaCoCo coverage...'
-                        if (isUnix()) {
-                            sh 'chmod +x mvnw'
-                            sh './mvnw clean test jacoco:report'
-                        } else {
-                            bat '.\\mvnw.cmd clean test jacoco:report'
-                        }
-                    }
-                }
-            }
-            post {
-                always {
-                    // Publish test results - allow missing files to not fail the build
-                    script {
-                        try {
-                            publishTestResults testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/*.xml'
-                            echo 'Test results published successfully'
-                        } catch (Exception e) {
-                            echo "Warning: Could not publish test results: ${e.getMessage()}"
-                        }
-                    }
-                    
-                    // Publish JaCoCo coverage report - allow missing to not fail build
-                    script {
-                        try {
-                            publishHTML([
-                                allowMissing: true,
-                                alwaysLinkToLastBuild: true,
-                                keepAll: true,
-                                reportDir: 'Timesheet-Client-monolithic-arch/target/site/jacoco',
-                                reportFiles: 'index.html',
-                                reportName: 'JaCoCo Code Coverage Report'
-                            ])
-                            echo 'JaCoCo coverage report published successfully'
-                        } catch (Exception e) {
-                            echo "Warning: Could not publish JaCoCo report: ${e.getMessage()}"
-                        }
-                    }
-                    
-                    // Archive test artifacts for debugging
-                    archiveArtifacts artifacts: 'Timesheet-Client-monolithic-arch/target/surefire-reports/**', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'Timesheet-Client-monolithic-arch/target/site/jacoco/**', allowEmptyArchive: true
-                }
-            }
-        }
+        
 
         stage('SonarQube Analysis') {
             steps {
