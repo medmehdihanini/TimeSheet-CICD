@@ -45,7 +45,7 @@ pipeline {
             }
         }
         
-        stage('Code Analysis & Repository Services Deployment') {
+        stage('Repository Services Deployment') {
             steps {
                 script {
                     echo 'Deploying SonarQube and Nexus services for code analysis and artifact management...'
@@ -71,6 +71,21 @@ pipeline {
                             echo "Services deployment initiated, waiting for readiness..."
                         '''
                         
+                        echo 'SonarQube and Nexus services deployment completed!'
+                    } catch (Exception e) {
+                        echo "Repository services deployment failed: ${e.getMessage()}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
+                }
+            }
+        }
+        
+        stage('Code Analysis Services Readiness Verification') {
+            steps {
+                script {
+                    echo 'Verifying SonarQube and Nexus services readiness...'
+                    try {
                         // Wait for SonarQube to be ready
                         sh '''
                             echo "Waiting for SonarQube to become operational..."
@@ -118,7 +133,7 @@ pipeline {
                         
                         echo 'SonarQube and Nexus services are ready for pipeline operations!'
                     } catch (Exception e) {
-                        echo "Code analysis services deployment failed: ${e.getMessage()}"
+                        echo "Code analysis services readiness verification failed: ${e.getMessage()}"
                         currentBuild.result = 'FAILURE'
                         throw e
                     }
