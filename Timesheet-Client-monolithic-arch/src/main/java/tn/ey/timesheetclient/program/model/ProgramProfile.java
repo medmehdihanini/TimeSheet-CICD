@@ -1,7 +1,6 @@
 package tn.ey.timesheetclient.program.model;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -27,11 +26,13 @@ public class ProgramProfile implements Serializable {
 
     String functionn;
 
-    @JsonIgnore
+    // Keep unidirectional references to both Program and Profile
+    // This allows us to navigate from ProgramProfile to both entities
+    // but eliminates the circular dependencies
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "program_id", nullable = true)
-    @OnDelete(action = OnDeleteAction.CASCADE) // Add this
-    private Program program;;
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Program program;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = true)
@@ -42,6 +43,5 @@ public class ProgramProfile implements Serializable {
 
     @Builder.Default
     Double consumedmandaybudget = 0.0;
-
 
 }

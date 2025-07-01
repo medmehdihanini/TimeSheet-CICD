@@ -12,8 +12,6 @@ import tn.ey.timesheetclient.profile.model.Profile;
 import tn.ey.timesheetclient.program.model.Program;
 import tn.ey.timesheetclient.program.model.Project;
 
-import java.io.Serializable;
-import java.sql.Blob;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +25,7 @@ import java.util.Set;
 @Entity
 @Table(name= "_user")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class User implements UserDetails, Serializable {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -39,9 +37,7 @@ public class User implements UserDetails, Serializable {
     Role role;
     @Lob
     @Column(length = Integer.MAX_VALUE, nullable = true)
-    private byte[] image;
-
-    @Builder.Default
+    private byte[] image;    @Builder.Default
     @OneToMany(mappedBy = "chefprojet")
     Set<Project> projects = new HashSet<>();
 

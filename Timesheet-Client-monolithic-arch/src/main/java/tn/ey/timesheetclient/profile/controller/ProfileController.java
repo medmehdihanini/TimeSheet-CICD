@@ -11,7 +11,7 @@ import tn.ey.timesheetclient.Logs.services.LogService;
 
 import java.util.List;
 
-@CrossOrigin(origins ="http://13.74.191.237:8085")
+
 @RestController
 @RequestMapping("/api/v1/profile")
 @AllArgsConstructor

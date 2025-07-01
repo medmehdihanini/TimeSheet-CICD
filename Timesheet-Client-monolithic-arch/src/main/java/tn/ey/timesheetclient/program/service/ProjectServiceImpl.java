@@ -30,7 +30,6 @@ import tn.ey.timesheetclient.user.dao.UserRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -183,43 +182,49 @@ public class ProjectServiceImpl implements ProjectService{
 
                 newp.setChefprojet(u);
             }            newp.setName(p.getName());
-            newp.setDescription(p.getDescription());
-            User oldChef = newp.getChefprojet();
-            User u = _userDao.findById(idchef).orElse(null);
-            // Store old chef
-            
-            // Update chef project in the database
-            newp.setChefprojet(u);
-            _projectDao.save(newp);
-            
-            // Update chat room if there is a change in project manager
-            if (oldChef == null || !oldChef.getId().equals(u.getId())) {
-                chatRoomService.getChatRoomByProjectId(idp).ifPresent(chatRoom -> {
-                    // Add new chef project to chat room
-                    if (u.getProfile() != null) {
-                        chatRoomService.addProfileToChatRoom(chatRoom.getId(), u.getProfile().getIdp());
-                        log.info("New project manager {} added to chat room for project {}", 
-                            u.getFirstname() + " " + u.getLastname(), newp.getName());
-                    }
+            newp.setDescription(p.getDescription());            User oldChef = newp.getChefprojet();
+              // Only update chef if idchef is provided and not null
+            if (idchef != null) {
+                User u = _userDao.findById(idchef).orElse(null);
+                if (u == null) {
+                    return ResponseEntity.badRequest().body("L'utilisateur n'existe pas");
+                }
+                
+                // Update chef project in the database
+                newp.setChefprojet(u);
+                
+                // Update chat room if there is a change in project manager
+                if (oldChef == null || !oldChef.getId().equals(u.getId())) {
+                    chatRoomService.getChatRoomByProjectId(idp).ifPresent(chatRoom -> {
+                        // Add new chef project to chat room
+                        if (u.getProfile() != null) {
+                            chatRoomService.addProfileToChatRoom(chatRoom.getId(), u.getProfile().getIdp());
+                            log.info("New project manager {} added to chat room for project {}", 
+                                u.getFirstname() + " " + u.getLastname(), newp.getName());
+                        }
+                        
+                        // Optionally remove old chef project from chat room if no longer associated with project
+                        if (oldChef != null && oldChef.getProfile() != null) {
+                            // Check if old chef is still associated with the project in other roles
+                            // If not, consider removing them or keeping them as a historical member
+                        }
+                    });
                     
-                    // Optionally remove old chef project from chat room if no longer associated with project
-                    if (oldChef != null && oldChef.getProfile() != null) {
-                        // Check if old chef is still associated with the project in other roles
-                        // If not, consider removing them or keeping them as a historical member
-                    }
-                });
+                    // Send notification
+                    _notificationService.sendNotification(
+                            u.getEmail(),
+                            Notification.builder()
+                                    .Status(PENDING)
+                                    .Message(String.format("Bonjour %s,\n\nVous avez été assigné comme chef de projet pour %s.\n\nDescription : %s\n\nCordialement,",
+                                            u.getFirstname(), newp.getName(), newp.getDescription()))
+                                    .Title("Nouvelle assignation au projet " + newp.getName())
+                                    .build()
+                    );
+                }
             }
-            if (oldChef == null || !oldChef.getId().equals(u.getId())) {
-                _notificationService.sendNotification(
-                        u.getEmail(),
-                        Notification.builder()
-                                .Status(PENDING)
-                                .Message(String.format("Bonjour %s,\n\nVous avez été assigné comme chef de projet pour %s.\n\nDescription : %s\n\nCordialement,",
-                                        u.getFirstname(), newp.getName(), newp.getDescription()))
-                                .Title("Nouvelle assignation au projet " + newp.getName())
-                                .build()
-                );
-            }
+            
+            // Save the project
+            _projectDao.save(newp);
 
             return ResponseEntity.ok().body(null);
         }catch (Exception e) {
@@ -264,22 +269,20 @@ public ResponseEntity<?> deleteOneProject(Long idp) {
         // Handle associated chat room before project deletion
         if (chatRoomService.deleteChatRoomByProjectId(idp)) {
             log.info("Chat room for project {} has been deleted", project.getName());
-        }
-
-        // First handle all project profiles and their dependencies
-        for (ProjectProfile pp : new HashSet<>(project.getProjectProfiles())) {
+        }        // Get all project profiles for this project using repository query
+        List<ProjectProfile> projectProfiles = _projpDao.findProjectProfilesByProjectId(idp);
+        
+        // Delete all project profiles and their dependencies
+        for (ProjectProfile pp : projectProfiles) {
             Long projectProfileId = pp.getId();
             log.info("Processing ProjectProfile ID: {}", projectProfileId);
             
             // Step 1: Delete all tasks that reference this project profile
-            // Use the correct method to find tasks by project profile ID
             List<Task> tasks = _taskDao.findByProfile_Id(projectProfileId);
             log.info("Found {} tasks for ProjectProfile ID: {}", tasks.size(), projectProfileId);
             
-            for (Task task : new HashSet<>(tasks)) {
+            for (Task task : tasks) {
                 log.info("Deleting task ID: {} for ProjectProfile ID: {}", task.getId(), projectProfileId);
-                // Remove the relationship first, then delete the task
-                task.setProfile(null);
                 _taskDao.delete(task);
             }
             
@@ -287,27 +290,16 @@ public ResponseEntity<?> deleteOneProject(Long idp) {
             List<Timesheet> timesheets = _timesheetdao.findByProjectprofile_Id(projectProfileId);
             log.info("Found {} timesheets for ProjectProfile ID: {}", timesheets.size(), projectProfileId);
             
-            for (Timesheet timesheet : new HashSet<>(timesheets)) {
+            for (Timesheet timesheet : timesheets) {
                 log.info("Deleting timesheet ID: {} for ProjectProfile ID: {}", timesheet.getIdtimesheet(), projectProfileId);
-                timesheet.setProjectprofile(null);
                 _timesheetdao.delete(timesheet);
             }
-            
-            // Step 3: Clear collections in the project profile
-            pp.getTasks().clear();
-            pp.getTimesheets().clear();
-            
-            // Step 4: Remove relationships and delete the project profile
-            pp.setProject(null);
-            pp.setProfile(null);
+              // Step 3: Delete the project profile
             log.info("Deleting ProjectProfile ID: {}", projectProfileId);
             _projpDao.delete(pp);
         }
         
-        // Clear the project profiles collection
-        project.getProjectProfiles().clear();
-
-        // Clear program association but don't delete the program
+        // Clear project associations before deletion
         project.setProgram(null);
         
         // Clear chef projet association

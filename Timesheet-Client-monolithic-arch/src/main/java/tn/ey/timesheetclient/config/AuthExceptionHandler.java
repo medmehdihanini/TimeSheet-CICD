@@ -18,5 +18,5 @@ public class AuthExceptionHandler implements AuthenticationEntryPoint {
         //log.error("Unauthorized {}", authException.getMessage());
         //response.sendError(HttpServletResponse.SC_UNAUTHORIZED,"User unauthorized ");
 
-     }
+    }
 }

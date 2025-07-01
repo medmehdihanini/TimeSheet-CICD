@@ -13,7 +13,7 @@ import tn.ey.timesheetclient.Logs.services.LogService;
 import tn.ey.timesheetclient.profile.dao.profileDao;
 import tn.ey.timesheetclient.profile.model.Profile;
 
-@CrossOrigin(origins = "http://13.74.191.237:8085")
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -45,7 +45,7 @@ public class AuthenticationController {
     public ResponseEntity<?> registerwithprofile(@PathVariable Long idp) {
         Profile profile = _profileDao.findById(idp).orElse(null);
         String profileName = profile != null ? profile.getFirstname() + " " + profile.getLastname() : "Profil inconnu";
-        
+
         ResponseEntity<?> response = service.createAccountFromProfile(idp);
         if (response.getStatusCode().is2xxSuccessful()) {
             logService.logAction("Compte créé à partir du profil: " + profileName);

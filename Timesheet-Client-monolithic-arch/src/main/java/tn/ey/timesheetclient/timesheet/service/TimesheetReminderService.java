@@ -2,11 +2,11 @@ package tn.ey.timesheetclient.timesheet.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.ey.timesheetclient.mail.EmailHelperService;
 import tn.ey.timesheetclient.program.dao.ProjectDao;
+import tn.ey.timesheetclient.program.dao.ProjectProfileDao;
 import tn.ey.timesheetclient.program.model.Project;
 import tn.ey.timesheetclient.program.model.ProjectProfile;
 import tn.ey.timesheetclient.timesheet.dao.TimesheetDao;
@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 public class TimesheetReminderService {
 
     private final ProjectDao projectDao;
+    private final ProjectProfileDao projectProfileDao;
     private final TimesheetDao timesheetDao;
     private final EmailHelperService emailHelperService;
 
@@ -47,9 +48,8 @@ public class TimesheetReminderService {
             String year = String.valueOf(previousMonth.getYear());
             String period = previousMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
               log.info("Checking timesheets for period: {} (month: {}, year: {})", period, month, year);
-            
-            // Get all active projects with their projectProfiles eagerly loaded
-            List<Project> allProjects = projectDao.findAllWithProjectProfiles();
+              // Get all active projects (no need to eagerly load projectProfiles anymore)
+            List<Project> allProjects = projectDao.findAll();
             log.info("Found {} projects to check", allProjects.size());
             
             int projectsProcessed = 0;
@@ -77,17 +77,18 @@ public class TimesheetReminderService {
 
     /**
      * Process timesheets for a specific project and send reminders if needed
-     */
-    private boolean processProjectTimesheets(Project project, String month, String year, String period) {
+     */    private boolean processProjectTimesheets(Project project, String month, String year, String period) {
         log.debug("Processing project: {}", project.getName());
         
+        // Get project profiles using repository query instead of accessing collection
+        List<ProjectProfile> projectProfiles = projectProfileDao.findProjectProfilesByProjectId(project.getIdproject());
+        
         // Skip projects without profiles
-        if (project.getProjectProfiles() == null || project.getProjectProfiles().isEmpty()) {
+        if (projectProfiles == null || projectProfiles.isEmpty()) {
             log.debug("Project {} has no profiles, skipping", project.getName());
             return false;
         }
         
-        List<ProjectProfile> projectProfiles = project.getProjectProfiles().stream().toList();
         log.debug("Project {} has {} profiles", project.getName(), projectProfiles.size());
         
         // Check timesheet status for each profile

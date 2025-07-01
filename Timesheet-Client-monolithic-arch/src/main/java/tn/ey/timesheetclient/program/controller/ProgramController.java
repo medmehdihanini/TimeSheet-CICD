@@ -19,7 +19,7 @@ import tn.ey.timesheetclient.user.model.User;
 import java.math.BigDecimal;
 import java.util.List;
 
-@CrossOrigin(origins = "http://13.74.191.237:8085")
+
 @RestController
 @RequestMapping("/api/v1/program")
 @AllArgsConstructor

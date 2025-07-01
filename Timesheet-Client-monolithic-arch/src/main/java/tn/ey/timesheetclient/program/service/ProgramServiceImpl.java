@@ -9,7 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import tn.ey.timesheetclient.Logs.dao.LogRepository;
 import tn.ey.timesheetclient.notification.model.Notification;
 import tn.ey.timesheetclient.notification.service.NotificationService;
 import tn.ey.timesheetclient.profile.dao.profileDao;
@@ -52,10 +51,8 @@ public class ProgramServiceImpl implements ProgramService{
     private final ProgramProfileDao _ppDao;
     private final ProjectProfileDao _pfDao;
     private final TimesheetDao _timesheetDao;
-    private final ProjectDao _projectDao;
-    private final TaskDao _taskDao;
+    private final ProjectDao _projectDao;    private final TaskDao _taskDao;
     private final NotificationService _notificationService;
-    private final LogRepository _logRepository;
 
 
 
@@ -198,44 +195,67 @@ public class ProgramServiceImpl implements ProgramService{
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de la suppression du programme");
         }
     }
-
-
     @Transactional
     @Override
     public ResponseEntity<?> deleteProgramByContractNumber(Long idp) {
         try {
             Program program = _programDao.findByNumcontrat(idp);
-
-            // Clean up child references manually to avoid FK constraint issues
-            for (Project project : new HashSet<>(program.getProjects())) {
-                project.getProjectProfiles().forEach(pp -> {
-                    pp.getTasks().forEach(task -> task.setProfile(null));
-                    pp.getTimesheets().forEach(ts -> ts.setProjectprofile(null));
-                    pp.setProfile(null);
-                    pp.setProject(null);
-                });
-                project.getProjectProfiles().clear();
-
-                project.setChefprojet(null);
-                project.setProgram(null);
+            if (program == null) {
+                return ResponseEntity.badRequest().body("Le programme n'existe pas");
             }
 
-            program.getProjects().clear();
-            program.getProgramProfiles().forEach(pp -> {
-                if (pp.getProfile() != null) {
-                    pp.getProfile().setMandaybudget(pp.getProfile().getMandaybudget() + pp.getMandaybudget());
-                    pp.setProfile(null);
+            // Get all projects for this program using repository query
+            List<Project> projects = _projectDao.findByProgram_Idprog(program.getIdprog());
+            
+            // Delete all projects and their dependencies
+            for (Project project : projects) {
+                // Get all project profiles for this project
+                List<ProjectProfile> projectProfiles = _pfDao.findProjectProfilesByProjectId(project.getIdproject());
+                
+                for (ProjectProfile pp : projectProfiles) {
+                    // Delete all tasks for this project profile
+                    List<Task> tasks = _taskDao.findByProfile_Id(pp.getId());
+                    for (Task task : tasks) {
+                        _taskDao.delete(task);
+                    }
+                    
+                    // Delete all timesheets for this project profile
+                    List<Timesheet> timesheets = _timesheetDao.findByProjectprofile_Id(pp.getId());
+                    for (Timesheet timesheet : timesheets) {
+                        _timesheetDao.delete(timesheet);
+                    }
+                    
+                    // Delete the project profile
+                    _pfDao.delete(pp);
                 }
-                pp.setProgram(null);
-            });
-            program.getProgramProfiles().clear();
-            program.setChefprogram(null);
+                
+                // Clear project references and delete
+                project.setChefprojet(null);
+                project.setProgram(null);
+                _projectDao.delete(project);
+            }
 
-            _programDao.delete(program); // Now deletion is safe
+            // Get all program profiles for this program using repository query
+            List<ProgramProfile> programProfiles = _ppDao.findByProgram_Idprog(program.getIdprog());
+            
+            // Delete all program profiles and return budget to profiles
+            for (ProgramProfile pp : programProfiles) {
+                if (pp.getProfile() != null) {
+                    // Return manday budget to profile
+                    Profile profile = pp.getProfile();
+                    profile.setMandaybudget(profile.getMandaybudget() + pp.getMandaybudget());
+                    _profileDao.save(profile);
+                }
+                _ppDao.delete(pp);
+            }
+
+            // Clear program references and delete
+            program.setChefprogram(null);
+            _programDao.delete(program);
 
             return ResponseEntity.ok().body("Programme supprimé avec succès");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error deleting program by contract number: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erreur lors de la suppression du programme: " + e.getMessage());
         }
@@ -274,9 +294,12 @@ public class ProgramServiceImpl implements ProgramService{
             Program p= _programDao.findById(idp).orElse(null);
             if(p == null){
                 return ResponseEntity.badRequest().body("Le programme n'existe pas");
-            }
-            if(status == Status.IN_PROGRESS && p.getProgramProfiles() == null){
-                return ResponseEntity.badRequest().body("Il faut d'abord assigner des profiles à ce programme");
+            }            if(status == Status.IN_PROGRESS) {
+                // Check if program has any profiles assigned using repository query
+                List<ProgramProfile> programProfiles = _ppDao.findByProgram_Idprog(p.getIdprog());
+                if(programProfiles.isEmpty()) {
+                    return ResponseEntity.badRequest().body("Il faut d'abord assigner des profiles à ce programme");
+                }
             }
             if((status == Status.IN_PROGRESS) && (p.getChefprogram()== null)){
                 return ResponseEntity.badRequest().body("Il faut d'abord assigner un chef de programme");
@@ -391,11 +414,9 @@ public class ProgramServiceImpl implements ProgramService{
             double adding = mandaybudget - progp.getMandaybudget();
             if (adding > profile.getMandaybudget()) {
                 return ResponseEntity.badRequest().body("profil à "+ profile.getMandaybudget() +" J/H restants " );
-            }
-            if (progp.getMandaybudget() > mandaybudget) {
+            }            if (progp.getMandaybudget() > mandaybudget) {
                 return ResponseEntity.badRequest().body("Le budget Jour/homme minimale est: " + progp.getMandaybudget());
             }
-            Double already = profile.getMandaybudget();
             double newm = profile.getMandaybudget() - adding;
             profile.setMandaybudget(newm);
             progp.setMandaybudget(mandaybudget);
@@ -833,11 +854,10 @@ public class ProgramServiceImpl implements ProgramService{
             int taskCount = 0;
             Double projectMandayBudget = 0.0;
             Double projectConsumedMandayBudget = 0.0;
-            
-            for (ProjectProfile pp : _pfDao.findByProject_Idproject(project.getIdproject())) {
-                // Count tasks
-                log.info("Processing project profile: {}", pp.getId());
-                taskCount += _pfDao.findByProject_Idproject(project.getIdproject()).size();
+              for (ProjectProfile pp : _pfDao.findByProject_Idproject(project.getIdproject())) {
+                // Count tasks for this project profile
+                int profileTaskCount = _taskDao.findByProfile_Id(pp.getId()).size();
+                taskCount += profileTaskCount;
                 
                 // Calculate manday budget
                 projectMandayBudget += pp.getMandaybudget();
@@ -861,7 +881,7 @@ public class ProgramServiceImpl implements ProgramService{
         }
           // Profiles statistics from program profiles
 
-        List<ProgramProfile> programProfiles = _ppDao.findByProgram_Idprog(program.getIdprog());;
+        List<ProgramProfile> programProfiles = _ppDao.findByProgram_Idprog(program.getIdprog());
         int totalProfiles = programProfiles.size();
         Map<String, Integer> profilesByFunction = new HashMap<>();
         
@@ -885,14 +905,11 @@ public class ProgramServiceImpl implements ProgramService{
             totalMandayBudget += pp.getMandaybudget();
             consumedMandayBudget += pp.getConsumedmandaybudget();
         }
-        
-        // Gather all tasks from all projects for task statistics
+          // Gather all tasks from all projects for task statistics
         for (Project project : projects) {
-            log.info("Processing project: {}", project.getName());
             for (ProjectProfile pp : _pfDao.findByProject_Idproject(project.getIdproject())) {
-                log.info("Processing project profile: {}", pp.getId());
-                for (Task task : _taskDao.findByProfile(pp)) {
-                    log.info("Processing task: {}", task.getText());
+                List<Task> tasks = _taskDao.findByProfile_Id(pp.getId());
+                for (Task task : tasks) {
                     totalTasks++;
                     
                     // Add to tasks by workplace

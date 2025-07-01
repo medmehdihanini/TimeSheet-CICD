@@ -28,7 +28,7 @@ import java.util.Optional;
 @RequestMapping("/api/v1/chat")
 @AllArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:4200")
+
 public class ChatController {
     
     private final ChatRoomService chatRoomService;

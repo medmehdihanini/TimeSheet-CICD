@@ -1,16 +1,11 @@
 package tn.ey.timesheetclient.program.model;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import tn.ey.timesheetclient.profile.model.Profile;
-import tn.ey.timesheetclient.timesheet.model.Task;
-import tn.ey.timesheetclient.timesheet.model.Timesheet;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -24,13 +19,14 @@ public class ProjectProfile implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Setter(AccessLevel.NONE)
     Long id;
-    Double mandaybudget;
-
-    @Builder.Default
+    Double mandaybudget;    @Builder.Default
     Double consumedmandaybudget = 0.0;
 
+    // Keep unidirectional references to both Project and Profile
+    // This allows us to navigate from ProjectProfile to both entities
+    // but eliminates the circular dependencies
     @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE) // Add this
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "project_id")
     Project project;
 
@@ -38,14 +34,10 @@ public class ProjectProfile implements Serializable {
     @JoinColumn(name = "profile_id")
     Profile profile;
 
-    @Builder.Default
-    @JsonIgnore
-    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<Task> tasks = new HashSet<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "projectprofile", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<Timesheet> timesheets = new HashSet<>();
-
+    // Removed bidirectional collections:
+    // - tasks: will be queried via TaskRepository when needed
+    // - timesheets: will be queried via TimesheetRepository when needed
+    // This eliminates circular dependencies: ProjectProfile -> Task -> ProjectProfile
+    // and ProjectProfile -> Timesheet -> ProjectProfile
 
 }

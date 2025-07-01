@@ -6,7 +6,6 @@ import lombok.experimental.FieldDefaults;
 import tn.ey.timesheetclient.program.model.ProjectProfile;
 
 import java.io.Serializable;
-import java.time.Month;
 
 @Data
 @NoArgsConstructor
@@ -25,13 +24,12 @@ public class Timesheet implements Serializable {
     String year;
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    Status status = Status.DRAFT;
-    String Notes;
+    Status status = Status.DRAFT;    String Notes;
 
-
-    @ManyToOne
+    // Keep unidirectional reference to ProjectProfile
+    // This allows Timesheet to know its ProjectProfile but eliminates circular dependency
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id")
     ProjectProfile projectprofile;
-
 
 }

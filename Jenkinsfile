@@ -86,31 +86,22 @@ pipeline {
                             done
                         '''
                         
-                        if (isUnix()) {
-                            sh '''
-                                chmod +x mvnw
-                                ./mvnw sonar:sonar \
-                                    -Dsonar.host.url=http://localhost:9000 \
-                                    -Dsonar.login=sqp_f1faddc336afb599195d7151b784f32e97aadc5f \
+                        withSonarQubeEnv(credentialsId: 'sonar_auth', installationName: 'SonarQube') {
+                            script {
+                                def scannerHome = tool name: 'SonarQube', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                                sh """
+                                  export PATH=\$PATH:${scannerHome}/bin
+                                  sonar-scanner \
                                     -Dsonar.projectKey=TimeSheet \
                                     -Dsonar.projectName="TimeSheet" \
                                     -Dsonar.sources=src/main/java \
                                     -Dsonar.tests=src/test/java \
                                     -Dsonar.java.binaries=target/classes \
+                                    -Dsonar.host.url=http://localhost:9000 \
+                                    -Dsonar.login=sqp_f1faddc336afb599195d7151b784f32e97aadc5f \
                                     -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                            '''
-                        } else {
-                            bat '''
-                                .\\mvnw.cmd sonar:sonar ^
-                                    -Dsonar.host.url=http://localhost:9000 ^
-                                    -Dsonar.login=sqp_f1faddc336afb599195d7151b784f32e97aadc5f ^
-                                    -Dsonar.projectKey=timesheet-backend ^
-                                    -Dsonar.projectName="TimeSheet Backend" ^
-                                    -Dsonar.sources=src/main/java ^
-                                    -Dsonar.tests=src/test/java ^
-                                    -Dsonar.java.binaries=target/classes ^
-                                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                            '''
+                                """
+                            }
                         }
                     }
                 }
@@ -278,6 +269,7 @@ EOF
                             docker rm -f timesheet-node-exporter || true
                             docker rm -f timesheet-nginx-exporter || true
                             docker rm -f timesheet-sonarqube || true
+                            docker rm -f sonarqube-postgres || true
                             docker rm -f timesheet-nexus || true
                         '''
                         
@@ -301,8 +293,8 @@ EOF
                         sh 'docker-compose build prometheus'
                         
                         // Start services in proper order with delays
-                        echo 'Starting MySQL database...'
-                        sh 'docker-compose up -d mysql'
+                        echo 'Starting MySQL and PostgreSQL databases...'
+                        sh 'docker-compose up -d mysql postgres'
                         
                         // Wait for MySQL with timeout
                         echo 'Waiting for MySQL to be ready...'
@@ -318,7 +310,21 @@ EOF
                             done
                         '''
                         
-                        // Start SonarQube and Nexus (depend on MySQL)
+                        // Wait for PostgreSQL
+                        echo 'Waiting for PostgreSQL to be ready...'
+                        sh '''
+                            echo "Checking PostgreSQL health..."
+                            for i in {1..20}; do
+                                if docker-compose ps postgres | grep -q "healthy"; then
+                                    echo "PostgreSQL is ready!"
+                                    break
+                                fi
+                                echo "Waiting for PostgreSQL... attempt $i/20"
+                                sleep 10
+                            done
+                        '''
+                        
+                        // Start SonarQube and Nexus (depend on databases)
                         echo 'Starting SonarQube and Nexus services...'
                         sh 'docker-compose up -d sonarqube nexus'
                         
@@ -368,6 +374,16 @@ EOF
                             fi
                             echo "Backend not ready, waiting... attempt $i/5"
                             sleep 10
+                        done
+                        
+                        echo "Checking PostgreSQL..."
+                        for i in {1..3}; do
+                            if docker-compose ps postgres | grep -q "healthy"; then
+                                echo "PostgreSQL is healthy!"
+                                break
+                            fi
+                            echo "PostgreSQL not ready, waiting... attempt $i/3"
+                            sleep 5
                         done
                         
                         echo "Checking Prometheus..."

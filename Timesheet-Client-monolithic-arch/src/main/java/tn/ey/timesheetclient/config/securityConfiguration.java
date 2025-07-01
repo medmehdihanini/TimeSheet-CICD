@@ -12,12 +12,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -29,32 +23,18 @@ public class securityConfiguration {
     private final JwtValidationFilter jwtValidationFilter;
     private final AuthenticationProvider authenticationProvider;
     private final AuthExceptionHandler authExceptionHandler;
-    @Bean
-    CorsConfigurationSource corsConfigurationSource(){
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*");
-        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization","content-type","form-data"));
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**",configuration);
-        return source;
-    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> {}) // Enable CORS with default configuration (will use WebMvcConfigurer)
                 .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(jwtValidationFilter,UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(handle -> handle.authenticationEntryPoint(authExceptionHandler) )                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**",
-                                "/ws/**","/chat-socket/**",
-                                "/actuator/**")
+                .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(handle -> handle.authenticationEntryPoint(authExceptionHandler))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/**", "/ws/**", "/chat-socket/**")
                         .permitAll()
-                        .requestMatchers("/api/v1/logs/test-websocket")  // Allow test endpoint
+                        .requestMatchers("/api/v1/logs/test-websocket")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

@@ -1,17 +1,12 @@
 package tn.ey.timesheetclient.profile.model;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import tn.ey.timesheetclient.program.model.ProgramProfile;
-import tn.ey.timesheetclient.program.model.ProjectProfile;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -38,13 +33,8 @@ public class Profile implements Serializable {
     @Column(length = Integer.MAX_VALUE, nullable = true)
     private byte[] image;
 
-    @Builder.Default
-    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private Set<ProgramProfile> programProfiles = new HashSet<>();
-    @Builder.Default
-    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private Set<ProjectProfile> projectProfiles = new HashSet<>();
+    // Removed bidirectional collections - these will be queried via repositories when needed
+    // This eliminates the circular dependency: Profile -> ProgramProfile -> Program -> ProgramProfile -> Profile
+    // and Profile -> ProjectProfile -> Project -> ProjectProfile -> Profile
 
 }
