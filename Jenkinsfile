@@ -90,7 +90,7 @@ pipeline {
                                 echo "Checking SonarQube availability..."
                                 sleep 10
                                 echo "Attempting SonarQube connection..."
-                                curl -f http://localhost:9000/api/system/status --connect-timeout 10 || echo "SonarQube check failed, continuing anyway..."
+                                curl -f http://sonarqube:9000/api/system/status --connect-timeout 10 || echo "SonarQube check failed, continuing anyway..."
                             '''
                             
                             // Run SonarQube analysis with simplified command
@@ -100,7 +100,7 @@ pipeline {
                                     ./mvnw sonar:sonar \\
                                       -Dsonar.projectKey=TimeSheet \\
                                       -Dsonar.projectName="TimeSheet" \\
-                                      -Dsonar.host.url=http://localhost:9000 \\
+                                      -Dsonar.host.url=http://sonarqube:9000 \\
                                       -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f
                                 '''
                             } else {
@@ -108,7 +108,7 @@ pipeline {
                                     .\\mvnw.cmd sonar:sonar ^
                                       -Dsonar.projectKey=TimeSheet ^
                                       -Dsonar.projectName="TimeSheet" ^
-                                      -Dsonar.host.url=http://localhost:9000 ^
+                                      -Dsonar.host.url=http://sonarqube:9000 ^
                                       -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f
                                 '''
                             }
@@ -140,7 +140,7 @@ pipeline {
                             sh '''
                                 echo "Waiting for Nexus to be ready..."
                                 for i in {1..15}; do
-                                    if curl -f http://localhost:8081/service/rest/v1/status --connect-timeout 10 >/dev/null 2>&1; then
+                                    if curl -f http://nexus:8081/service/rest/v1/status --connect-timeout 10 >/dev/null 2>&1; then
                                         echo "Nexus is ready!"
                                         break
                                     fi
@@ -154,13 +154,13 @@ pipeline {
                                     chmod +x mvnw
                                     ./mvnw clean deploy -DskipTests \\
                                         -s ../settings.xml \\
-                                        -DaltDeploymentRepository=nexus-snapshots::default::http://localhost:8081/repository/maven-snapshots-timesheet/
+                                        -DaltDeploymentRepository=nexus-snapshots::default::http://nexus:8081/repository/maven-snapshots-timesheet/
                                 '''
                             } else {
                                 bat '''
                                     .\\mvnw.cmd clean deploy -DskipTests ^
                                         -s ..\\settings.xml ^
-                                        -DaltDeploymentRepository=nexus-snapshots::default::http://localhost:8081/repository/maven-snapshots-timesheet/
+                                        -DaltDeploymentRepository=nexus-snapshots::default::http://nexus:8081/repository/maven-snapshots-timesheet/
                                 '''
                             }
                         } catch (Exception e) {
