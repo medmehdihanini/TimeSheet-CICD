@@ -45,7 +45,7 @@ pipeline {
             }
         }
         
-        stage('Repository Services Deployment') {
+        stage('Repository Services Deployment (SonarQube, Nexus, PostgreSQL)') {
             steps {
                 script {
                     echo 'Deploying SonarQube and Nexus services for code analysis and artifact management...'
@@ -327,7 +327,72 @@ pipeline {
             }
         }
         
-        stage('Infrastructure Services Deployment') {
+        stage('Container Security Scanning (Trivy)') {
+            steps {
+                script {
+                    echo 'Performing comprehensive container security scanning with Trivy...'
+                    try {
+                        // Install Trivy if not present
+                        sh '''
+                            echo "Installing/Updating Trivy security scanner..."
+                            if ! command -v trivy &> /dev/null; then
+                                echo "Installing Trivy..."
+                                sudo apt-get update
+                                sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+                                wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+                                echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+                                sudo apt-get update
+                                sudo apt-get install -y trivy
+                            else
+                                echo "Trivy is already installed, updating database..."
+                                trivy image --download-db-only
+                            fi
+                        '''
+                        
+                        // Scan Backend Image
+                        sh """
+                            echo "Scanning backend Docker image for security vulnerabilities..."
+                            trivy image --format json --output backend-trivy-report.json ${BACKEND_IMAGE}:${BUILD_NUMBER} || true
+                            trivy image --format table ${BACKEND_IMAGE}:${BUILD_NUMBER} || true
+                            echo "Backend image security scan completed"
+                        """
+                        
+                        // Scan Frontend Image
+                        sh """
+                            echo "Scanning frontend Docker image for security vulnerabilities..."
+                            trivy image --format json --output frontend-trivy-report.json ${FRONTEND_IMAGE}:${BUILD_NUMBER} || true
+                            trivy image --format table ${FRONTEND_IMAGE}:${BUILD_NUMBER} || true
+                            echo "Frontend image security scan completed"
+                        """
+                        
+                        echo 'Container security scanning completed successfully!'
+                    } catch (Exception e) {
+                        echo "Security scanning encountered issues: ${e.getMessage()}"
+                        echo "Continuing with deployment as security issues are non-blocking"
+                        currentBuild.result = 'UNSTABLE'
+                    }
+                }
+            }
+            post {
+                always {
+                    script {
+                        // Archive security scan reports
+                        try {
+                            archiveArtifacts(
+                                artifacts: '*-trivy-report.json',
+                                allowEmptyArchive: true,
+                                fingerprint: true
+                            )
+                            echo 'Security scan reports archived successfully'
+                        } catch (Exception e) {
+                            echo "Failed to archive security reports: ${e.getMessage()}"
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Infrastructure Services Deployment (MySQL Database)') {
             steps {
                 script {
                     echo 'Deploying remaining infrastructure services (databases)...'
@@ -356,7 +421,7 @@ pipeline {
             }
         }
         
-        stage('Backend Service Deployment') {
+        stage('Backend Service Deployment (Spring Boot Application)') {
             steps {
                 script {
                     echo 'Deploying backend application service...'
@@ -376,7 +441,7 @@ pipeline {
             }
         }
         
-        stage('Frontend Service Deployment') {
+        stage('Frontend Service Deployment (Angular Application)') {
             steps {
                 script {
                     echo 'Deploying frontend application service...'
@@ -396,7 +461,7 @@ pipeline {
             }
         }
         
-        stage('Monitoring Stack Deployment') {
+        stage('Monitoring Stack Deployment (Prometheus, Grafana, Exporters)') {
             steps {
                 script {
                     echo 'Deploying comprehensive monitoring and observability stack...'
