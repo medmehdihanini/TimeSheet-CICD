@@ -17,7 +17,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw  # Docker socket with read-write permissions
       - ./monitoring:/var/jenkins_home/monitoring:ro  # Mount only monitoring files
     networks:
-      - jenkins-network
+      - timesheet-cicd_timesheet-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
@@ -29,5 +29,5 @@ volumes:
   jenkins_data:
 
 networks:
-  jenkins-network:
-    driver: bridge
+  timesheet-cicd_timesheet-network:
+    external: true
