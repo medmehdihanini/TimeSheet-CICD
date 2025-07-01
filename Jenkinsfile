@@ -22,30 +22,13 @@ pipeline {
                 dir('Timesheet-Client-monolithic-arch') {
                     script {
                         echo 'Running unit tests with JaCoCo coverage...'
-                        try {
-                            if (isUnix()) {
-                                sh 'chmod +x mvnw'
-                                sh './mvnw clean test jacoco:report'
-                            } else {
-                                bat '.\\mvnw.cmd clean test jacoco:report'
-                            }
-                            echo 'Unit tests completed successfully!'
-                        } catch (Exception e) {
-                            echo "Unit tests execution failed: ${e.getMessage()}"
-                            currentBuild.result = 'FAILURE'
-                            error("Unit tests failed: ${e.getMessage()}")
-                        }
-                        
-                        echo 'Checking test results...'
-                        // List files to debug
                         if (isUnix()) {
-                            sh 'find target -name "*.xml" -o -name "*.html" | head -10 || true'
-                            sh 'ls -la target/surefire-reports/ || echo "No surefire-reports directory"'
-                            sh 'ls -la target/site/jacoco/ || echo "No jacoco directory"'
+                            sh 'chmod +x mvnw'
+                            sh './mvnw clean test jacoco:report'
                         } else {
-                            bat 'dir target\\surefire-reports\\ || echo "No surefire-reports directory"'
-                            bat 'dir target\\site\\jacoco\\ || echo "No jacoco directory"'
+                            bat '.\\mvnw.cmd clean test jacoco:report'
                         }
+                        echo 'Unit tests completed successfully!'
                     }
                 }
             }
@@ -54,29 +37,23 @@ pipeline {
                     script {
                         echo 'Publishing test results and coverage reports...'
                         
-                        // Publish test results with better error handling
+                        // Use the junit step instead of publishTestResults
                         try {
-                            // Direct publish - files clearly exist based on debug output
-                            publishTestResults(
-                                testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/TEST-*.xml',
-                                allowEmptyResults: false
-                            )
-                            echo 'Test results published successfully'
+                            junit 'Timesheet-Client-monolithic-arch/target/surefire-reports/TEST-*.xml'
+                            echo 'Test results published with junit step'
                         } catch (Exception e) {
-                            echo "Warning: Could not publish test results: ${e.getMessage()}"
-                            // Try alternative pattern
+                            echo "junit step failed: ${e.getMessage()}"
+                            // Try the original publishTestResults as fallback
                             try {
-                                publishTestResults(
-                                    testResultsPattern: 'Timesheet-Client-monolithic-arch/target/surefire-reports/*.xml',
-                                    allowEmptyResults: true
-                                )
-                                echo 'Test results published with alternative pattern'
+                                publishTestResults 'Timesheet-Client-monolithic-arch/target/surefire-reports/TEST-*.xml'
+                                echo 'Test results published with publishTestResults'
                             } catch (Exception e2) {
-                                echo "Warning: Alternative test result publishing also failed: ${e2.getMessage()}"
+                                echo "publishTestResults also failed: ${e2.getMessage()}"
+                                // Don't fail the build
                             }
                         }
                         
-                        // Publish JaCoCo coverage report with better error handling
+                        // Publish JaCoCo coverage report
                         try {
                             publishHTML([
                                 allowMissing: false,
@@ -88,21 +65,15 @@ pipeline {
                             ])
                             echo 'JaCoCo coverage report published successfully'
                         } catch (Exception e) {
-                            echo "Warning: Could not publish JaCoCo report: ${e.getMessage()}"
-                            // Don't fail the build for this
+                            echo "JaCoCo publishing failed: ${e.getMessage()}"
                         }
                         
                         // Archive artifacts for debugging
-                        try {
-                            archiveArtifacts(
-                                artifacts: 'Timesheet-Client-monolithic-arch/target/surefire-reports/**,Timesheet-Client-monolithic-arch/target/site/jacoco/**',
-                                allowEmptyArchive: true,
-                                fingerprint: false
-                            )
-                            echo 'Test artifacts archived successfully'
-                        } catch (Exception e) {
-                            echo "Warning: Could not archive artifacts: ${e.getMessage()}"
-                        }
+                        archiveArtifacts(
+                            artifacts: 'Timesheet-Client-monolithic-arch/target/surefire-reports/**,Timesheet-Client-monolithic-arch/target/site/jacoco/**',
+                            allowEmptyArchive: true
+                        )
+                        echo 'Artifacts archived'
                     }
                 }
             }
