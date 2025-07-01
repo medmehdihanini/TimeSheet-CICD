@@ -124,13 +124,6 @@ pipeline {
         }
 
         stage('Deploy to Nexus') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                    branch 'develop'
-                }
-            }
             steps {
                 dir('Timesheet-Client-monolithic-arch') {
                     script {
