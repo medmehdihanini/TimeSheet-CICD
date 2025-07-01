@@ -85,40 +85,61 @@ pipeline {
                     script {
                         echo 'Running SonarQube code quality analysis...'
                         try {
-                            // Wait for SonarQube to be available
+                            // Wait for SonarQube to be available with better check
                             sh '''
                                 echo "Waiting for SonarQube to be ready..."
-                                for i in {1..30}; do
-                                    if curl -f http://localhost:9000/api/system/status --connect-timeout 5 >/dev/null 2>&1; then
+                                for i in {1..60}; do
+                                    if curl -f http://localhost:9000/api/system/health --connect-timeout 5 >/dev/null 2>&1; then
                                         echo "SonarQube is ready!"
                                         break
+                                    elif curl -f http://localhost:9000/api/system/status --connect-timeout 5 >/dev/null 2>&1; then
+                                        echo "SonarQube is responding but not fully ready..."
+                                    else
+                                        echo "SonarQube not ready, waiting... attempt $i/60"
                                     fi
-                                    echo "SonarQube not ready, waiting... attempt $i/30"
                                     sleep 10
                                 done
+                                
+                                # Final check before analysis
+                                echo "Testing SonarQube connection..."
+                                curl -f http://localhost:9000/api/system/status --connect-timeout 10
                             '''
                             
-                            // Run SonarQube analysis
+                            // Run SonarQube analysis with better parameters
                             if (isUnix()) {
                                 sh '''
                                     chmod +x mvnw
-                                    ./mvnw sonar:sonar \\
+                                    ./mvnw clean compile test-compile sonar:sonar \\
                                       -Dsonar.projectKey=TimeSheet \\
-                                      -Dsonar.projectName='TimeSheet' \\
+                                      -Dsonar.projectName="TimeSheet" \\
                                       -Dsonar.host.url=http://localhost:9000 \\
-                                      -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f
+                                      -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f \\
+                                      -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \\
+                                      -Dsonar.junit.reportPaths=target/surefire-reports \\
+                                      -Dsonar.sources=src/main/java \\
+                                      -Dsonar.tests=src/test/java \\
+                                      -Dsonar.java.binaries=target/classes \\
+                                      -Dsonar.java.test.binaries=target/test-classes
                                 '''
                             } else {
                                 bat '''
-                                    .\\mvnw.cmd sonar:sonar ^
+                                    .\\mvnw.cmd clean compile test-compile sonar:sonar ^
                                       -Dsonar.projectKey=TimeSheet ^
                                       -Dsonar.projectName="TimeSheet" ^
                                       -Dsonar.host.url=http://localhost:9000 ^
-                                      -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f
+                                      -Dsonar.token=sqp_f1faddc336afb599195d7151b784f32e97aadc5f ^
+                                      -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml ^
+                                      -Dsonar.junit.reportPaths=target/surefire-reports ^
+                                      -Dsonar.sources=src/main/java ^
+                                      -Dsonar.tests=src/test/java ^
+                                      -Dsonar.java.binaries=target/classes ^
+                                      -Dsonar.java.test.binaries=target/test-classes
                                 '''
                             }
+                            echo 'SonarQube analysis completed successfully!'
                         } catch (Exception e) {
                             echo "SonarQube analysis failed: ${e.getMessage()}"
+                            echo "This might be expected if SonarQube is not fully ready"
                             currentBuild.result = 'UNSTABLE'
                         }
                     }
