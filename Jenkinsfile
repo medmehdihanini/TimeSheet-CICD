@@ -1,5 +1,5 @@
 /**
- * Jenkins CI/CD Pipeline for TimeSheet Application
+ * Jenkins Pipeline for TimeSheet Application
  * 
  * This pipeline orchestrates the complete DevOps lifecycle including:
  * - Source code management and validation
@@ -27,6 +27,7 @@ pipeline {
         // Application Configuration
         APPLICATION_NAME = 'TimeSheet'
         MAVEN_OPTS = '-Dmaven.repo.local=/var/jenkins_home/.m2/repository'
+    }
     }
     
     stages {
@@ -587,20 +588,22 @@ pipeline {
             }
         }
         success {
-            echo '''
-            ========================================
-               PIPELINE EXECUTION SUCCESSFUL     
-            ========================================
-            
-            All stages completed successfully
-            Application endpoints:
-               • Backend:    http://localhost:8083
-               • Frontend:   http://localhost:4200
-               • SonarQube:  http://localhost:9000
-               • Nexus:      http://localhost:8081
-               • Grafana:    http://localhost:3000
-               • Prometheus: http://localhost:9090
-            '''
+            script {
+                echo '''
+                ========================================
+                   PIPELINE EXECUTION SUCCESSFUL     
+                ========================================
+                
+                All stages completed successfully
+                Application endpoints:
+                   • Backend:    http://localhost:8083
+                   • Frontend:   http://localhost:4200
+                   • SonarQube:  http://localhost:9000
+                   • Nexus:      http://localhost:8081
+                   • Grafana:    http://localhost:3000
+                   • Prometheus: http://localhost:9090
+                '''
+            }
         }
         failure {
             script {
@@ -620,14 +623,16 @@ pipeline {
             }
         }
         unstable {
-            echo '''
-            ========================================
-               PIPELINE COMPLETED WITH WARNINGS  
-            ========================================
-            
-            Some stages completed with warnings
-            Please review the build logs for details
-            '''
+            script {
+                echo '''
+                ========================================
+                   PIPELINE COMPLETED WITH WARNINGS  
+                ========================================
+                
+                Some stages completed with warnings
+                Please review the build logs for details
+                '''
+            }
         }
     }
 }
