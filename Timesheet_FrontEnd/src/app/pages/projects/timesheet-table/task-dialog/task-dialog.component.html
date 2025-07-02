@@ -1,3 +1,4 @@
+<div class="task-dialog-container">
 <h2 mat-dialog-title class="modal-header">
   <strong>{{ isUpdateMode ? 'Mettre à jour l\'activité' : 'Ajouter une activité' }}</strong>
 </h2>
@@ -73,10 +74,10 @@
         <button
           type="button"
           class="mode-btn"
-          [class.active]="inputMode === 'dictionary'"
-          (click)="onInputModeChange('dictionary')">
-          <mat-icon>list</mat-icon>
-          Dictionnaire
+          [class.active]="inputMode === 'suggestions'"
+          (click)="onInputModeChange('suggestions')">
+          <mat-icon>auto_awesome</mat-icon>
+          Suggestions IA
         </button>
       </div>
 
@@ -95,104 +96,77 @@
         </div>
       </div>
 
-      <!-- Dictionary Mode -->
-      <div class="dictionary-container" *ngIf="inputMode === 'dictionary'">
-        <!-- Category and Activity Selection - Compact Row -->
-        <div class="dictionary-header">
-          <!-- Category Selection -->
-          <div class="category-section">
-            <label>Catégorie</label>
-            <select
-              class="form-input compact"
-              formControlName="selectedCategory">
-              <option [ngValue]="null">Sélectionnez une catégorie</option>
-              <option *ngFor="let category of categories" [ngValue]="category">
-                {{category.name}}
-              </option>
-            </select>
-          </div>
-
-          <!-- Quick Add Activity Button -->
-          <div class="activity-quick-section" *ngIf="selectedCategory">
-            <button
-              type="button"
-              class="quick-add-btn"
-              [class.active]="isAddingActivity"
-              (click)="toggleAddActivity()"
-              matTooltip="Ajouter une nouvelle activité">
-              <mat-icon>{{isAddingActivity ? 'close' : 'add'}}</mat-icon>
-              <span>{{isAddingActivity ? 'Annuler' : 'Nouvelle activité'}}</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Add New Activity Form -->
-        <div class="add-activity-form" *ngIf="isAddingActivity">
-          <div class="add-activity-input">
-            <input
-              type="text"
-              class="form-input"
-              formControlName="newActivityDescription"
-              placeholder="Description de la nouvelle activité"
-              (keyup.enter)="addNewActivity()">
-            <button
-              type="button"
-              class="submit-activity-btn"
-              (click)="addNewActivity()"
-              [disabled]="!addTaskForm.get('newActivityDescription')?.value?.trim()">
-              <mat-icon>check</mat-icon>
-            </button>
-          </div>
-        </div>
-
-        <!-- Activity List Section - Compact -->
-        <div class="activity-list-section" *ngIf="selectedCategory && !isAddingActivity">
-          <!-- Loading State -->
-          <div class="loading-activities" *ngIf="isLoadingActivities">
-            <mat-icon>hourglass_empty</mat-icon>
-            <span>Chargement...</span>
-          </div>
-
-          <!-- Activity List -->
-          <div class="activity-list compact" *ngIf="!isLoadingActivities && activities.length > 0">
-            <div class="activity-instruction">
-              <mat-icon>info</mat-icon>
-              <span>Double-cliquez pour sélectionner</span>
+      <!-- AI Suggestions Mode -->
+      <div class="suggestions-container" *ngIf="inputMode === 'suggestions'">
+        <!-- Project Context Display -->
+        <div class="project-context" *ngIf="project">
+          <div class="project-info">
+            <div class="project-name">
+              <mat-icon>folder</mat-icon>
+              <span>{{ project.name }}</span>
             </div>
-            <div class="activity-items">
-              <div class="activity-item"
-                   *ngFor="let activity of activities"
-                   [title]="'Double-cliquez pour sélectionner: ' + activity.description">
-                <div class="activity-description" (dblclick)="onActivitySelected(activity)">{{activity.description}}</div>
-                <button class="delete-activity-btn"
-                        (click)="deleteActivity(activity)"
-                        [title]="'Supprimer cette activité'"
-                        type="button">
-                  <mat-icon>delete_outline</mat-icon>
-                </button>
+            <div class="project-description" *ngIf="project.description">
+              <span>{{ project.description }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-suggestions" *ngIf="isLoadingSuggestions">
+          <mat-icon class="spin-icon">hourglass_empty</mat-icon>
+          <span>Génération de suggestions intelligentes...</span>
+        </div>
+
+        <!-- Suggestions List -->
+        <div class="suggestions-list" *ngIf="!isLoadingSuggestions && showSuggestions && suggestions.length > 0">
+          <div class="suggestions-header">
+            <div class="suggestions-title">
+              <mat-icon>lightbulb</mat-icon>
+              <span>Suggestions de tâches</span>
+            </div>
+            <button
+              type="button"
+              class="refresh-btn"
+              (click)="refreshSuggestions()"
+              matTooltip="Générer de nouvelles suggestions">
+              <mat-icon>refresh</mat-icon>
+            </button>
+          </div>
+          <div class="suggestions-items">
+            <div
+              class="suggestion-item"
+              *ngFor="let suggestion of suggestions; let i = index"
+              (click)="selectSuggestion(suggestion)"
+              [attr.data-index]="i">
+              <div class="suggestion-content">
+                <div class="suggestion-text">{{ suggestion.task_text }}</div>
+                <div class="suggestion-action">
+                  <mat-icon>add_circle</mat-icon>
+                  <span>Sélectionner</span>
+                </div>
               </div>
             </div>
           </div>
-
-          <!-- No Activities Message -->
-          <div class="no-activities compact" *ngIf="!isLoadingActivities && activities.length === 0">
-            <mat-icon>inbox</mat-icon>
-            <p>Aucune activité pour "{{selectedCategory.name}}"</p>
-            <button type="button" class="btn-add-first" (click)="toggleAddActivity()">
-              <mat-icon>add</mat-icon>
-              Ajouter une activité
-            </button>
-          </div>
         </div>
 
-        <!-- Final Description - Compact -->
-        <div class="final-description compact">
+        <!-- No Suggestions Message -->
+        <div class="no-suggestions" *ngIf="!isLoadingSuggestions && showSuggestions && suggestions.length === 0">
+          <mat-icon>sentiment_neutral</mat-icon>
+          <p>Aucune suggestion disponible pour ce projet</p>
+          <button type="button" class="btn-retry" (click)="refreshSuggestions()">
+            <mat-icon>refresh</mat-icon>
+            Réessayer
+          </button>
+        </div>
+
+        <!-- Final Description Field -->
+        <div class="final-description">
           <label>Description finale</label>
           <textarea
-            class="form-input compact"
+            class="form-input"
             formControlName="text"
-            placeholder="Description automatiquement remplie ou modifiable"
-            rows="2"
+            placeholder="Sélectionnez une suggestion ci-dessus ou saisissez votre texte"
+            rows="3"
           ></textarea>
           <div class="error-container" *ngIf="addTaskForm.get('text')?.touched">
             <div class="error-message" *ngIf="addTaskForm.get('text')?.hasError('required')">
@@ -219,4 +193,5 @@
       {{ isUpdateMode ? 'Mettre à jour' : 'Ajouter' }}
     </button>
   </div>
+</div>
 </div>

@@ -791,7 +791,10 @@ updateTimesheetData(): void {
     }
 
     const dialogRef = this.dialog.open(TaskDialogComponent, {
-      width: '500px',
+      width: '800px',
+      maxWidth: '90vw',
+      height: 'auto',
+      maxHeight: '90vh',
       data: {
         profileId: this.profileId,
         projectId: this.projectId,
@@ -809,7 +812,10 @@ updateTimesheetData(): void {
 
   openUpdateModal(rowData: PeriodicElement) {
     const dialogRef = this.dialog.open(TaskDialogComponent, {
-      width: '500px',
+      width: '800px',
+      maxWidth: '90vw',
+      height: 'auto',
+      maxHeight: '90vh',
       data: {
         profileId: this.profileId,
         projectId: this.projectId,

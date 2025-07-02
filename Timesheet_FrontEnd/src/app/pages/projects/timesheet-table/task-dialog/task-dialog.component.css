@@ -19,21 +19,22 @@
 
 /* Modal Content */
 .modal-content {
-  padding: 1.5rem !important;
+  padding: 2rem !important;
   margin: 0 !important;
-  max-height: 80vh !important;
+  max-height: 85vh !important;
   background: #fff;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
-/* Form Container */
+/* Form Container - Enhanced spacing */
 .form-container {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
   width: 100%;
   box-sizing: border-box;
 }
@@ -65,7 +66,7 @@
   min-width: 0; /* Prevent flex items from overflowing */
 }
 
-/* Form Groups */
+/* Form Groups - Borderless labels */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -77,16 +78,17 @@
 
 .form-group label {
   color: #333;
-  font-weight: 500;
-  font-size: 0.85rem;
+  font-weight: 600;
+  font-size: 0.95rem;
   margin: 0;
+  border: none;
 }
 
 .main-label {
   color: #333;
-  font-weight: 600;
-  font-size: 0.95rem !important;
-  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: 1.1rem !important;
+  margin-bottom: 0.75rem;
 }
 
 /* Input Container */
@@ -96,32 +98,33 @@
   box-sizing: border-box;
 }
 
-/* Input Styling */
+/* Input Styling - Completely borderless */
 .form-input {
   width: 100%;
-  padding: 0.65rem 0.85rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
   transition: all 0.3s ease;
   background: white;
   box-sizing: border-box;
   min-width: 0; /* Prevent overflow */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .form-input:focus {
   outline: none;
   border-color: #FFE600;
-  box-shadow: 0 0 0 3px rgba(255, 230, 0, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 230, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .form-input:hover {
-  border-color: #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .form-input::placeholder {
-  color: #999;
-  font-size: 0.85rem;
+  color: #6c757d;
+  font-size: 0.95rem;
 }
 
 /* Disabled input styling */
@@ -146,11 +149,12 @@ select.form-input option[disabled] {
   color: #ccc;
 }
 
-/* Textarea styling */
+/* Textarea styling - Updated */
 textarea.form-input {
   resize: vertical;
-  min-height: 80px;
+  min-height: 100px;
   font-family: inherit;
+  line-height: 1.5;
 }
 
 /* Error Container */
@@ -230,7 +234,6 @@ textarea.form-input {
 .btn-cancel {
   background: #f8f9fa;
   color: #666;
-  border: 1px solid #ddd;
 }
 
 .btn-submit {
@@ -306,7 +309,7 @@ textarea.form-input {
   }
 }
 
-/* Input Mode Toggle */
+/* Input Mode Toggle - Borderless */
 .input-mode-toggle {
   display: flex;
   gap: 0.25rem;
@@ -314,7 +317,7 @@ textarea.form-input {
   border-radius: 8px;
   padding: 0.25rem;
   background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  border: none;
   box-sizing: border-box;
   width: 100%;
 }
@@ -370,258 +373,371 @@ textarea.form-input {
   height: 1rem;
 }
 
-/* Dictionary Container - More Compact and Responsive */
-.dictionary-container {
+/* RAG Suggestions Styles - Larger, more readable, borderless */
+.suggestions-container {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: #fafbfc;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-  box-sizing: border-box;
-  width: 100%;
-  overflow: hidden;
-}
-
-/* Dictionary Header - Responsive */
-.dictionary-header {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-end;
+  gap: 1.5rem;
   width: 100%;
   box-sizing: border-box;
+  min-height: 500px; /* Increased minimum height */
 }
 
-/* Responsive Dictionary Header */
-@media (max-width: 768px) {
-  .dictionary-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
-  }
-
-  .dictionary-header .category-section {
-    flex: none;
-  }
-
-  .dictionary-header .activity-quick-section {
-    flex: none;
-  }
+/* Project Context Display - Updated */
+.project-context {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.dictionary-header .category-section {
-  flex: 2;
-  min-width: 0;
-}
-
-.dictionary-header .activity-quick-section {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  min-width: 0;
-}
-
-/* Category Section */
-.category-section {
+.project-info {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.category-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.category-header label {
-  margin: 0;
-  color: #333;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.add-category-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 50%;
-  background: #f8f9fa;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e9ecef;
-}
-
-.add-category-btn:hover {
-  background: #e9ecef;
-  color: #333;
-}
-
-.add-category-btn.active {
-  background: #dc3545;
-  color: white;
-  border-color: #dc3545;
-}
-
-.add-category-btn mat-icon {
-  font-size: 1.1rem;
-  width: 1.1rem;
-  height: 1.1rem;
-}
-
-/* Quick Add Button - Compact and Responsive */
-.quick-add-btn {
+.project-name {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  background: #f8f9fa;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.8rem;
-  font-weight: 500;
-  white-space: nowrap;
-  height: 38px;
-  box-sizing: border-box;
-  min-width: 0;
+  font-weight: 600;
+  color: #495057;
+  font-size: 1.1rem;
 }
 
-/* Responsive Quick Add Button */
+.project-name mat-icon {
+  color: #FFE600;
+  font-size: 1.4rem;
+}
+
+.project-description {
+  color: #6c757d;
+  font-size: 1rem;
+  font-style: italic;
+  margin-left: 1.9rem;
+  line-height: 1.4;
+}
+
+/* Loading Suggestions - Updated */
+.loading-suggestions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2.5rem;
+  background-color: #f8f9fa;
+  border: none;
+  border-radius: 12px;
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.loading-suggestions .spin-icon {
+  animation: spin 2s linear infinite;
+  color: #FFE600;
+  font-size: 1.8rem;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Suggestions List - Updated */
+.suggestions-list {
+  border: none;
+  border-radius: 12px;
+  background-color: #fff;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.suggestions-header {
+  background: linear-gradient(135deg, #FFE600 0%, #FFD700 100%);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: none;
+}
+
+.suggestions-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.suggestions-title mat-icon {
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.refresh-btn {
+  background: none;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refresh-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.refresh-btn mat-icon {
+  font-size: 1.4rem;
+}
+
+/* Suggestions Items - Much larger and more readable */
+.suggestions-items {
+  max-height: 600px; /* Increased height significantly */
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  padding: 2rem 1.5rem; /* Much larger padding */
+  border-bottom: 1px solid #f1f3f4;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 80px; /* Increased minimum height */
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(6px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.suggestion-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.suggestion-text {
+  flex: 1;
+  color: #495057;
+  line-height: 1.7; /* Increased line height for better readability */
+  font-size: 1.1rem; /* Larger font size */
+  font-weight: 400;
+  letter-spacing: 0.3px; /* Slight letter spacing for readability */
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.suggestion-action {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #28a745;
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: #28a745;
+  color: white !important;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.suggestion-item:hover .suggestion-action {
+  opacity: 1;
+}
+
+.suggestion-action mat-icon {
+  font-size: 1.2rem;
+}
+
+/* No Suggestions - Updated */
+.no-suggestions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.no-suggestions mat-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  color: #adb5bd;
+}
+
+.no-suggestions p {
+  margin: 0 0 1.5rem 0;
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.btn-retry {
+  background: linear-gradient(135deg, #FFE600 0%, #FFD700 100%);
+  color: #333;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-size: 1rem;
+}
+
+.btn-retry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 230, 0, 0.4);
+}
+
+.btn-retry mat-icon {
+  font-size: 1.2rem;
+}
+
+/* Final Description in Suggestions Mode - Borderless */
+.suggestions-container .final-description {
+  margin-top: 1.5rem;
+}
+
+.suggestions-container .final-description label {
+  color: #333;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  display: block;
+  border: none;
+}
+
+.suggestions-container .final-description textarea {
+  border: none;
+  border-radius: 8px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.suggestions-container .final-description textarea:focus {
+  border: none;
+  box-shadow: 0 0 0 3px rgba(255, 230, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal Dialog Container Override for larger size */
+::ng-deep .mat-mdc-dialog-container,
+::ng-deep .mat-dialog-container {
+  padding: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Enhanced Responsive Styles for Suggestions */
 @media (max-width: 768px) {
-  .quick-add-btn {
-    width: 100%;
-    justify-content: center;
+  .suggestions-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+    padding: 1.25rem;
+  }
+
+  .suggestion-content {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .suggestion-action {
+    opacity: 1;
+    align-self: flex-end;
+  }
+
+  .project-context {
+    padding: 1.25rem;
+  }
+
+  .loading-suggestions {
+    padding: 2rem;
+  }
+
+  .suggestions-items {
+    max-height: 500px; /* Maintain larger height on mobile */
+  }
+
+  .suggestion-item {
+    padding: 1.5rem 1rem; /* Reduce padding slightly for mobile but keep it large */
+    min-height: 60px;
+  }
+
+  .suggestion-text {
+    font-size: 1rem; /* Keep readable size on mobile */
+    line-height: 1.6;
+  }
+
+  .modal-content {
+    padding: 1.5rem !important;
   }
 }
 
 @media (max-width: 576px) {
-  .quick-add-btn span {
-    display: none;
+  .suggestions-items {
+    max-height: 400px; /* Keep reasonable height on smaller screens */
   }
 
-  .quick-add-btn {
-    width: auto;
-    padding: 0.5rem;
-    min-width: 38px;
+  .suggestion-item {
+    padding: 1.25rem 0.75rem; /* Adjust padding for very small screens */
+    min-height: 50px;
+  }
+
+  .suggestion-text {
+    font-size: 0.95rem; /* Slightly smaller but still readable */
+    line-height: 1.5;
+  }
+
+  .project-name {
+    font-size: 1rem;
+  }
+
+  .project-description {
+    font-size: 0.9rem;
+  }
+
+  .modal-content {
+    padding: 1rem !important;
   }
 }
 
-.quick-add-btn:hover {
-  background: #e9ecef;
-  color: #333;
-  border-color: #ddd;
-}
-
-.quick-add-btn.active {
-  background: #dc3545;
-  color: white;
-  border-color: #dc3545;
-}
-
-.quick-add-btn mat-icon {
-  font-size: 0.9rem;
-  width: 0.9rem;
-  height: 0.9rem;
-}
-
-/* Compact Form Inputs */
-.form-input.compact {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.85rem;
-}
-
-/* Activity List Section - Compact and Responsive */
-.activity-list-section {
-  margin-top: 0.75rem;
-  width: 100%;
+/* Additional Global Responsive Rules - No borders */
+.task-dialog-container * {
   box-sizing: border-box;
-  overflow: hidden;
-}
-
-.activity-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  background: white;
-  box-sizing: border-box;
-  width: 100%;
-}
-
-/* Activity List - Compact Version */
-.activity-list.compact {
-  max-height: 220px;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.activity-list.compact .activity-instruction {
-  padding: 0.4rem 0.75rem;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-  font-size: 0.8rem;
-  color: #555;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-sizing: border-box;
-  width: 100%;
-  font-weight: 500;
-}
-
-.activity-list.compact .activity-instruction mat-icon {
-  font-size: 1rem;
-  width: 1rem;
-  height: 1rem;
-}
-
-/* Activity Section */
-.activity-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.activity-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.activity-header label {
-  margin: 0;
-  color: #333;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.add-activity-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 50%;
-  background: #f8f9fa;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e9ecef;
 }
 
 .add-activity-btn:hover {
@@ -641,13 +757,13 @@ textarea.form-input {
   height: 1.1rem;
 }
 
-/* Add Activity Form - Responsive */
+/* Add Activity Form - Borderless */
 .add-activity-form {
   animation: slideDown 0.3s ease;
   background: #f8f9fa;
   padding: 1rem;
   border-radius: 6px;
-  border: 1px solid #e9ecef;
+  border: none;
   margin-bottom: 1rem;
   box-sizing: border-box;
   width: 100%;
@@ -717,18 +833,19 @@ textarea.form-input {
   height: 1rem;
 }
 
-/* Activity List - Responsive */
+/* Activity List - Borderless */
 .activity-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   max-height: 180px;
   overflow-y: auto;
-  border: 1px solid #e9ecef;
+  border: none;
   border-radius: 6px;
   background: white;
   box-sizing: border-box;
   width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .activity-item {
@@ -821,16 +938,17 @@ textarea.form-input {
   background: #f8f9fa;
 }
 
-/* No Activities - Responsive */
+/* No Activities - Borderless */
 .no-activities {
   text-align: center;
   padding: 1.5rem 1rem;
   color: #666;
   background: #f8f9fa;
   border-radius: 6px;
-  border: 1px dashed #ddd;
+  border: none;
   box-sizing: border-box;
   width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .no-activities mat-icon {
@@ -875,13 +993,13 @@ textarea.form-input {
   height: 1rem;
 }
 
-/* Final Description - Responsive */
+/* Final Description - Borderless */
 .final-description {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
+  border-top: none;
   width: 100%;
   box-sizing: border-box;
 }
@@ -919,7 +1037,7 @@ textarea.form-input {
   background: #ccc;
 }
 
-/* Loading Activities - Responsive */
+/* Loading Activities - Borderless */
 .loading-activities {
   display: flex;
   align-items: center;
@@ -930,10 +1048,11 @@ textarea.form-input {
   font-style: italic;
   background: #f8f9fa;
   border-radius: 6px;
-  border: 1px solid #e9ecef;
+  border: none;
   font-size: 0.85rem;
   box-sizing: border-box;
   width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .loading-activities mat-icon {
@@ -1082,3 +1201,100 @@ select, input, textarea {
     border: 1px solid #ccc;
   }
 }
+
+/* ===== COMPREHENSIVE BORDERLESS STYLES ===== */
+
+/* Task Dialog Container - Scoped styles */
+.task-dialog-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Remove ALL borders from form elements */
+.task-dialog-container input,
+.task-dialog-container textarea,
+.task-dialog-container select,
+.task-dialog-container button,
+.task-dialog-container label,
+.task-dialog-container .form-input,
+.task-dialog-container .btn,
+.task-dialog-container .mode-btn {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Override Angular Material input borders */
+.task-dialog-container ::ng-deep .mat-form-field,
+.task-dialog-container ::ng-deep .mat-input-element,
+.task-dialog-container ::ng-deep .mat-form-field-wrapper,
+.task-dialog-container ::ng-deep .mat-form-field-underline,
+.task-dialog-container ::ng-deep .mat-form-field-ripple {
+  border: none !important;
+}
+
+/* Ensure all interactive elements have proper focus styles without borders */
+.task-dialog-container input:focus,
+.task-dialog-container textarea:focus,
+.task-dialog-container select:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(255, 230, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Button hover states without borders */
+.task-dialog-container .btn:hover,
+.task-dialog-container .mode-btn:hover {
+  border: none !important;
+}
+
+/* ===== END BORDERLESS STYLES ===== */
+
+/* ===== ENHANCED SUGGESTION READABILITY ===== */
+
+/* Make suggestion text more prominent */
+.task-dialog-container .suggestion-text {
+  font-weight: 400;
+  color: #2c3e50;
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Highlight suggestion on hover with better visual feedback */
+.task-dialog-container .suggestion-item:hover .suggestion-text {
+  background-color: #fff3cd;
+  color: #856404;
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+}
+
+/* Make the suggestion action more visible */
+.task-dialog-container .suggestion-action {
+  background: #28a745;
+  color: white !important;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.task-dialog-container .suggestion-action:hover {
+  background: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+}
+
+/* Enhance the suggestions container visual hierarchy */
+.task-dialog-container .suggestions-container {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: none !important;
+}
+
+/* ===== END ENHANCED SUGGESTION READABILITY ===== */
