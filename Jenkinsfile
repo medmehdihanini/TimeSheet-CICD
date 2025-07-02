@@ -28,7 +28,6 @@ pipeline {
         APPLICATION_NAME = 'TimeSheet'
         MAVEN_OPTS = '-Dmaven.repo.local=/var/jenkins_home/.m2/repository'
     }
-    }
     
     stages {
         stage('Source Code Checkout') {
@@ -635,4 +634,5 @@ pipeline {
             }
         }
     }
+}
 
