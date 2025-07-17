@@ -1,0 +1,373 @@
+// EY Brand Colors
+$ey-black: #333333;
+$ey-yellow: #ffe600;
+$ey-white: #ffffff;
+$ey-light-gray: #cccccc;
+$ey-gray: #999999;
+
+.my-timesheets-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+}
+
+// Header Section
+.header-section {
+  margin-bottom: 32px;
+
+  .page-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 2rem;
+    font-weight: 600;
+    color: $ey-black;
+    margin: 0 0 8px 0;
+
+    mat-icon {
+      font-size: 2rem;
+      width: 32px;
+      height: 32px;
+      color: $ey-yellow;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+
+      mat-icon {
+        font-size: 1.5rem;
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+
+  .page-subtitle {
+    color: $ey-gray;
+    font-size: 1rem;
+    margin: 0;
+  }
+}
+
+// Filters Section
+.filters-section {
+  margin-bottom: 24px;
+
+  .filter-card {
+    border: 1px solid $ey-light-gray;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .filter-form {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .filter-field {
+        min-width: 150px;
+
+        @media (max-width: 768px) {
+          min-width: auto;
+        }
+
+        ::ng-deep {
+          .mat-mdc-form-field-outline {
+            color: $ey-light-gray;
+          }
+
+          .mat-mdc-form-field-outline-thick {
+            color: $ey-yellow;
+          }
+
+          .mat-mdc-select-value {
+            color: $ey-black;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Loading Container
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 0;
+  gap: 16px;
+
+  mat-spinner {
+    ::ng-deep circle {
+      stroke: $ey-yellow;
+    }
+  }
+
+  p {
+    color: $ey-gray;
+    font-size: 1rem;
+  }
+}
+
+// Timesheets Grid
+.timesheets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 24px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Empty State
+.no-timesheets {
+  grid-column: 1 / -1;
+
+  .empty-state-card {
+    text-align: center;
+    padding: 48px 24px;
+    border: 2px dashed $ey-light-gray;
+    background-color: #fafafa;
+
+    .empty-icon {
+      font-size: 4rem;
+      width: 64px;
+      height: 64px;
+      color: $ey-gray;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      color: $ey-black;
+      margin: 0 0 8px 0;
+    }
+
+    p {
+      color: $ey-gray;
+      margin: 0;
+    }
+  }
+}
+
+// Timesheet Cards
+.timesheet-card {
+  border: 1px solid $ey-light-gray;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    border-color: $ey-yellow;
+  }
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background-color: $ey-yellow;
+  }
+
+  &[data-status="approved"]:before {
+    background-color: $ey-black;
+  }
+
+  &[data-status="rejected"]:before {
+    background-color: #ff4444;
+  }
+
+  &[data-status="draft"]:before {
+    background-color: $ey-gray;
+  }
+
+  .card-title {
+    .project-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+
+      .project-name-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+
+        .project-icon {
+          font-size: 1.25rem;
+          width: 20px;
+          height: 20px;
+          color: $ey-yellow;
+        }
+
+        .project-label {
+          font-size: 1rem;
+          font-weight: 500;
+          color: $ey-gray;
+          margin-right: 4px;
+        }
+
+        .project-name {
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: $ey-black;
+          line-height: 1.4;
+        }
+      }
+
+      .status-chip {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 16px;
+        text-transform: uppercase;
+
+        .status-icon {
+          font-size: 1rem;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+
+  .card-subtitle {
+    .program-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: $ey-gray;
+      font-size: 0.875rem;
+
+      .info-icon {
+        font-size: 1rem;
+        width: 16px;
+        height: 16px;
+      }
+
+      .program-label {
+        font-weight: 500;
+        color: $ey-gray;
+        margin-right: 4px;
+      }
+    }
+  }
+
+  .card-content {
+    padding-top: 16px;
+
+    .timesheet-details {
+      .detail-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 0.875rem;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .detail-icon {
+          font-size: 1rem;
+          width: 16px;
+          height: 16px;
+          color: $ey-yellow;
+        }
+
+        .detail-label {
+          font-weight: 500;
+          color: $ey-gray;
+          min-width: 80px;
+        }
+
+        .detail-value {
+          color: $ey-black;
+          font-weight: 400;
+        }
+      }
+    }
+  }
+
+  .card-actions {
+    padding: 16px;
+    border-top: 1px solid #f0f0f0;
+
+    .view-button {
+      width: 100%;
+      border-color: $ey-yellow;
+      color: $ey-black;
+
+      &:hover {
+        background-color: $ey-yellow;
+        color: $ey-black;
+      }
+
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 480px) {
+  .timesheet-card {
+    .card-title .project-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .card-content .timesheet-details .detail-row {
+      flex-wrap: wrap;
+
+      .detail-label {
+        min-width: auto;
+      }
+    }
+  }
+}
+
+// Material Design Overrides
+::ng-deep {
+  .mat-mdc-card {
+    --mdc-elevated-card-container-color: #{$ey-white};
+  }
+
+  .mat-mdc-select-panel {
+    border: 1px solid $ey-light-gray;
+  }
+
+  .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+    background-color: rgba(255, 230, 0, 0.1);
+  }
+
+  .mat-mdc-chip.mat-mdc-standard-chip {
+    --mdc-chip-label-text-color: currentColor;
+  }
+}

@@ -18,7 +18,6 @@ import { UserserviceService } from "../../services/user/userservice.service";
 import { Notification, NotificationStatus } from '../../models/Notification';
 import { Observable } from 'rxjs';
 import { ChatContainerComponent } from '../chat/chat-container.component';
-
 @Component({
   selector: 'app-layouts',
   templateUrl: './layouts.component.html',
@@ -51,7 +50,7 @@ export class LayoutsComponent implements OnInit, OnDestroy {
   constructor(
     private notificationService: NotificationService,
     private userSerice: UserserviceService,
-    private router: Router
+    private router: Router,
   ) {
     this.notifications$ = this.notificationService.notifications$;
 
@@ -75,7 +74,7 @@ export class LayoutsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('🔄 Initializing WebSocket connection...');
-    let ws = new SockJS('http://localhost:8083/ws');
+    let ws = new SockJS("http://localhost:8083/ws");
     this.socketClient = new Client({
       webSocketFactory: () => ws,
       debug: (msg: string) => {

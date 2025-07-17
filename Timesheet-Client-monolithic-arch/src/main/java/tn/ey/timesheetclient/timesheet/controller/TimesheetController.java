@@ -161,7 +161,7 @@ public class TimesheetController {
 
     @GetMapping("/sendAprouvalEmail/{idtimesheet}")
     public ResponseEntity<?> sendAprouvalEmail(@PathVariable Long idtimesheet) {
-        ResponseEntity<?> response = _timesheetService.sendPendingMail(idtimesheet);
+        ResponseEntity<?> response = _timesheetService.sendingApprovalMail(idtimesheet);
         if (response.getStatusCode().is2xxSuccessful()) {
             Timesheet timesheet = timesheetDao.findById(idtimesheet).orElse(null);
             if (timesheet != null && timesheet.getProjectprofile() != null) {
@@ -188,6 +188,40 @@ public class TimesheetController {
                 }
             } else {
                 logService.logAction("Email d'approbation envoyé pour une feuille de temps");
+            }
+        }
+        return response;
+    }
+
+    @GetMapping("/sendSubmissionEmail/{idtimesheet}")
+    public ResponseEntity<?> sendSubmissionEmail(@PathVariable Long idtimesheet) {
+        ResponseEntity<?> response = _timesheetService.sendSubmissionNotificationMail(idtimesheet);
+        if (response.getStatusCode().is2xxSuccessful()) {
+            Timesheet timesheet = timesheetDao.findById(idtimesheet).orElse(null);
+            if (timesheet != null && timesheet.getProjectprofile() != null) {
+                Project project = null;
+                Profile profile = null;
+                
+                if (timesheet.getProjectprofile().getProject() != null) {
+                    project = timesheet.getProjectprofile().getProject();
+                }
+                
+                if (timesheet.getProjectprofile().getProfile() != null) {
+                    profile = timesheet.getProjectprofile().getProfile();
+                }
+                
+                String projectName = project != null ? project.getName() : "Projet inconnu";
+                String profileName = profile != null ? profile.getFirstname() + " " + profile.getLastname() : "Profil inconnu";
+                String monthYear = timesheet.getMois() + "/" + timesheet.getYear();
+                
+                if (project != null) {
+                    logService.logProjectAction("Email de notification de soumission envoyé pour la feuille de temps de " + profileName + 
+                        " pour " + monthYear + " dans le projet: " + projectName, project);
+                } else {
+                    logService.logAction("Email de notification de soumission envoyé pour la feuille de temps de " + profileName + " pour " + monthYear);
+                }
+            } else {
+                logService.logAction("Email de notification de soumission envoyé pour une feuille de temps");
             }
         }
         return response;

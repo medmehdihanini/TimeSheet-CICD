@@ -15,59 +15,13 @@
     <description>TimesheetClient</description>
     <properties>
         <java.version>17</java.version>
-        <!-- SonarQube properties -->
-        <sonar.host.url>http://sonarqube:9000</sonar.host.url>
-        <sonar.projectKey>timesheet-backend</sonar.projectKey>
-        <sonar.projectName>Timesheet Backend</sonar.projectName>
-        <sonar.projectVersion>1.0</sonar.projectVersion>
-        <sonar.sources>src/main/java</sonar.sources>
-        <sonar.tests>src/test/java</sonar.tests>
-        <sonar.java.binaries>target/classes</sonar.java.binaries>
-        <sonar.junit.reportPaths>target/surefire-reports</sonar.junit.reportPaths>
-        <sonar.jacoco.reportPaths>target/jacoco.exec</sonar.jacoco.reportPaths>
     </properties>
 
-    <!-- Nexus Repository Configuration -->
-    <distributionManagement>
-        <repository>
-            <id>nexus-releases</id>
-            <name>Nexus Release Repository</name>
-            <url>http://nexus:8081/repository/maven-releases-timesheet/</url>
-        </repository>
-        <snapshotRepository>
-            <id>nexus-snapshots</id>
-            <name>Nexus Snapshot Repository</name>
-            <url>http://nexus:8081/repository/maven-snapshots-timesheet/</url>
-        </snapshotRepository>
-    </distributionManagement>
+    <dependencies>
 
-    <!-- Nexus as Maven Repository -->
-    <repositories>
-        <repository>
-            <id>nexus-public</id>
-            <name>Nexus Public Repository</name>
-            <url>http://localhost:8081/repository/maven-public/</url>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>nexus-public</id>
-            <name>Nexus Public Repository</name>
-            <url>http://localhost:8081/repository/maven-public/</url>
-        </pluginRepository>
-    </pluginRepositories>
-
-    <dependencies>        <dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <!-- Micrometer Prometheus registry for exposing metrics -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -107,14 +61,6 @@
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
-        
-        <!-- H2 Database for Testing -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -151,6 +97,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
@@ -176,68 +126,6 @@
                         </exclude>
                     </excludes>
                 </configuration>
-            </plugin>
-            
-            <!-- SonarQube Scanner Plugin -->
-            <plugin>
-                <groupId>org.sonarsource.scanner.maven</groupId>
-                <artifactId>sonar-maven-plugin</artifactId>
-                <version>3.10.0.2594</version>
-            </plugin>
-            
-            <!-- JaCoCo Plugin for Code Coverage -->
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.10</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            <!-- Maven Surefire Plugin for running tests -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <!-- Ensure tests are discovered and run -->
-                    <includes>
-                        <include>**/*Test.java</include>
-                        <include>**/*Tests.java</include>
-                    </includes>
-                    <!-- Exclude integration tests by default -->
-                    <excludes>
-                        <exclude>**/*IntegrationTest.java</exclude>
-                    </excludes>
-                    <!-- Enable test reports for Jenkins -->
-                    <printSummary>true</printSummary>
-                    <useFile>true</useFile>
-                    <!-- Fail fast on first error -->
-                    <skipAfterFailureCount>1</skipAfterFailureCount>
-                    <!-- JaCoCo argLine will be set by JaCoCo plugin -->
-                    <argLine>@{argLine} -Xmx512m</argLine>
-                    <!-- Set test timeout -->
-                    <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
-                </configuration>
-            </plugin>
-            
-            <!-- Maven Deploy Plugin for Nexus -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.1</version>
             </plugin>
         </plugins>
     </build>

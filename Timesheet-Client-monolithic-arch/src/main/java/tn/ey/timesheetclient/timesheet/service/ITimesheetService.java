@@ -16,7 +16,8 @@ public interface ITimesheetService {
     ResponseEntity<?> findAllByProjectProfileProjectIdAnsStatus(Long projectId, Status status);
     List<Timesheet>findByMonthYearProfileIdp(String nuMonth,String year,Long profileId);
     ResponseEntity<?> sendRejectMail(Long idtimesheet);
-    ResponseEntity<?> sendPendingMail(Long idtimesheet);
+    ResponseEntity<?> sendingApprovalMail(Long idtimesheet);
+    ResponseEntity<?> sendSubmissionNotificationMail(Long idtimesheet);
     ResponseEntity<?> getTimesheetByMonthAndYearAndUser(String month, String year, Long idproject, Long idprofile);
 }
 

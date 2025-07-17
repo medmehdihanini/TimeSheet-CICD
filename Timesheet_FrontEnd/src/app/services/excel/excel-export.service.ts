@@ -10,240 +10,307 @@ import * as FileSaver from 'file-saver';
 export class ExcelExportService {
   constructor(private http: HttpClient) {}
 
-  exportToTemplate(data: any[], timesheetInfo: TimesheetInformations): void {
-    // Load the Excel template file from URL
-    this.http
-      .get('assets/template/template.xlsx', { responseType: 'arraybuffer' })
-      .subscribe((templateBuffer: ArrayBuffer | undefined) => {
-        if (!templateBuffer) {
-          console.error('Failed to load the template.');
-          return;
-        }
+  exportToTemplate(data: any[], timesheetInfo: TimesheetInformations, fileName?: string): void {
+    // Create a new workbook from scratch instead of using template
+    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+    const worksheet: XLSX.WorkSheet = {};
 
-        const workbook: XLSX.WorkBook = XLSX.read(templateBuffer, { type: 'array' });
+    // Build the worksheet structure from scratch
+    this.buildWorksheetFromScratch(worksheet, data, timesheetInfo);
 
-        // Get the first sheet of the template
-        const worksheetName: string = workbook.SheetNames[0];
-        const worksheet: XLSX.WorkSheet = workbook.Sheets[worksheetName];
+    // Add the worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Timesheet');
 
-        // Insert metadata into specific cells in the template
-        this.insertMetadataIntoTemplate(worksheet, timesheetInfo);
+    // Create final Excel file
+    const excelBuffer: any = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array',
+      cellStyles: true
+    });
 
-        // Adjust column widths
-        this.adjustColumnWidths(worksheet);
-
-        // Insert rows to maintain spacing
-        this.insertRowsToMaintainSpacing(worksheet, 17, data.length, data.length);
-
-        // Insert data into the template starting from row 17
-        this.insertDataIntoTemplate(worksheet, data, 17);
-
-        // Insert the "Total" row
-        this.insertTotalRow(worksheet, data, 17);
-
-        // Apply styling based on weekend days
-        this.applyWeekendStyling(worksheet, data, 17);
-
-        // Center headers in the 16th row
-        this.centerHeaderRow(worksheet);
-
-        // Apply additional styling: bold title, bold row 3, rectangle frame, thicker table borders
-        this.applyAdditionalStyling(worksheet);
-
-        // Create final Excel file
-        const excelBuffer: any = XLSX.write(workbook, {
-          bookType: 'xlsx',
-          type: 'array',
-        });
-
-        // Download the final Excel file
-        this.saveAsExcelFile(excelBuffer, 'exported-data');
-      });
+    // Download the final Excel file with custom filename
+    const finalFileName = fileName || 'exported-data';
+    this.saveAsExcelFile(excelBuffer, finalFileName);
   }
 
-  private insertMetadataIntoTemplate(worksheet: XLSX.WorkSheet, timesheetInfo: TimesheetInformations): void {
-    const metadataMappings = [
-      { attribute: 'Month', row: 3, column: 'C' },
-      { attribute: 'Year', row: 3, column: 'E' },
-      { attribute: 'ProjectName', row: 6, column: 'B' },
-      { attribute: 'ContractNumber', row: 7, column: 'B' },
-      { attribute: 'ExpertName', row: 8, column: 'B' },
-      { attribute: 'function', row: 9, column: 'B' },
+  private buildWorksheetFromScratch(worksheet: XLSX.WorkSheet, data: any[], timesheetInfo: TimesheetInformations): void {
+    let currentRow = 1;
+
+    // Title - Row 1 with EY branding
+    const titleStyle = {
+      font: { bold: true, sz: 16, color: { rgb: 'FFFFFF' } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      fill: { fgColor: { rgb: '333333' } }, // EY Dark Gray
+      border: {
+        top: { style: 'medium', color: { rgb: 'FFE600' } },
+        bottom: { style: 'medium', color: { rgb: 'FFE600' } },
+        left: { style: 'medium', color: { rgb: 'FFE600' } },
+        right: { style: 'medium', color: { rgb: 'FFE600' } },
+      }
+    };
+
+    worksheet['A1'] = { v: 'FEUILLE DE TEMPS - EY', t: 's', s: titleStyle };
+    worksheet['B1'] = { v: '', t: 's', s: titleStyle };
+    worksheet['C1'] = { v: '', t: 's', s: titleStyle };
+    worksheet['D1'] = { v: '', t: 's', s: titleStyle };
+    worksheet['E1'] = { v: '', t: 's', s: titleStyle };
+    worksheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }]; // Merge A1:E1
+
+    // Set row height for title
+    worksheet['!rows'] = [{ hpt: 25 }]; // 25 point height for title row
+    currentRow += 2;
+
+    // Project Information - Starting from Row 3 with EY styling
+    const projectInfoStyle = {
+      font: { bold: true, color: { rgb: '333333' } },
+      fill: { fgColor: { rgb: 'CCCCCC' } }, // Light gray background
+      border: {
+        top: { style: 'thin', color: { rgb: '999999' } },
+        bottom: { style: 'thin', color: { rgb: '999999' } },
+        left: { style: 'thin', color: { rgb: '999999' } },
+        right: { style: 'thin', color: { rgb: '999999' } },
+      }
+    };
+
+    // Apply style to all cells in each project info row
+    worksheet[`A${currentRow}`] = { v: `N° de Projet / Nom: ${timesheetInfo.ProjectName}`, t: 's', s: projectInfoStyle };
+    worksheet[`B${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`C${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`D${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`E${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    this.addMergedInfoRow(worksheet, currentRow);
+    currentRow++;
+
+    worksheet[`A${currentRow}`] = { v: `N° de contrat: ${timesheetInfo.ContractNumber}`, t: 's', s: projectInfoStyle };
+    worksheet[`B${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`C${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`D${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`E${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    this.addMergedInfoRow(worksheet, currentRow);
+    currentRow++;
+
+    worksheet[`A${currentRow}`] = { v: `Nom de l'Expert/Bureau d'études: ${timesheetInfo.ExpertName}`, t: 's', s: projectInfoStyle };
+    worksheet[`B${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`C${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`D${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`E${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    this.addMergedInfoRow(worksheet, currentRow);
+    currentRow++;
+
+    worksheet[`A${currentRow}`] = { v: `Fonction: ${timesheetInfo.function}`, t: 's', s: projectInfoStyle };
+    worksheet[`B${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`C${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`D${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`E${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    this.addMergedInfoRow(worksheet, currentRow);
+    currentRow++;
+
+    worksheet[`A${currentRow}`] = { v: `Mois/Année: ${timesheetInfo.Month} ${timesheetInfo.Year}`, t: 's', s: projectInfoStyle };
+    worksheet[`B${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`C${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`D${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    worksheet[`E${currentRow}`] = { v: '', t: 's', s: projectInfoStyle };
+    this.addMergedInfoRow(worksheet, currentRow);
+    currentRow += 3;
+
+    // Note about work days - Row 9 with EY styling
+    const noteStyle = {
+      font: { italic: true, color: { rgb: '333333' } }, // EY dark gray text
+      alignment: { horizontal: 'left', vertical: 'center' }
+    };
+    worksheet[`A${currentRow}`] = { v: 'seulement demi(0.5) et pleines(1.0) journées de travail', t: 's', s: noteStyle };
+    currentRow += 2;
+
+    // Headers - Row 11 with EY styling
+    const headers = ['Jour', 'Date', 'Nombre de jours', 'Lieu de travail', 'Activités réalisées'];
+    headers.forEach((header, index) => {
+      const colLetter = String.fromCharCode(65 + index); // A, B, C, D, E
+      worksheet[`${colLetter}${currentRow}`] = {
+        v: header,
+        t: 's',
+        s: {
+          font: { bold: true, color: { rgb: 'FFFFFF' } }, // White text
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: {
+            top: { style: 'thick', color: { rgb: 'FFE600' } }, // EY yellow borders
+            bottom: { style: 'thick', color: { rgb: 'FFE600' } },
+            left: { style: 'thick', color: { rgb: 'FFE600' } },
+            right: { style: 'thick', color: { rgb: 'FFE600' } },
+          },
+          fill: { fgColor: { rgb: '333333' } } // EY dark gray background for headers
+        }
+      };
+    });
+    currentRow++;
+
+    // Data rows with EY styling
+    data.forEach((rowData, index) => {
+      const day = rowData.Day || '';
+      const date = rowData.Date || '';
+      const nbDay = rowData.nbDay !== null && rowData.nbDay !== undefined ? rowData.nbDay : '';
+      const workplace = rowData.workplace || '';
+      const task = rowData.task || '';
+
+      // Check if it's a weekend and apply EY styling
+      const isWeekend = this.isWeekend(date);
+      const isEvenRow = index % 2 === 0;
+
+      let fillColor;
+      if (isWeekend) {
+        fillColor = { fill: { fgColor: { rgb: 'FFE600' } } }; // EY yellow for weekends
+      } else if (isEvenRow) {
+        fillColor = { fill: { fgColor: { rgb: 'FFFFFF' } } }; // White for even rows
+      } else {
+        fillColor = { fill: { fgColor: { rgb: 'F5F5F5' } } }; // Light gray for odd rows
+      }
+
+      // Insert data with EY styling
+      worksheet[`A${currentRow}`] = { v: day, t: 's', s: { border: this.getEYBorder(), ...fillColor } };
+      worksheet[`B${currentRow}`] = { v: date, t: 's', s: { border: this.getEYBorder(), ...fillColor } };
+      worksheet[`C${currentRow}`] = {
+        v: nbDay,
+        t: nbDay === '' ? 's' : 'n',
+        s: {
+          border: this.getEYBorder(),
+          alignment: { horizontal: 'center' },
+          ...fillColor
+        }
+      };
+      worksheet[`D${currentRow}`] = { v: workplace, t: 's', s: { border: this.getEYBorder(), ...fillColor } };
+      worksheet[`E${currentRow}`] = { v: task, t: 's', s: { border: this.getEYBorder(), ...fillColor } };
+
+      currentRow++;
+    });
+
+    // Total row with EY styling
+    const totalNbDay = data.reduce((sum, row) => {
+      const nbDay = row.nbDay;
+      return sum + (typeof nbDay === 'number' ? nbDay : 0);
+    }, 0);
+
+    const totalRowStyle = {
+      font: { bold: true, color: { rgb: 'FFFFFF' } }, // White text
+      border: {
+        top: { style: 'thick', color: { rgb: 'FFE600' } }, // EY yellow borders
+        bottom: { style: 'thick', color: { rgb: 'FFE600' } },
+        left: { style: 'thick', color: { rgb: 'FFE600' } },
+        right: { style: 'thick', color: { rgb: 'FFE600' } },
+      },
+      fill: { fgColor: { rgb: '333333' } } // EY dark gray background
+    };
+
+    worksheet[`A${currentRow}`] = { v: 'Total', t: 's', s: totalRowStyle };
+    worksheet[`B${currentRow}`] = { v: '', t: 's', s: totalRowStyle };
+    worksheet[`C${currentRow}`] = {
+      v: totalNbDay,
+      t: 'n',
+      s: {
+        ...totalRowStyle,
+        alignment: { horizontal: 'center', vertical: 'center' }
+      }
+    };
+    worksheet[`D${currentRow}`] = { v: '', t: 's', s: totalRowStyle };
+    worksheet[`E${currentRow}`] = { v: '', t: 's', s: totalRowStyle };    // Add EY footer branding
+    currentRow += 3;
+    const eyFooterStyle = {
+      font: { bold: true, color: { rgb: 'FFE600' } }, // EY yellow text
+      alignment: { horizontal: 'center', vertical: 'center' }
+    };
+
+    worksheet[`A${currentRow}`] = { v: 'Ernst & Young - Building a better working world', t: 's', s: eyFooterStyle };
+    worksheet[`B${currentRow}`] = { v: '', t: 's', s: eyFooterStyle };
+    worksheet[`C${currentRow}`] = { v: '', t: 's', s: eyFooterStyle };
+    worksheet[`D${currentRow}`] = { v: '', t: 's', s: eyFooterStyle };
+    worksheet[`E${currentRow}`] = { v: '', t: 's', s: eyFooterStyle };
+
+    if (!worksheet['!merges']) {
+      worksheet['!merges'] = [];
+    }
+    worksheet['!merges'].push({
+      s: { c: 0, r: currentRow - 1 },
+      e: { c: 4, r: currentRow - 1 }
+    });
+
+    // Set worksheet range
+    worksheet['!ref'] = `A1:E${currentRow}`;
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 8 },   // A: Jour
+      { wch: 12 },  // B: Date
+      { wch: 15 },  // C: Nombre de jours
+      { wch: 25 },  // D: Lieu de travail
+      { wch: 35 }   // E: Activités réalisées
     ];
 
-    metadataMappings.forEach(mapping => {
-      const value = timesheetInfo[mapping.attribute as keyof TimesheetInformations];
-      if (value !== undefined) {
-        const cellAddress = `${mapping.column}${mapping.row}`;
-        worksheet[cellAddress] = { v: value, t: 's', s: { font: { bold: true } } }; // Apply bold font to metadata cells
-      }
+    // Set row heights for professional appearance
+    worksheet['!rows'] = [
+      { hpx: 30 }, // Row 1 - Title (increased height)
+      { hpx: 20 }, // Row 2
+      { hpx: 20 }, // Row 3 - Project info rows
+      { hpx: 20 }, // Row 4
+      { hpx: 20 }, // Row 5
+      { hpx: 20 }, // Row 6
+      { hpx: 20 }, // Row 7
+      { hpx: 20 }, // Row 8
+      { hpx: 20 }, // Row 9
+      { hpx: 20 }, // Row 10
+      { hpx: 25 }, // Row 11 - Headers (increased height)
+    ];
+  }
+
+  // Helper method to merge information rows for professional formatting
+  private addMergedInfoRow(worksheet: any, rowIndex: number): void {
+    if (!worksheet['!merges']) {
+      worksheet['!merges'] = [];
+    }
+    worksheet['!merges'].push({
+      s: { c: 0, r: rowIndex - 1 },
+      e: { c: 4, r: rowIndex - 1 } // Merge from A to E (columns 0-4)
     });
   }
 
-  private insertRowsToMaintainSpacing(worksheet: XLSX.WorkSheet, startRow: number, numberOfRows: number, dataLength: number): void {
-    const newRow51 = startRow + dataLength + 4;
-    const rangeString = worksheet['!ref'];
-    const range = rangeString ? XLSX.utils.decode_range(rangeString) : { s: { r: 0, c: 0 }, e: { r: 0, c: 0 } };
-
-    for (let rowIndex = range.e.r; rowIndex >= 51 - 1; rowIndex--) {
-      for (let colIndex = range.s.c; colIndex <= range.e.c; colIndex++) {
-        const sourceCell = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
-        const targetCell = XLSX.utils.encode_cell({ r: rowIndex + (newRow51 - 51), c: colIndex });
-        worksheet[targetCell] = worksheet[sourceCell];
-        delete worksheet[sourceCell];
-      }
-    }
-    range.e.r += (newRow51 - 51);
-    worksheet['!ref'] = XLSX.utils.encode_range(range.s, range.e);
+  private getBorder() {
+    return {
+      top: { style: 'thin', color: { rgb: '000000' } },
+      bottom: { style: 'thin', color: { rgb: '000000' } },
+      left: { style: 'thin', color: { rgb: '000000' } },
+      right: { style: 'thin', color: { rgb: '000000' } },
+    };
   }
 
-  private insertDataIntoTemplate(worksheet: XLSX.WorkSheet, data: any[], startRow: number): void {
-    data.forEach((elementData, index) => {
-      const { Day, Date, nbDay, workplace, task } = elementData;
-      const rowIndex = startRow + index;
-      XLSX.utils.sheet_add_json(
-        worksheet,
-        [{ Day, Date, nbDay, workplace, task }],
-        {
-          header: ['Day', 'Date', 'nbDay', 'workplace', 'task'],
-          skipHeader: true,
-          origin: `A${rowIndex}`,
-        }
-      );
-    });
-  }
-
-  private insertTotalRow(worksheet: XLSX.WorkSheet, data: any[], startRow: number): void {
-    const totalRowIndex = startRow + data.length;
-    const totalNbDay = data.reduce((sum, row) => sum + row.nbDay, 0);
-
-    XLSX.utils.sheet_add_json(
-      worksheet,
-      [{ Day: 'Total' }],
-      {
-        header: ['Day'],
-        skipHeader: true,
-        origin: `A${totalRowIndex}`,
-      }
-    );
-
-    XLSX.utils.sheet_add_json(
-      worksheet,
-      [{ nbDay: totalNbDay }],
-      {
-        header: ['nbDay'],
-        skipHeader: true,
-        origin: `C${totalRowIndex}`,
-      }
-    );
-  }
-
-  private applyWeekendStyling(worksheet: XLSX.WorkSheet, data: any[], startRow: number): void {
-    const rangeString = worksheet['!ref'];
-    if (rangeString !== undefined) {
-      const decodedRange = XLSX.utils.decode_range(rangeString);
-      data.forEach((elementData, index) => {
-        const dateString: string = elementData.Date;
-        if (this.isWeekend(dateString)) {
-          const rowIndex = startRow + index;
-          for (let col = decodedRange.s.c; col <= decodedRange.e.c; col++) {
-            const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: col });
-            const cell = worksheet[cellAddress];
-            if (cell) {
-              if (!cell.s) cell.s = {};
-              cell.s.fill = {
-                fgColor: { rgb: 'FFFF00' }, // Yellow fill
-              };
-            }
-          }
-        }
-      });
-    } else {
-      console.error('Worksheet range (!ref) is undefined. Unable to apply weekend styling.');
-    }
+  // EY branded border style
+  private getEYBorder() {
+    return {
+      top: { style: 'thin', color: { rgb: '999999' } }, // EY medium gray
+      bottom: { style: 'thin', color: { rgb: '999999' } },
+      left: { style: 'thin', color: { rgb: '999999' } },
+      right: { style: 'thin', color: { rgb: '999999' } },
+    };
   }
 
   private isWeekend(dateString: string): boolean {
+    if (!dateString) return false;
+
     const parts = dateString.split('/');
+    if (parts.length !== 3) return false;
+
     const day = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10) - 1;
     const year = parseInt(parts[2], 10);
+
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
+
     const date = new Date(year, month, day);
     const dayOfWeek = date.getDay();
     return dayOfWeek === 0 || dayOfWeek === 6; // 0 is Sunday, 6 is Saturday
-  }
-
-  private adjustColumnWidths(worksheet: XLSX.WorkSheet): void {
-    const columnWidths = [
-      { column: 'A', width: 15 },
-      { column: 'B', width: 15 },
-      { column: 'C', width: 15 },
-      { column: 'D', width: 30 },
-      { column: 'E', width: 30 },
-    ];
-
-    columnWidths.forEach((colWidth) => {
-      worksheet['!cols'] = worksheet['!cols'] || [];
-      worksheet['!cols'][colWidth.column.charCodeAt(0) - 65] = {
-        wch: colWidth.width,
-      };
-    });
-  }
-
-  private centerHeaderRow(worksheet: XLSX.WorkSheet): void {
-    const headerRow = 15;
-    const rangeString = worksheet['!ref'];
-    if (rangeString !== undefined) {
-      const range = XLSX.utils.decode_range(rangeString);
-      for (let col = range.s.c; col <= range.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: headerRow, c: col });
-        const cell = worksheet[cellAddress];
-        if (cell) {
-          if (!cell.s) cell.s = {};
-          cell.s.alignment = { horizontal: 'center' };
-        }
-      }
-    } else {
-      console.error('Worksheet range (!ref) is undefined. Unable to center header row.');
-    }
-  }
-
-  private applyAdditionalStyling(worksheet: XLSX.WorkSheet): void {
-    ['B6', 'B7', 'B8', 'B9'].forEach(cellAddress => {
-      const cell = worksheet[cellAddress];
-      if (cell) {
-        if (!cell.s) cell.s = {};
-        cell.s.font = { bold: true };
-      }
-    });
-
-    const rangeString = worksheet['!ref'];
-    if (rangeString !== undefined) {
-      const range = XLSX.utils.decode_range(rangeString);
-      for (let row = range.s.r; row <= range.e.r; row++) {
-        for (let col = range.s.c; col <= range.e.c; col++) {
-          const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-          const cell = worksheet[cellAddress];
-          if (cell) {
-            if (!cell.s) cell.s = {};
-            cell.s.border = {
-              top: { style: 'thin', color: { rgb: '000000' } },
-              bottom: { style: 'thin', color: { rgb: '000000' } },
-              left: { style: 'thin', color: { rgb: '000000' } },
-              right: { style: 'thin', color: { rgb: '000000' } },
-            };
-          }
-        }
-      }
-    } else {
-      console.error('Worksheet range (!ref) is undefined. Unable to apply additional styling.');
-    }
   }
 
   private saveAsExcelFile(buffer: any, fileName: string): void {
     const data: Blob = new Blob([buffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8',
     });
-    FileSaver.saveAs(data, `${fileName}_${new Date().getTime()}.xlsx`);
+    // Use the provided filename directly without timestamp
+    FileSaver.saveAs(data, `${fileName}.xlsx`);
   }
 }

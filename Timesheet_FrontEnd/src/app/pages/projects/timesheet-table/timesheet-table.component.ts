@@ -73,6 +73,7 @@ export interface PeriodicElement {
 })
 export class TimesheetTableComponent implements OnInit, AfterViewInit {
   years: string[] = [];
+  availableMonths: { name: string; value: string; frname: string }[] = [];
   selectedYear: string = '';
   totalNbJour: number = 0;
   connecteduser: any;
@@ -86,6 +87,7 @@ export class TimesheetTableComponent implements OnInit, AfterViewInit {
   project: any;
   actuelYear: any;
   ELEMENT_DATA: PeriodicElement[] = [];
+  isApprovalEmailLoading: boolean = false;
   displayedColumns: string[] = ['Jour', 'Date', 'nbDay', 'workplace', 'task'];
   calendarWeeks: PeriodicElement[][] = []; // Calendar weeks array for the new layout
   months: { name: string; value: string; frname: string }[] = [
@@ -111,7 +113,6 @@ export class TimesheetTableComponent implements OnInit, AfterViewInit {
     private _liveAnnouncer: LiveAnnouncer,
     private route: ActivatedRoute,
     private router: Router,
-    private profileserv: ProfileService,
     private userserv: UserserviceService,
     private projectserv: ProjectService,
     private eventservice: EventService,
@@ -124,9 +125,6 @@ export class TimesheetTableComponent implements OnInit, AfterViewInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.setYearsRange();
-    this.setCurrentMonthAndYear();
-
     // Initialize calendar structure
     this.groupIntoWeeks();
 
@@ -150,6 +148,11 @@ export class TimesheetTableComponent implements OnInit, AfterViewInit {
             this.getProjectProfiles(),
             this.getProjectDetailsAndProfile(),
           ]);
+
+          // Set years range based on program dates after project data is loaded
+          this.setYearsRangeFromProgram();
+          this.setCurrentMonthAndYear();
+
           // Ensure profileId and projectId are set before loading tasks
           if (this.profileId && this.projectId) {
             this.loadTasks(this.profileId);
@@ -178,18 +181,96 @@ export class TimesheetTableComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // New method to set years range based on program start and end dates
+  setYearsRangeFromProgram(): void {
+    if (!this.project?.program?.startdate || !this.project?.program?.enddate) {
+      // Fallback to default range if program dates are not available
+      this.setYearsRange();
+      return;
+    }
+
+    // Parse program start and end dates (format: "DD/MM/YYYY")
+    const startDateParts = this.project.program.startdate.split('/');
+    const endDateParts = this.project.program.enddate.split('/');
+
+    const startYear = parseInt(startDateParts[2]);
+    const endYear = parseInt(endDateParts[2]);
+
+    this.years = [];
+    for (let year = startYear; year <= endYear; year++) {
+      this.years.push(year.toString());
+    }
+  }
+
+  // Get available months for the selected year based on program dates
+  getAvailableMonthsForYear(year: string): { name: string; value: string; frname: string }[] {
+    if (!this.project?.program?.startdate || !this.project?.program?.enddate) {
+      return this.months; // Return all months if program dates are not available
+    }
+
+    const selectedYear = parseInt(year);
+    const startDateParts = this.project.program.startdate.split('/');
+    const endDateParts = this.project.program.enddate.split('/');
+
+    const startYear = parseInt(startDateParts[2]);
+    const startMonth = parseInt(startDateParts[1]);
+    const endYear = parseInt(endDateParts[2]);
+    const endMonth = parseInt(endDateParts[1]);
+
+    let availableMonths = [...this.months];
+
+    // If selected year is the start year, filter months before start month
+    if (selectedYear === startYear) {
+      availableMonths = availableMonths.filter(month => parseInt(month.value) >= startMonth);
+    }
+
+    // If selected year is the end year, filter months after end month
+    if (selectedYear === endYear) {
+      availableMonths = availableMonths.filter(month => parseInt(month.value) <= endMonth);
+    }
+
+    return availableMonths;
+  }
+
   setCurrentMonthAndYear(): void {
     const currentDate = new Date();
     const storedMonth = localStorage.getItem('selectedMonth');
     const storedYear = localStorage.getItem('selectedYear');
 
-    this.selectedMonth = storedMonth && storedMonth !== 'undefined'
-      ? storedMonth
-      : (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    // Set year first
+    let defaultYear = currentDate.getFullYear().toString();
+    if (storedYear && storedYear !== 'undefined' && this.years.includes(storedYear)) {
+      this.selectedYear = storedYear;
+    } else if (this.years.length > 0) {
+      // Find the closest available year to current year
+      const currentYear = currentDate.getFullYear();
+      const availableYears = this.years.map(y => parseInt(y));
+      this.selectedYear = availableYears.reduce((prev, curr) =>
+        Math.abs(curr - currentYear) < Math.abs(prev - currentYear) ? curr : prev
+      ).toString();
+    } else {
+      this.selectedYear = defaultYear;
+    }
 
-    this.selectedYear = storedYear && storedYear !== 'undefined'
-      ? storedYear
-      : currentDate.getFullYear().toString();
+    // Update available months for selected year
+    this.availableMonths = this.getAvailableMonthsForYear(this.selectedYear);
+
+    // Set month based on available months
+    let defaultMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    if (storedMonth && storedMonth !== 'undefined' &&
+        this.availableMonths.some(m => m.value === storedMonth)) {
+      this.selectedMonth = storedMonth;
+    } else if (this.availableMonths.length > 0) {
+      // Find the closest available month to current month
+      const currentMonth = currentDate.getMonth() + 1;
+      const availableMonthValues = this.availableMonths.map(m => parseInt(m.value));
+      const closestMonth = availableMonthValues.reduce((prev, curr) =>
+        Math.abs(curr - currentMonth) < Math.abs(prev - currentMonth) ? curr : prev
+      );
+      this.selectedMonth = closestMonth.toString().padStart(2, '0');
+    } else {
+      this.selectedMonth = defaultMonth;
+    }
 
     this.onMonthChange({ target: { value: this.selectedMonth } } as any);
   }
@@ -295,6 +376,18 @@ updateTimesheetData(): void {
       this.selectedYear = selectElement.value;
       localStorage.setItem('selectedYear', this.selectedYear);
 
+      // Update available months for the new year
+      this.availableMonths = this.getAvailableMonthsForYear(this.selectedYear);
+
+      // Check if current selected month is still available in the new year
+      if (!this.availableMonths.some(m => m.value === this.selectedMonth)) {
+        // If current month is not available, select the first available month
+        if (this.availableMonths.length > 0) {
+          this.selectedMonth = this.availableMonths[0].value;
+          localStorage.setItem('selectedMonth', this.selectedMonth);
+        }
+      }
+
       this.updateTimesheetData(); // Met à jour les données en fonction de la nouvelle année
     }
 
@@ -315,6 +408,18 @@ updateTimesheetData(): void {
         .subscribe({
           next: (response) => {
             this.timesheet = response;
+
+            // Send the submission email
+            this.timesheetservice.sendSubmissionEmail(this.timesheet.idtimesheet)
+              .subscribe({
+                next: (response) => {
+                  this.alertService.success('Succès', 'Timesheet soumise avec succès');
+                },
+                error: (error) => {
+                  const errorMessage = error.error || error.message || 'Erreur inconnue lors de l\'envoi de l\'email';
+                  this.alertService.error('Erreur', 'Erreur lors de l\'envoi de l\'email : ' + errorMessage);
+                }
+              });
           },
           error: (error) => {
             this.alertService.error('Erreur', error.error || 'Erreur lors de la récupération du timesheet');
@@ -331,14 +436,18 @@ updateTimesheetData(): void {
         next: (response) => {
           this.alertService.success('Succès', 'Timesheet approuvée avec succès');
 
+          // Start loading indicator for email sending
+          this.isApprovalEmailLoading = true;
+
           // Send the approval email
           this.timesheetservice.sendAprouvalEmail(this.timesheet.idtimesheet)
             .subscribe({
               next: () => {
-                // Reload the page only after the email is successfully sent
-                window.location.reload();
+                this.isApprovalEmailLoading = false;
+                this.alertService.success('Succès', 'Email d\'approbation envoyé avec succès');
               },
               error: (error) => {
+                this.isApprovalEmailLoading = false;
                 this.alertService.error('Erreur', 'Erreur lors de l\'envoi de l\'email : ' + (error.error || error.message));
               }
             });
@@ -568,6 +677,7 @@ updateTimesheetData(): void {
     return new Promise((resolve, reject) => {
       this.projectserv.getProjectDetails(this.projectId).subscribe(
         (response: any[]) => {
+          console.log('Paaaaaaaaaaaaaaaaaaaaaaaaaaaa:', response);
           this.project = response;
 
           this.projectserv
@@ -791,10 +901,7 @@ updateTimesheetData(): void {
     }
 
     const dialogRef = this.dialog.open(TaskDialogComponent, {
-      width: '800px',
-      maxWidth: '90vw',
-      height: 'auto',
-      maxHeight: '90vh',
+      width: '500px',
       data: {
         profileId: this.profileId,
         projectId: this.projectId,
@@ -812,10 +919,7 @@ updateTimesheetData(): void {
 
   openUpdateModal(rowData: PeriodicElement) {
     const dialogRef = this.dialog.open(TaskDialogComponent, {
-      width: '800px',
-      maxWidth: '90vw',
-      height: 'auto',
-      maxHeight: '90vh',
+      width: '500px',
       data: {
         profileId: this.profileId,
         projectId: this.projectId,
@@ -834,17 +938,46 @@ updateTimesheetData(): void {
 
   exportToExcel(): void {
     const month = this.getFrenchMonthName(this.selectedMonth);
+    const expertFullName = `${this.programprofile.profile.firstname} ${this.programprofile.profile.lastname}`;
+
+    // Filter data to include only current month days that are not disabled and belong to current project
+    const filteredData = this.ELEMENT_DATA.filter(item => {
+      // Only include items that:
+      // 1. Belong to current project (project === true)
+      // 2. Are not disabled (unless they have actual data)
+      // 3. Are from current month/year
+      const itemDate = new Date(
+        parseInt(item.Date.split('/')[2]),
+        parseInt(item.Date.split('/')[1]) - 1,
+        parseInt(item.Date.split('/')[0])
+      );
+      const currentMonth = parseInt(this.selectedMonth) - 1;
+      const currentYear = parseInt(this.selectedYear);
+
+      return item.project === true &&
+             itemDate.getMonth() === currentMonth &&
+             itemDate.getFullYear() === currentYear &&
+             (!item.isDisabled || item.nbDay !== null);
+    }).map(item => ({
+      Day: item.Day.toString(),
+      Date: item.Date,
+      nbDay: item.nbDay || 0,
+      workplace: item.workplace || '',
+      task: item.task || ''
+    }));
+
     const timesheetInfo = new TimesheetInformations();
     timesheetInfo.Month = month;
     timesheetInfo.Year = this.selectedYear;
     timesheetInfo.ProjectName = this.project.name;
     timesheetInfo.ContractNumber = this.project.program.numcontrat;
-    timesheetInfo.ExpertName =
-      this.programprofile.profile.firstname +
-      ' ' +
-      this.programprofile.profile.lastname;
+    timesheetInfo.ExpertName = expertFullName;
     timesheetInfo.function = this.programprofile.functionn;
-    this.excelExportService.exportToTemplate(this.ELEMENT_DATA, timesheetInfo);
+
+    // Create well-formatted filename
+    const fileName = `Timesheet_${this.programprofile.profile.firstname}_${this.programprofile.profile.lastname}_${month}_${this.selectedYear}_${this.project.name.replace(/[^a-zA-Z0-9]/g, '_')}`;
+
+    this.excelExportService.exportToTemplate(filteredData, timesheetInfo, fileName);
   }
 
 

@@ -2,6 +2,8 @@ package tn.ey.timesheetclient.timesheet.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.ey.timesheetclient.mail.EmailHelperService;
@@ -11,14 +13,12 @@ import tn.ey.timesheetclient.program.model.Project;
 import tn.ey.timesheetclient.program.model.ProjectProfile;
 import tn.ey.timesheetclient.timesheet.dao.TimesheetDao;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Service for managing monthly timesheet reminders
- * Runs automatically on the 5th of each month to check for missing timesheets
+ * Service for managing timesheet reminders
+ * Runs automatically to check for missing timesheets across all periods
  */
 @Service
 @Slf4j
@@ -31,24 +31,17 @@ public class TimesheetReminderService {
     private final EmailHelperService emailHelperService;
 
     /**
-     * Scheduled task that runs on the 5th of every month at 9:00 AM
-     * Cron expression: 0 0 9 5 * ? (second, minute, hour, day, month, day_of_week)
-     *     @Scheduled(cron = "0 0 9 5 * ?")
-
-     */    //@Scheduled(cron = "30 * * * * *")
+     * Scheduled task that runs automatically to check for missing timesheets
+     * Cron expression: 30 * * * * * (every 30 seconds for testing)
+     * For production, consider: 0 0 9 5 * ? (5th of every month at 9:00 AM)
+     */    
+    @Scheduled(cron = " 0 0 8 5 * ?")
     @Transactional(readOnly = true)
-    public void sendMonthlyTimesheetReminders() {
-        log.info("Starting monthly timesheet reminder process...");
+    public void sendTimesheetReminders() {
+        log.info("Starting timesheet reminder process...");
         
         try {
-            // Get current month and year for timesheet checking
-            LocalDate now = LocalDate.now();
-            LocalDate previousMonth = now.minusMonths(1);
-            String month = previousMonth.getMonth().toString();
-            String year = String.valueOf(previousMonth.getYear());
-            String period = previousMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
-              log.info("Checking timesheets for period: {} (month: {}, year: {})", period, month, year);
-              // Get all active projects (no need to eagerly load projectProfiles anymore)
+            // Get all active projects (no need to eagerly load projectProfiles anymore)
             List<Project> allProjects = projectDao.findAll();
             log.info("Found {} projects to check", allProjects.size());
             
@@ -57,7 +50,7 @@ public class TimesheetReminderService {
             
             for (Project project : allProjects) {
                 try {
-                    boolean reminderSent = processProjectTimesheets(project, month, year, period);
+                    boolean reminderSent = processProjectTimesheets(project);
                     if (reminderSent) {
                         remindersSet++;
                     }
@@ -67,17 +60,18 @@ public class TimesheetReminderService {
                 }
             }
             
-            log.info("Monthly timesheet reminder process completed. Projects processed: {}, Reminders sent: {}", 
+            log.info("Timesheet reminder process completed. Projects processed: {}, Reminders sent: {}", 
                     projectsProcessed, remindersSet);
                     
         } catch (Exception e) {
-            log.error("Error during monthly timesheet reminder process: {}", e.getMessage(), e);
+            log.error("Error during timesheet reminder process: {}", e.getMessage(), e);
         }
     }
 
     /**
      * Process timesheets for a specific project and send reminders if needed
-     */    private boolean processProjectTimesheets(Project project, String month, String year, String period) {
+     */
+    private boolean processProjectTimesheets(Project project) {
         log.debug("Processing project: {}", project.getName());
         
         // Get project profiles using repository query instead of accessing collection
@@ -91,21 +85,21 @@ public class TimesheetReminderService {
         
         log.debug("Project {} has {} profiles", project.getName(), projectProfiles.size());
         
-        // Check timesheet status for each profile
+        // Check timesheet status for each profile (check if they have any timesheets at all)
         List<ProjectProfile> profilesWithTimesheet = projectProfiles.stream()
-                .filter(pp -> hasTimesheetForPeriod(pp, month, year))
+                .filter(this::hasAnyTimesheet)
                 .collect(Collectors.toList());
                 
         List<ProjectProfile> profilesWithoutTimesheet = projectProfiles.stream()
-                .filter(pp -> !hasTimesheetForPeriod(pp, month, year))
+                .filter(pp -> !hasAnyTimesheet(pp))
                 .collect(Collectors.toList());
         
-        log.debug("Project {}: {} profiles with timesheet, {} profiles without timesheet", 
+        log.debug("Project {}: {} profiles with timesheets, {} profiles without timesheets", 
                 project.getName(), profilesWithTimesheet.size(), profilesWithoutTimesheet.size());
         
         // Only send reminder if some profiles have timesheets but others don't
         if (!profilesWithTimesheet.isEmpty() && !profilesWithoutTimesheet.isEmpty()) {
-            sendRemindersForProject(project, period, profilesWithTimesheet, profilesWithoutTimesheet);
+            sendRemindersForProject(project, profilesWithTimesheet, profilesWithoutTimesheet);
             return true;
         }
         
@@ -113,21 +107,22 @@ public class TimesheetReminderService {
     }
 
     /**
-     * Check if a project profile has a timesheet for the given period
+     * Check if a project profile has any timesheet at all
      */
-    private boolean hasTimesheetForPeriod(ProjectProfile projectProfile, String month, String year) {
-        return timesheetDao.findByMoisAndYearAndProjectprofile_Id(month, year, projectProfile.getId()).isPresent();
+    private boolean hasAnyTimesheet(ProjectProfile projectProfile) {
+        return timesheetDao.findByProjectprofile_Id(projectProfile.getId()).stream().findAny().isPresent();
     }
 
     /**
      * Send reminder emails to project owner and program owner
      */
-    private void sendRemindersForProject(Project project, String period, 
+    private void sendRemindersForProject(Project project,
                                        List<ProjectProfile> profilesWithTimesheet,
                                        List<ProjectProfile> profilesWithoutTimesheet) {
         
         String projectName = project.getName();
         String programName = project.getProgram() != null ? project.getProgram().getName() : "Non défini";
+        String period = "Général"; // Generic period since we're not checking specific periods
         
         // Prepare profile lists for email
         String profilesWithTimesheetNames = profilesWithTimesheet.stream()
@@ -209,6 +204,6 @@ public class TimesheetReminderService {
      */
     public void triggerManualReminder() {
         log.info("Manual timesheet reminder triggered");
-        sendMonthlyTimesheetReminders();
+        sendTimesheetReminders();
     }
 }

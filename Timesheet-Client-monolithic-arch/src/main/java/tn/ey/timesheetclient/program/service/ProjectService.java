@@ -29,6 +29,7 @@ public interface ProjectService {
     List<ProjectProfile> getProjectprofiles(Long projectId);
     ResponseEntity<?> assignProfileProject(Long idprof, Long idp, Double mandaybudget);
     Optional<ProjectProfile> findProjectProfileByProfileIdAndProjectId(Long profileId, Long projectId);
+    Optional<ProjectProfile> findProjectProfileById(Long projectProfileId);
     List<Profile> getProfilesForProject(Long programId, Long projectId);
     ProgramProfile findByProgramIdAndProfileId(Long programId, Long profileId);
     public Double getTotalMandayBudget(Long programId, Long profileId);

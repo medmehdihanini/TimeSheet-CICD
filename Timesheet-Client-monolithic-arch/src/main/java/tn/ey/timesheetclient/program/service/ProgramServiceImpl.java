@@ -411,13 +411,19 @@ public class ProgramServiceImpl implements ProgramService{
                 consumed = 0L;
             }
             ProgramProfile progp = _ppDao.findByProgramIdprogAndProfileIdp(idp,idprof);
-            double adding = mandaybudget - progp.getMandaybudget();
-            if (adding > profile.getMandaybudget()) {
+            double newmandaybudget = mandaybudget - progp.getMandaybudget();
+            if (newmandaybudget > profile.getMandaybudget()) {
                 return ResponseEntity.badRequest().body("profil à "+ profile.getMandaybudget() +" J/H restants " );
-            }            if (progp.getMandaybudget() > mandaybudget) {
-                return ResponseEntity.badRequest().body("Le budget Jour/homme minimale est: " + progp.getMandaybudget());
+            }            
+            // Get total consumed manday budget for this profile across all projects in this program
+            Double totalConsumedMandayBudget = _pfDao.findTotalConsumedMandayBudgetByProgramAndProfile(idp, idprof);
+            if (totalConsumedMandayBudget == null) {
+                totalConsumedMandayBudget = 0.0;
             }
-            double newm = profile.getMandaybudget() - adding;
+            if (totalConsumedMandayBudget > mandaybudget) {
+                return ResponseEntity.badRequest().body("Le budget Jour/homme minimum est: " + totalConsumedMandayBudget + " (déjà consommé dans les projets)");
+            }
+            double newm = profile.getMandaybudget() - newmandaybudget;
             profile.setMandaybudget(newm);
             progp.setMandaybudget(mandaybudget);
             progp.setDailyrate(dailyrate);

@@ -66,6 +66,14 @@ public interface ProjectProfileDao extends JpaRepository<ProjectProfile,Long > {
     Double findTotalMandayBudgetByProgramAndProfile(@Param("programId") Long programId,
                                                     @Param("profileId") Long profileId);
 
+    // New method to get total consumed manday budget for a profile across all projects in a program
+    @Query(value = "SELECT COALESCE(SUM(pp.consumedmandaybudget), 0) FROM project_profile pp " +
+            "JOIN _project p ON pp.project_id = p.idproject " +
+            "WHERE pp.profile_id = :profileId AND p.program_idprog = :programId",
+            nativeQuery = true)
+    Double findTotalConsumedMandayBudgetByProgramAndProfile(@Param("programId") Long programId,
+                                                           @Param("profileId") Long profileId);
+
     List<ProjectProfile> findByProfile_Idp(Long idp);
 
     List<ProjectProfile> findByProject_IdprojectAndProfile_Idp(Long idproject, Long idp);

@@ -130,8 +130,7 @@ export class RagService {
    */
   public getSuggestionsWithValidation(
     projectDescription: string,
-    numSuggestions: number = 5,
-    useHybridSearch: boolean = true
+
   ): Observable<TaskSuggestionResponse | { validationError: QueryValidationResponse }> {
     return new Observable(observer => {
       // First validate the query
@@ -140,9 +139,7 @@ export class RagService {
           if (validationResult.should_process) {
             // If validation passes, get suggestions
             this.getSuggestedTasks({
-              project_description: projectDescription,
-              num_suggestions: numSuggestions,
-              use_hybrid_search: useHybridSearch
+              project_description: projectDescription
             }).subscribe({
               next: (suggestions) => observer.next(suggestions),
               error: (error) => observer.error(error),

@@ -208,19 +208,18 @@ public class TimesheetService implements ITimesheetService {    private final Ti
         }
     }
     @Override
-    public ResponseEntity<?> sendPendingMail(Long idtimesheet) {
+    public ResponseEntity<?> sendingApprovalMail(Long idtimesheet) {
         try {
             Timesheet timesheet = _timesheetDao.findById(idtimesheet).orElse(null);
             if (timesheet == null) {
                 return ResponseEntity.badRequest().body("Pas de timesheet pour ce profil pour l'instant");
-            }            String to = timesheet.getProjectprofile().getProject().getProgram().getChefprogram().getEmail();
+            }            String to = timesheet.getProjectprofile().getProject().getChefprojet().getEmail(); // Send to profile owner, not manager
             String month = this.getMonthName(timesheet.getMois());
-            String managerName = timesheet.getProjectprofile().getProject().getProgram().getChefprogram().getFirstname();
-            String profileName = timesheet.getProjectprofile().getProfile().getFirstname() + " " + timesheet.getProjectprofile().getProfile().getLastname();
-            String submittedBy = timesheet.getProjectprofile().getProject().getChefprojet().getFirstname() + " " + timesheet.getProjectprofile().getProject().getChefprojet().getLastname();
+            String profileName = timesheet.getProjectprofile().getProject().getChefprojet().getFirstname() + " " + timesheet.getProjectprofile().getProject().getChefprojet().getLastname();
+            String approvedBy = timesheet.getProjectprofile().getProject().getChefprojet().getFirstname() + " " + timesheet.getProjectprofile().getProject().getChefprojet().getLastname();
             
-            // Send timesheet submission email using template
-            emailHelperService.sendTimesheetSubmissionEmail(to, managerName, profileName, month, submittedBy);
+            // Send timesheet approval email using template
+            emailHelperService.sendTimesheetApprovalEmail(to, profileName, month, approvedBy);
             _notificationService.sendNotification(
                     timesheet.getProjectprofile().getProject().getProgram().getChefprogram().getFirstname(),
                     Notification.builder()
@@ -339,6 +338,33 @@ public class TimesheetService implements ITimesheetService {    private final Ti
         } catch (Exception e) {
             log.error("Error retrieving timesheet", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de la récuperation du timesheet");
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> sendSubmissionNotificationMail(Long idtimesheet) {
+        try {
+            Timesheet timesheet = _timesheetDao.findById(idtimesheet).orElse(null);
+            if (timesheet == null) {
+                return ResponseEntity.badRequest().body("Pas de timesheet pour cet ID");
+            }
+            
+            // Get chef de programme (program manager) details
+            String to = timesheet.getProjectprofile().getProject().getProgram().getChefprogram().getEmail();
+            String month = this.getMonthName(timesheet.getMois());
+            String managerName = timesheet.getProjectprofile().getProject().getProgram().getChefprogram().getFirstname() + " " + 
+                                timesheet.getProjectprofile().getProject().getProgram().getChefprogram().getLastname();
+            String profileName = timesheet.getProjectprofile().getProfile().getFirstname() + " " + 
+                               timesheet.getProjectprofile().getProfile().getLastname();
+            String submittedBy = timesheet.getProjectprofile().getProfile().getFirstname() + " " + 
+                               timesheet.getProjectprofile().getProfile().getLastname();
+            
+            // Send timesheet submission notification email to chef de programme
+            emailHelperService.sendTimesheetSubmissionEmail(to, managerName, profileName, month, submittedBy);
+            
+            return ResponseEntity.ok("Email de notification de soumission envoyé au chef de programme");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de l'envoi du mail de notification");
         }
     }
 

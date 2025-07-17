@@ -176,6 +176,7 @@
             type="text"
             formControlName="mandaybudget"
             placeholder="Entrez le budget jour-homme"
+            readonly
           />
           <div class="error-container" *ngIf="profileform.get('mandaybudget')?.touched">
             <div class="error-message" *ngIf="profileform.get('mandaybudget')?.hasError('required')">

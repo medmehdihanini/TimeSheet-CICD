@@ -21,6 +21,7 @@ import tn.ey.timesheetclient.user.model.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/project")
@@ -132,10 +133,30 @@ public class ProjectController {
 
     @DeleteMapping("/deleteProjectProfile/{idp}")
     public ResponseEntity<?> deleteProjectProfile(@PathVariable Long idp) {
-        // Idéalement, il faudrait récupérer les détails du ProjectProfile, mais nous n'avons pas d'accès direct par ID
+        // First, get the ProjectProfile information before deletion for logging
+        Optional<ProjectProfile> projectProfileOpt = projectservice.findProjectProfileById(idp);
+        
+        String logMessage = "Profil retiré du projet";
+        Project projectForLog = null;
+        
+        if (projectProfileOpt.isPresent()) {
+            ProjectProfile pp = projectProfileOpt.get();
+            Profile profile = pp.getProfile();
+            Project project = pp.getProject();
+            Program program = project.getProgram();
+            
+            String profileName = profile != null ? profile.getFirstname() + " " + profile.getLastname() : "Profil inconnu";
+            String projectName = project != null ? project.getName() : "Projet inconnu";
+            String programName = program != null ? program.getName() : "Programme inconnu";
+            
+            logMessage = String.format("Profil %s retiré du projet %s (Programme: %s)", 
+                                     profileName, projectName, programName);
+            projectForLog = project;
+        }
+        
         ResponseEntity<?> response = projectservice.deleteProjectProfile(idp);
         if (response.getStatusCode().is2xxSuccessful()) {
-            logService.logProjectAction("Profil retiré du projet", null);
+            logService.logProjectAction(logMessage, projectForLog);
         }
         return response;
     }

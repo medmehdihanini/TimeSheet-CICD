@@ -107,6 +107,13 @@ export class UserComponent implements AfterViewInit,OnInit  {
   }
 
   public deleteUser(idu: any) {
+    // Check if the user is trying to delete themselves
+    const connectedUser = this.userserv.getUserConnected();
+    if (connectedUser && connectedUser.id === idu) {
+      this.alertService.error('Action interdite', 'Vous ne pouvez pas supprimer votre propre compte.');
+      return;
+    }
+
     this.alertService.confirm(
       'Confirmation de suppression',
       'Voulez-vous vraiment supprimer cet utilisateur ?'
@@ -126,7 +133,7 @@ export class UserComponent implements AfterViewInit,OnInit  {
               this.getAllUsers();
             } else {
               // This is an actual error
-              const errorMessage = error.error || error.message || 'Erreur lors de la suppression de l\'utilisateur';
+              const errorMessage =  'Erreur lors de la suppression de l\'utilisateur';
               this.alertService.error('Erreur', errorMessage);
             }
           }

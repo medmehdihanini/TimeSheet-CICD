@@ -132,23 +132,12 @@ export class TaskDialogComponent implements OnInit {
     this.isLoadingSuggestions = true;
     this.suggestions = [];
 
-    this.ragService.getSuggestionsWithValidation(projectDescription, 5, true).subscribe({
+    this.ragService.getSuggestionsWithValidation(projectDescription).subscribe({
       next: (response) => {
         this.isLoadingSuggestions = false;
 
-        if ('validationError' in response) {
-          // Handle validation error
-          const validationResult = response.validationError;
-          if (!validationResult.should_process) {
-            this.alertService.error(
-              'Description insuffisante',
-              'La description du projet n\'est pas suffisamment détaillée pour générer des suggestions pertinentes.'
-            );
-            this.inputMode = 'manual';
-            return;
-          }
-        } else {
-          // Handle successful suggestions
+        // Handle successful suggestions - backend handles all validation
+        if ('suggestions' in response) {
           this.suggestions = response.suggestions || [];
           this.showSuggestions = true;
 
@@ -157,6 +146,17 @@ export class TaskDialogComponent implements OnInit {
               'Aucune suggestion',
               'Aucune suggestion de tâche n\'a pu être générée pour ce projet.'
             );
+          }
+        } else if ('validationError' in response) {
+          // Handle validation error if backend still sends this format
+          const validationResult = response.validationError;
+          if (!validationResult.should_process) {
+            this.alertService.error(
+              'Description insuffisante',
+              'La description du projet n\'est pas suffisamment détaillée pour générer des suggestions pertinentes.'
+            );
+            this.inputMode = 'manual';
+            return;
           }
         }
       },

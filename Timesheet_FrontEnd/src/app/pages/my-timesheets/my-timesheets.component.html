@@ -1,0 +1,132 @@
+<div class="my-timesheets-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h1 class="page-title">
+      <mat-icon>assignment</mat-icon>
+      Mes Feuilles de Temps
+    </h1>
+    <p class="page-subtitle">Consultez et gérez vos soumissions de feuilles de temps</p>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <mat-card class="filter-card">
+      <mat-card-content>
+        <form [formGroup]="filterForm" class="filter-form">
+          <mat-form-field  class="filter-field">
+            <mat-label>Mois</mat-label>
+            <mat-select formControlName="month">
+              <mat-option *ngFor="let month of months" [value]="month.value">
+                {{ month.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field  class="filter-field">
+            <mat-label>Année</mat-label>
+            <mat-select formControlName="year">
+              <mat-option *ngFor="let year of years" [value]="year">
+                {{ year }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des feuilles de temps...</p>
+  </div>
+
+  <!-- Timesheets Grid -->
+  <div *ngIf="!loading" class="timesheets-grid">
+    <!-- No Timesheets Message -->
+    <div *ngIf="timesheets.length === 0" class="no-timesheets">
+      <mat-card class="empty-state-card">
+        <mat-card-content>
+          <mat-icon class="empty-icon">assignment_turned_in</mat-icon>
+          <h3>Aucune Feuille de Temps Trouvée</h3>
+          <p>Aucune feuille de temps trouvée pour le mois et l'année sélectionnés.</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Timesheet Cards -->
+    <mat-card
+      *ngFor="let timesheet of timesheets"
+      class="timesheet-card"
+      (click)="openTimesheet(timesheet)"
+      [attr.data-status]="timesheet.status?.toLowerCase()">
+
+      <mat-card-header>
+        <mat-card-title class="card-title">
+          <div class="project-info">
+            <div class="project-name-container">
+              <mat-icon class="project-icon">work</mat-icon>
+              <span class="project-label">Projet:</span>
+              <span class="project-name">{{ timesheet.projectprofile?.project?.name || 'Projet Inconnu' }}</span>
+            </div>
+            <mat-chip
+              class="status-chip"
+              [style.background-color]="getStatusColor(timesheet.status)"
+              [style.color]="timesheet.status?.toUpperCase() === 'SUBMITTED' ? '#333333' : '#ffffff'">
+              <mat-icon class="status-icon">{{ getStatusIcon(timesheet.status) }}</mat-icon>
+              {{ timesheet.status || 'Inconnu' }}
+            </mat-chip>
+          </div>
+        </mat-card-title>
+
+        <mat-card-subtitle class="card-subtitle">
+          <div class="program-info">
+            <mat-icon class="info-icon">business</mat-icon>
+            <span class="program-label">Programme:</span>
+            <span>{{ timesheet.projectprofile?.project?.program?.name || 'Aucun Programme' }}</span>
+          </div>
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content class="card-content">
+        <div class="timesheet-details">
+          <div class="detail-row">
+            <mat-icon class="detail-icon">calendar_today</mat-icon>
+            <span class="detail-label">Période:</span>
+            <span class="detail-value">{{ formatMonth(timesheet.mois) }} {{ timesheet.year }}</span>
+          </div>
+
+          <div class="detail-row">
+            <mat-icon class="detail-icon">person</mat-icon>
+            <span class="detail-label">Profil:</span>
+            <span class="detail-value">
+              {{ timesheet.projectprofile?.profile?.firstname }} {{ timesheet.projectprofile?.profile?.lastname }}
+            </span>
+          </div>
+
+          <div class="detail-row">
+            <mat-icon class="detail-icon">account_balance</mat-icon>
+            <span class="detail-label">Département:</span>
+            <span class="detail-value">{{ timesheet.projectprofile?.profile?.departement || 'N/A' }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="timesheet.projectprofile?.project?.chefprojet">
+            <mat-icon class="detail-icon">supervisor_account</mat-icon>
+            <span class="detail-label">Chef de Projet:</span>
+            <span class="detail-value">
+              {{ timesheet.projectprofile?.project?.chefprojet?.firstname }}
+              {{ timesheet.projectprofile?.project?.chefprojet?.lastname }}
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions class="card-actions">
+        <button mat-stroked-button class="view-button">
+          <mat-icon>visibility</mat-icon>
+          Voir Détails
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

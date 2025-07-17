@@ -8,6 +8,7 @@ import { ProfileComponent } from '../pages/profile/profile.component';
 import { ProfileStatComponent } from '../pages/profilStat/profile-stat/profile-stat.component';
 import { Error404Component } from '../pages/error-404/error-404.component';
 import { Error403Component } from '../pages/error-403/error-403.component';
+import { MyTimesheetsComponent } from '../pages/my-timesheets/my-timesheets.component';
 
 export const CORE_ROUTES: Routes = [
   {
@@ -21,6 +22,10 @@ export const CORE_ROUTES: Routes = [
     data: {
       roles: ['SUPER_ADMIN', 'PROGRAM_MANAGER', 'GPS_LEAD', 'PARTNER']
     }
+  },
+   {
+    path: 'my-timesheets',
+    component: MyTimesheetsComponent
   },
   {
     path: 'logs',

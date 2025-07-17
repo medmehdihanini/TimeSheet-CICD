@@ -29,7 +29,7 @@
     />
     <div class="profile-info" [class.collapsed]="sideNavCollapsed()">
       <h4 class="user-name">{{ connecteduser.firstname }} {{ connecteduser.lastname }}</h4>
-      <p class="user-role">{{ connecteduser.role | titlecase }}</p>
+      <p class="user-role">{{ connecteduser.role | roleFormat }}</p>
     </div>
   </div>
 
@@ -41,6 +41,7 @@
         class="nav-item"
         [routerLink]="item.route"
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: item.route === 'projects'}"
         [style.--index]="i"
       >
         <div class="nav-item-content">
@@ -57,6 +58,7 @@
         class="nav-item"
         [routerLink]="item.route"
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: item.route === 'projects'}"
         [style.--index]="i"
         (click)="item.onClick ? item.onClick() : null"
       >
@@ -74,6 +76,7 @@
         class="nav-item"
         [routerLink]="item.route"
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: item.route === 'projects'}"
         [style.--index]="i"
         (click)="item.onClick ? item.onClick() : null"
       >
@@ -91,6 +94,7 @@
         class="nav-item"
         [routerLink]="item.route"
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: item.route === 'projects'}"
         [style.--index]="i"
         (click)="item.onClick ? item.onClick() : null"
       >

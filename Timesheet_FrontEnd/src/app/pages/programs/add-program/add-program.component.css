@@ -27,35 +27,567 @@
   to { transform: scale(1); opacity: 1; }
 }
 
-/* Main Container Styles */
-.program-title {
-  margin-bottom: 2rem;
-  text-align: center;
-  position: relative;
+/* Modal Header */
+.modal-header, .program-title {
+  background: linear-gradient(135deg, #FFE600 0%, #FFD700 100%);
+  color: #333;
+  margin: 0 !important;
+  padding: 1rem 1.5rem !important;
+  font-size: 1.1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 1rem;
+  position: relative;
 }
 
 .program-title h1 {
-  font-size: 2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #333;
   margin: 0;
 }
 
 .close-button {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #666;
+  color: #333;
   transition: color 0.3s ease;
 }
 
 .close-button:hover {
+  color: #666;
+}
+
+/* Modal Content */
+.modal-content {
+  padding: 1.5rem !important;
+  margin: 0 !important;
+  max-height: 80vh !important;
+  background: #fff;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Stepper Customization */
+.mat-stepper-horizontal {
+  background: transparent;
+  margin-top: 0 !important;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.mat-step-header {
+  pointer-events: none !important;
+  cursor: default !important;
+}
+
+.mat-step-header .mat-step-label {
+  color: rgba(0, 0, 0, 0.38) !important;
+}
+
+.mat-step-header .mat-step-icon {
+  background-color: rgba(0, 0, 0, 0.38) !important;
+}
+
+.mat-step-header .mat-step-icon-selected {
+  background-color: var(--accent) !important;
+}
+
+.step-label {
+  color: inherit;
+  pointer-events: none;
+}
+
+/* Remove hover effects */
+.mat-step-header:hover {
+  background: transparent !important;
+}
+
+/* Disable step header interaction */
+::ng-deep .mat-step-header {
+  pointer-events: none !important;
+}
+
+::ng-deep .mat-step-header .mat-step-label {
+  pointer-events: none !important;
+}
+
+::ng-deep .mat-step-header .mat-step-icon {
+  pointer-events: none !important;
+}
+
+/* Form Container */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Form Row Layout */
+.form-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive Form Row */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.form-row .form-group {
+  margin: 0;
+  min-width: 0;
+}
+
+.flex-1 {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Form Groups */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
   color: #333;
+  font-weight: 500;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Input Container */
+.input-container {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Input Styling */
+.form-input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background: white;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #FFE600;
+  box-shadow: 0 0 0 3px rgba(255, 230, 0, 0.2);
+}
+
+.form-input:hover {
+  border-color: #ccc;
+}
+
+.form-input::placeholder {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* Error Container */
+.error-container {
+  margin-top: 0.5rem;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  background: rgba(220, 53, 69, 0.1);
+  border-radius: 4px;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  gap: 1rem;
+}
+
+/* Responsive Modal Footer */
+@media (max-width: 576px) {
+  .modal-footer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .modal-footer .action-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Button Styling */
+.btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 100px;
+  border: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Responsive Buttons */
+@media (max-width: 576px) {
+  .btn {
+    min-width: 80px;
+    padding: 0.5rem 1rem;
+  }
+}
+
+.btn-cancel {
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.btn-submit {
+  background: #FFE600;
+  color: #333;
+  border: none;
+}
+
+.btn-cancel:hover {
+  background: #e9ecef;
+}
+
+.btn-submit:hover {
+  background: #FFD700;
+}
+
+.btn-submit:disabled {
+  background: #ffedb3;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* File Upload */
+.file-upload-container {
+  text-align: center;
+  padding: 2rem;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.file-upload-container:hover {
+  border-color: #2196f3;
+  background: rgba(33, 150, 243, 0.05);
+  transform: translateY(-2px);
+}
+
+.file-upload-container:active {
+  transform: translateY(0);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: #2196f3;
+  margin-bottom: 1rem;
+}
+
+.file-upload-container h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.file-upload-container p {
+  color: #666;
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.file-input {
+  display: none;
+}
+
+.image-preview {
+  position: relative;
+  margin: 20px auto;
+  max-width: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.remove-image {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.remove-image:hover {
+  background: #fff;
+  transform: scale(1.1);
+}
+
+.confirmation-content {
+  text-align: center;
+  padding: 2rem;
+  animation: scaleIn 0.5s ease-out;
+}
+
+.success-icon {
+  color: #4caf50;
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.success-icon mat-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+}
+
+.confirmation-content p {
+  font-size: 1.25rem;
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+/* Date Range Picker Styles */
+.date-range-field {
+  width: 100%;
+}
+
+.date-range-field .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+.date-range-field .mat-form-field-flex {
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 0.65rem 0.85rem;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.date-range-field .mat-form-field-flex:hover {
+  border-color: #ccc;
+}
+
+.date-range-field.mat-focused .mat-form-field-flex {
+  border-color: #FFE600;
+  box-shadow: 0 0 0 3px rgba(255, 230, 0, 0.2);
+}
+
+.date-range-field .mat-form-field-infix {
+  padding: 0;
+  border-top: none;
+}
+
+.date-range-field .mat-form-field-label-wrapper {
+  top: -0.5rem;
+  padding-top: 0;
+}
+
+.date-range-field .mat-form-field-underline {
+  display: none;
+}
+
+.date-range-field .mat-date-range-input {
+  font-size: 0.9rem;
+}
+
+.date-range-field .mat-date-range-input-separator {
+  color: #666;
+}
+
+.date-range-field .mat-datepicker-toggle {
+  color: #666;
+}
+
+/* Upload Progress */
+.upload-progress {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+}
+
+.progress-circle {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #333;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Mat Dialog Container Override - RESPONSIVE */
+::ng-deep .mat-mdc-dialog-container,
+::ng-deep .mat-dialog-container {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Remove fixed min-width for smaller screens */
+@media (max-width: 768px) {
+  ::ng-deep .mat-mdc-dialog-container,
+  ::ng-deep .mat-dialog-container {
+    max-width: 95vw;
+    max-height: 95vh;
+    margin: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  ::ng-deep .mat-mdc-dialog-container,
+  ::ng-deep .mat-dialog-container {
+    max-width: 100vw;
+    max-height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 1rem;
+  }
+
+  .program-title h1 {
+    font-size: 1rem;
+  }
+
+  .btn {
+    min-width: 80px;
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Additional Global Responsive Rules */
+* {
+  box-sizing: border-box;
+}
+
+/* Ensure no horizontal overflow on any element */
+.modal-content *,
+.form-container *{
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+/* Prevent form elements from causing overflow */
+select, input, textarea {
+  max-width: 100%;
+}
+
+/* Ensure flex containers don't overflow */
+.form-row,
+.modal-footer,
+.action-buttons {
+  flex-wrap: wrap;
+}
+
+/* Fix for Angular Material Dialog positioning */
+::ng-deep .cdk-overlay-pane {
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+/* Enhanced mobile experience */
+@media (max-width: 360px) {
+  .modal-header,
+  .program-title {
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem;
+  }
+
+  .modal-content {
+    padding: 1rem !important;
+  }
+
+  .btn {
+    min-width: 70px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
 }
 
 /* Stepper Customization */

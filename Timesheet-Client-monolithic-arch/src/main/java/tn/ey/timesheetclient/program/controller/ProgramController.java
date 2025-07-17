@@ -165,8 +165,8 @@ public class ProgramController {
             @RequestParam BigDecimal dailyrate,
             @RequestParam String function) {
         
-        Profile profile = _profileDao.findById(idp).orElse(null);
-        Program program = programDAO.findById(idprog).orElse(null);
+        Profile profile = _profileDao.findById(idprog).orElse(null);
+        Program program = programDAO.findById(idp).orElse(null);
         
         String profileName = profile != null ? profile.getFirstname() + " " + profile.getLastname() : "Profil inconnu";
         String programName = program != null ? program.getName() : "Programme inconnu";

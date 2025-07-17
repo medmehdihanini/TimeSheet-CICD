@@ -9,6 +9,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { RoleFormatPipe } from 'src/app/pipes/role-format.pipe';
 
 export type MenuItem = {
   icon: string;
@@ -23,7 +24,7 @@ export type MenuItem = {
   templateUrl: './custom-sidenav.component.html',
   styleUrls: ['./custom-sidenav.component.scss'],
   standalone: true,
-  imports: [CommonModule,MatListModule, MatIconModule, RouterModule, MatRippleModule, MatSnackBarModule],
+  imports: [CommonModule, MatListModule, MatIconModule, RouterModule, MatRippleModule, MatSnackBarModule, RoleFormatPipe],
 })
 export class CustomSidenavComponent  implements OnInit{
   sideNavCollapsed = signal(false);
@@ -44,6 +45,11 @@ export class CustomSidenavComponent  implements OnInit{
       label:'Projets',
       route:'projects'
     },
+    {
+      icon:'calendar_today',
+      label:'My Timesheets',
+      route:'my-timesheets'
+    },
     /*
     {
       icon: 'poll',
@@ -52,7 +58,7 @@ export class CustomSidenavComponent  implements OnInit{
     },
     */
     {
-      icon: 'assignment',
+      icon: 'people_alt',
       label: 'Assignation de tâches',
       route: 'projects/task-assignments'
     },
@@ -84,11 +90,13 @@ export class CustomSidenavComponent  implements OnInit{
       label:'Profils',
       route:'profiles'
     },
+    /*
     {
       icon: 'poll',
       label: 'Tableau de bord',
       onClick: () => this.redirectToPowerBI()
     },
+    */
   ])
   projectManagerMenuItems = signal<MenuItem[]>([
     {
@@ -97,12 +105,13 @@ export class CustomSidenavComponent  implements OnInit{
       route:'projects'
     },
     {
-      icon:'calendar_today',
-      label:'Timesheets',
-      route:'projects/timesheets'
+     icon:'calendar_today',
+      label:'My Timesheets',
+      route:'my-timesheets'
     },
+
     {
-      icon: 'assignment',
+      icon: 'people_alt',
       label: 'Assignation de tâches',
       route: 'projects/task-assignments'
     },
@@ -138,11 +147,13 @@ export class CustomSidenavComponent  implements OnInit{
       label:'Profils',
       route:'profiles'
     },
+    /*
     {
       icon: 'poll',
       label: 'Tableau de bord',
       onClick: () => this.redirectToPowerBI()
     },
+    */
   ])
   adminMenuItems = signal<MenuItem[]>([
     {
@@ -155,11 +166,13 @@ export class CustomSidenavComponent  implements OnInit{
       label:'Profils',
       route:'profiles'
     },
+    /*
     {
       icon:'poll',
       label:'Tableau de bord',
       route:'dashboard'
     },
+    */
     {
       icon:'history',
       label:'Logs',

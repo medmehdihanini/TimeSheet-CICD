@@ -105,13 +105,39 @@ export class AddUpdateprogramComponent implements OnInit {
   public getprogramdetails() {
     this.progserv.getOneProgram(this.programId).subscribe((response: any[]) => {
       this.program = response;
+      console.log('Program details:', this.program);
+
+      // Parse dates from DD/MM/YYYY format to Date objects
+      const startDate = this.parseDate(this.program.startdate);
+      const endDate = this.parseDate(this.program.enddate);
+
       this.programForm.patchValue({
         numcontrat: this.program.numcontrat,
         name: this.program.name,
         status: this.program.status,
         chefprogram: this.program.chefprogram,
+        startdate: startDate,
+        enddate: endDate,
       });
     });
+  }
+
+  // Helper method to parse date string from DD/MM/YYYY format to Date object
+  private parseDate(dateString: string): Date | null {
+    if (!dateString) {
+      return null;
+    }
+
+    const parts = dateString.split('/');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed in JavaScript Date
+    const year = parseInt(parts[2], 10);
+
+    return new Date(year, month, day);
   }
 
   public getProgramManagers() {

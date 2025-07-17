@@ -81,6 +81,27 @@ public class EmailHelperService {
         );
     }
 
+    public String sendTimesheetApprovalEmail(String toEmail, String profileName, 
+                                           String month, String approvedBy) {
+        Map<String, String> templateData = new HashMap<>();
+        templateData.put("PROFILE_NAME", profileName);
+        templateData.put("MONTH", month);
+        templateData.put("APPROVED_BY", approvedBy);
+        templateData.put("APPROVAL_DATE", java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+
+        String[] cc = {"timsheeta@gmail.com"};
+        
+        return emailTemplateService.sendTemplatedEmail(
+                EmailTemplateType.TIMESHEET_APPROUVED, 
+                toEmail, 
+                cc, 
+                "Timesheet approuvée", 
+                templateData, 
+                new MultipartFile[0]
+        );
+    }
+
+
     /**
      * Send timesheet rejection notification
      */

@@ -45,13 +45,7 @@
 }
 
 /* Base Layout */
-.update-container {
-  padding: var(--space-xl);
-  max-width: 1200px;
-  margin: 0 auto;
-  background: var(--background-secondary);
-  min-height: 100vh;
-}
+
 
 /* Page Header */
 .page-header {

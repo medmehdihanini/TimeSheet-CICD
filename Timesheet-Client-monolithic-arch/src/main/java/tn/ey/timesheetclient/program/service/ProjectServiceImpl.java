@@ -266,18 +266,31 @@ public ResponseEntity<?> deleteOneProject(Long idp) {
             return ResponseEntity.badRequest().body("Le projet n'existe pas");
         }              
         
-        // Handle associated chat room before project deletion
-        if (chatRoomService.deleteChatRoomByProjectId(idp)) {
-            log.info("Chat room for project {} has been deleted", project.getName());
-        }        // Get all project profiles for this project using repository query
-        List<ProjectProfile> projectProfiles = _projpDao.findProjectProfilesByProjectId(idp);
+        log.info("Starting deletion process for project: {} (ID: {})", project.getName(), idp);
         
-        // Delete all project profiles and their dependencies
+        // Step 1: Handle associated chat room and all chat-related data FIRST
+        // This ensures all chat messages, read statuses, and chat room associations are properly cleaned up
+        try {
+            if (chatRoomService.deleteChatRoomByProjectId(idp)) {
+                log.info("Chat room and all associated chat data for project '{}' has been successfully deleted", project.getName());
+            } else {
+                log.info("No chat room found for project '{}' or it was already deleted", project.getName());
+            }
+        } catch (Exception chatException) {
+            log.error("Error deleting chat room for project '{}': {}", project.getName(), chatException.getMessage(), chatException);
+            // Continue with project deletion even if chat room deletion fails
+        }
+        
+        // Step 2: Get all project profiles for this project using repository query
+        List<ProjectProfile> projectProfiles = _projpDao.findProjectProfilesByProjectId(idp);
+        log.info("Found {} project profiles to delete for project '{}'", projectProfiles.size(), project.getName());
+        
+        // Step 3: Delete all project profiles and their dependencies
         for (ProjectProfile pp : projectProfiles) {
             Long projectProfileId = pp.getId();
-            log.info("Processing ProjectProfile ID: {}", projectProfileId);
+            log.info("Processing ProjectProfile ID: {} for project '{}'", projectProfileId, project.getName());
             
-            // Step 1: Delete all tasks that reference this project profile
+            // Step 3a: Delete all tasks that reference this project profile
             List<Task> tasks = _taskDao.findByProfile_Id(projectProfileId);
             log.info("Found {} tasks for ProjectProfile ID: {}", tasks.size(), projectProfileId);
             
@@ -286,7 +299,7 @@ public ResponseEntity<?> deleteOneProject(Long idp) {
                 _taskDao.delete(task);
             }
             
-            // Step 2: Delete all timesheets associated with this project profile
+            // Step 3b: Delete all timesheets associated with this project profile
             List<Timesheet> timesheets = _timesheetdao.findByProjectprofile_Id(projectProfileId);
             log.info("Found {} timesheets for ProjectProfile ID: {}", timesheets.size(), projectProfileId);
             
@@ -294,27 +307,28 @@ public ResponseEntity<?> deleteOneProject(Long idp) {
                 log.info("Deleting timesheet ID: {} for ProjectProfile ID: {}", timesheet.getIdtimesheet(), projectProfileId);
                 _timesheetdao.delete(timesheet);
             }
-              // Step 3: Delete the project profile
+            
+            // Step 3c: Delete the project profile
             log.info("Deleting ProjectProfile ID: {}", projectProfileId);
             _projpDao.delete(pp);
         }
         
-        // Clear project associations before deletion
+        // Step 4: Clear project associations before deletion
         project.setProgram(null);
-        
-        // Clear chef projet association
         project.setChefprojet(null);
         
-        // Save the project with cleared associations before deletion
+        // Step 5: Save the project with cleared associations before deletion
         _projectDao.save(project);
         
-        // Delete the project
+        // Step 6: Delete the project
         _projectDao.delete(project);
-
-        return ResponseEntity.ok().body("Project deleted successfully");
+        
+        log.info("Project '{}' (ID: {}) and all associated data (including chat room, messages, and read statuses) have been successfully deleted", project.getName(), idp);
+        return ResponseEntity.ok().body("Project and all associated data deleted successfully");
+        
     } catch (Exception e) {
         e.printStackTrace();
-        log.error("Error deleting project: {}", e.getMessage(), e);
+        log.error("Error deleting project with ID {}: {}", idp, e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Error deleting project: " + e.getMessage());
     }
@@ -497,6 +511,12 @@ public ResponseEntity<?> deleteOneProject(Long idp) {
     public Optional<ProjectProfile> findProjectProfileByProfileIdAndProjectId(Long profileId, Long projectId) {
         return _projpDao.findByProfileIdpAndProjectIdproject(profileId, projectId);
     }
+    
+    @Override
+    public Optional<ProjectProfile> findProjectProfileById(Long projectProfileId) {
+        return _projpDao.findById(projectProfileId);
+    }
+    
     @Override
     public ResponseEntity<?> updateProjectProfile(Long profileId, Long projectId, double mandayBudget) {
         try {

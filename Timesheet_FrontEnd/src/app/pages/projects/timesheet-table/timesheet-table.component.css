@@ -817,6 +817,17 @@
   background: #5A63E6;
 }
 
+.dictionary-btn {
+  background-color: #8e44ad;
+  color: white;
+}
+
+.dictionary-btn:hover {
+  background-color: #7d3c98;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(142, 68, 173, 0.4);
+}
+
 .submit-btn {
   background: #FFE600;
   color: #2E2E38;
@@ -923,4 +934,99 @@
 
 .status-btn i {
   font-size: 1.25rem;
+}
+
+/* Pending Status Indicator */
+.pending-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.pending-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+  border: 2px solid rgba(255, 193, 7, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
+  animation: pulse-border 2s infinite;
+}
+
+.pending-icon {
+  font-size: 1.5rem;
+  color: #FFC107;
+  animation: rotate 2s linear infinite;
+}
+
+.pending-text {
+  font-weight: 600;
+  color: #F57C00;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+}
+
+.pending-dots {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.pending-dots .dot {
+  width: 6px;
+  height: 6px;
+  background-color: #FFC107;
+  border-radius: 50%;
+  animation: dot-bounce 1.5s infinite;
+}
+
+.pending-dots .dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.pending-dots .dot:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.pending-dots .dot:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+/* Animations */
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(255, 193, 7, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
+  }
+  50% {
+    border-color: rgba(255, 193, 7, 0.6);
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.25);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dot-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(-2px);
+    opacity: 0.8;
+  }
 }

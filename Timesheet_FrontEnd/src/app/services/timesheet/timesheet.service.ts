@@ -8,7 +8,12 @@ import { Observable } from 'rxjs';
 export class TimesheetService {
   private apiserverUrl = 'http://localhost:8083/api/v1/timesheet';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+  ) {
+    // Use centralized API configuration
+    this.apiserverUrl = this.apiserverUrl;
+  }
 
   addAssignTimesheet(
     month: number,
@@ -65,5 +70,27 @@ export class TimesheetService {
     return this.http.get<any>(
       `${this.apiserverUrl}/sendAprouvalEmail/${timesheetId}`
     );
+  }
+
+  sendSubmissionEmail(timesheetId: number): Observable<any> {
+    return this.http.get(
+      `${this.apiserverUrl}/sendSubmissionEmail/${timesheetId}`,{ responseType: 'text' }
+    );
+  }
+
+
+    getTimesheetByMonthAndYearforprofil(
+    month: string,
+    year: string,
+    idprofile: number
+  ): Observable<any> {
+    const url = `${this.apiserverUrl}/getByMonth`;
+    const params = {
+      month: month.toString(),
+      year: year.toString(),
+      idprofile: idprofile.toString(),
+    };
+
+    return this.http.get<any>(url, { params });
   }
 }

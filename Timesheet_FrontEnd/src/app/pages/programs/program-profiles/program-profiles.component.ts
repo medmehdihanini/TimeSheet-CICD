@@ -108,7 +108,7 @@ export class ProgramProfilesComponent implements OnInit, AfterViewInit {
     this.route.queryParams.subscribe(params => {
       const notf = params['notif'];
       if (notf === '1') {
-        alert('Programme ajouté avec succès.')
+        this.alertService.success('Succès', 'Programme ajouté avec succès.');
       }
     });
   }

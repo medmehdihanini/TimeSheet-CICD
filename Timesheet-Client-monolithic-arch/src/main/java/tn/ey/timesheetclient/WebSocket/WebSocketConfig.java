@@ -62,12 +62,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Main WebSocket endpoint
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:4200", "http://127.0.0.1:4200")
+                .setAllowedOrigins("http://localhost:4200", "http://127.0.0.1:4200", "http://20.19.87.209:8085", "http://20.19.87.209:4200")
                 .withSockJS();
         
         // Dedicated endpoint for chat functionality
         registry.addEndpoint("/chat-socket")
-                .setAllowedOrigins("http://localhost:4200", "http://127.0.0.1:4200")
+                .setAllowedOrigins("http://localhost:4200", "http://127.0.0.1:4200", "http://20.19.87.209:8085", "http://20.19.87.209:4200")
                 .withSockJS();
     }
 

@@ -59,6 +59,9 @@
       </button>
     </div>
 
+    <!-- Category Dictionary Button - visible to all users -->
+
+
     <!-- Project Manager Actions -->
     <div class="action-buttons" *ngIf="connecteduser?.role === 'PROJECT_MANAGER'">
       <button
@@ -68,14 +71,15 @@
         <i class="material-icons">next_week</i>
         <span>Déposer</span>
       </button>
-      <div *ngIf="timesheet?.status == 'PENDING'" class="pending-animation">
-        <div class="🤚">
-          <div class="👉"></div>
-          <div class="👉"></div>
-          <div class="👉"></div>
-          <div class="👉"></div>
-          <div class="🌴"></div>
-          <div class="👍"></div>
+      <div *ngIf="timesheet?.status == 'PENDING'" class="pending-status">
+        <div class="pending-indicator">
+          <i class="material-icons pending-icon">hourglass_empty</i>
+          <span class="pending-text">En attente d'approbation</span>
+          <div class="pending-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -111,7 +115,7 @@
             id="month-select"
             [(ngModel)]="selectedMonth"
             (change)="onMonthChange($event)">
-            <option *ngFor="let month of months" [value]="month.value">
+            <option *ngFor="let month of availableMonths" [value]="month.value">
               {{ month.frname }}
             </option>
           </select>
